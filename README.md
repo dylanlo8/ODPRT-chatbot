@@ -74,10 +74,8 @@ chmod +x bootstrap.sh
 ```
 ---
 
-Once set up, create a virtual environment using `conda` and install dependencies:
-
 ```zsh
-# Create a virtual environment
+# activate whenever coding
 conda activate odprt
 ```
 
@@ -87,7 +85,7 @@ You can use Python's native virtual environment `venv` to setup the project
 
 ```zsh
 # Create a virtual environment
-python -m venv <VENV_NAME>
+python -m venv odprt
 ```
 
 You can then activate the environment and install the dependencies using the following commands -
@@ -96,7 +94,7 @@ For Unix-based systems (macOS / Linux):
 
 ```zsh
 # Activate virtual environment
-source <VENV_NAME>/bin/activate
+source odprt/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -106,7 +104,7 @@ For Windows:
 
 ```powershell
 # Activate virtual environment
-.\<VENV_NAME>\Scripts\activate
+.\odprt\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
