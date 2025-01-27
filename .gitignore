@@ -1,0 +1,27 @@
+node_modules/
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Environment variables
+.env
+
+# IDE specific files
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# ODPRT & credentials data
+*.json
+*.pickle
