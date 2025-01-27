@@ -57,31 +57,28 @@ A chatbot designed to answer questions relating to the ODPRT department.
 ### Installation
 1. Git clone this repository
 ```shell
-git clone LINK_TO_REPOSITORY
+git clone https://github.com/dylanlo8/ODPRT-chatbot.git
 ```
 2. Create a virtual environment in the root directory of this project and install backend dependencies
 
-#### Anaconda
-
-You can download the Anaconda Distribution for your respective operating system [here](https://docs.anaconda.com/anaconda/install/). You may also find out how to get started with Anaconda Distribution [here](https://docs.anaconda.com/anaconda/getting-started/). To verfiy your installation, you can head to the Command Line Interface (CLI) and run the following command:
+#### Miniconda
 
 ```zsh
-conda list
+cd env
+
+# make script executable
+chmod +x bootstrap.sh
+
+# run script
+./bootstrap.sh
 ```
-
-You should see a list of packages installed in your active environment and their versions displayed. For more information, refer [here](https://docs.anaconda.com/anaconda/install/verify-install/).
-
 ---
 
 Once set up, create a virtual environment using `conda` and install dependencies:
 
 ```zsh
 # Create a virtual environment
-conda create -n <VENV_NAME> python=3.12 -y
-conda activate <VENV_NAME>
-
-# Install dependencies
-pip install -r requirements.txt
+conda activate odprt
 ```
 
 #### venv
