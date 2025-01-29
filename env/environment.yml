@@ -93,3 +93,6 @@ dependencies:
       - multidict==6.1.0
       - mypy-extensions==1.0.0
       - nemoguardrails==0.10
+      - FlagEmbedding
+      - pymilvus
+      - milvus_model
