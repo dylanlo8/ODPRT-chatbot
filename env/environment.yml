@@ -96,3 +96,5 @@ dependencies:
       - FlagEmbedding
       - pymilvus
       - milvus_model
+      - selenium==4.28.1
+      - beautifulsoup4==4.12.3
