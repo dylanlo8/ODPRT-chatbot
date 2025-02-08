@@ -98,3 +98,6 @@ dependencies:
       - milvus_model
       - selenium==4.28.1
       - beautifulsoup4==4.12.3
+      - langchain-groq==0.1.2
+      - langcodes==3.3.0
+      - ragas==0.1.7
