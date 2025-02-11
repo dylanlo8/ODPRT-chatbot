@@ -1,10 +1,12 @@
-from pymilvus import utility, connections, Collection, AnnSearchRequest, RRFRanker
-from .schema import SCHEMA
-from .index import create_all_indexes
-from chatbot.backend.services.embedding_model import embedding_model
-from tqdm import tqdm
-from dotenv import load_dotenv
 import os
+
+from dotenv import load_dotenv
+from pymilvus import utility, connections, Collection, AnnSearchRequest, RRFRanker
+from tqdm import tqdm
+
+from chatbot.backend.services.vector_db.schema import SCHEMA
+from chatbot.backend.services.vector_db.index import create_all_indexes
+from chatbot.backend.services.models.embedding_model import embedding_model
 
 class VectorDB:
     def __init__(self, collection_name):
