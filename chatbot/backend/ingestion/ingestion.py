@@ -1,5 +1,5 @@
 from chatbot.backend.services.vector_db.db import VectorDB
-from chatbot.backend.services.models import vlm
+from chatbot.backend.services.models.models import vlm
 from chatbot.backend.services.models.embedding_model import embedding_model
 
 # Sample ingestion pipeline
