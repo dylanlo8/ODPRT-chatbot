@@ -1,6 +1,6 @@
 from chatbot.backend.services.vector_db.db import VectorDB
 from chatbot.backend.services.models import vlm
-from chatbot.backend.services.embedding_model import embedding_model
+from chatbot.backend.services.models.embedding_model import embedding_model
 
 # Sample ingestion pipeline
 print("Initialising vector db")
