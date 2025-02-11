@@ -24,10 +24,10 @@ image_summaries = vlm.generate_image_summaries(image_paths=image_paths)
 
 # Test Embedding Model Encoding
 print("Testing embedding model")
-description_embeddings, image_embeddings = embedding_model.encode_images_summaries(image_summaries=image_summaries, image_paths=image_paths)
+description_embeddings = embedding_model.batch_encode(image_summaries)
 
 # Compile sample data into VectorDB SCHEMA format
-# Consider making a helper function in db class
+# TODO: Consider making a helper function in db class
 data = [
     {
         "doc_id": image_paths[i],
@@ -36,8 +36,7 @@ data = [
         "text_dense_embedding": [0.0] * 1024,  # Placeholder for text dense embedding
         "text_sparse_embedding": [],  # Empty sparse vector
         "description": image_summaries[i],
-        "description_embedding": description_embeddings[i],  # Placeholder for description embedding
-        "image_embedding": image_embeddings[i],  # Placeholder for image embedding
+        "description_embedding": description_embeddings[i],  # Embedding for Image Descriptions
     }
     for i in range(len(image_paths))
 ]

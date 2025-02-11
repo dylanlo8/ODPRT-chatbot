@@ -52,13 +52,7 @@ DESCRIPTION = FieldSchema(
 DESCRIPTION_EMBEDDING = FieldSchema(
     name="description_embedding",
     dtype=DataType.FLOAT_VECTOR,
-    dim=768
-)
-
-IMAGE_EMBEDDING = FieldSchema(
-    name="image_embedding",
-    dtype=DataType.FLOAT_VECTOR,
-    dim=768 # Image embedding dim
+    dim=1024
 )
 
 ### DEFINING THE SCHEMA
@@ -66,7 +60,7 @@ IMAGE_EMBEDDING = FieldSchema(
 SCHEMA = CollectionSchema(
     fields=[AUTO_ID, DOC_ID, DOC_SOURCE, TEXT, 
             TEXT_DENSE_EMBEDDING, TEXT_SPARSE_EMBEDDING, 
-            DESCRIPTION, DESCRIPTION_EMBEDDING, IMAGE_EMBEDDING],
+            DESCRIPTION, DESCRIPTION_EMBEDDING],
     description="Schema for indexing documents and images",
     enable_dynamic_field=True
 )

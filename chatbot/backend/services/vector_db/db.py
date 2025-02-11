@@ -38,28 +38,14 @@ class VectorDB:
 
     def image_hybrid_search(self, query: str) -> str:
         # Get query embedding
-        query_embedding = self.embedding_model.encode_texts(query)[0]
-        
-        search_results = self.collection.hybrid_search(
-                reqs=[
-                    AnnSearchRequest(
-                        data=[query_embedding],  # content vector embedding
-                        anns_field='description_embedding',  # content vector field
-                        param={"metric_type": "COSINE", "params": {"M": 64, "efConstruction": 512}}, 
-                        limit=3
-                    ),
-                    AnnSearchRequest(
-                        data=[query_embedding],  # keyword vector embedding
-                        anns_field='image_embedding',  # keyword vector field
-                        param={"metric_type": "COSINE", "params": {"M": 64, "efConstruction": 512}}, 
-                        limit=3
-                    )
-                ],
-                output_fields=['doc_id', 'description'],
-                # using RRFRanker here for reranking
-                rerank=RRFRanker(),
-                limit=1
-            )
+        query_embedding = self.embedding_model.batch_encode(query)[0]
+        search_results = self.collection.search(
+            data=[query_embedding],  # keyword vector embedding
+            anns_field='description_embedding',  # keyword vector field
+            param={"metric_type": "COSINE"}, 
+            limit=1,
+            output_fields=['doc_id', 'description']
+        )
         
         hits = search_results[0]
         

@@ -44,17 +44,6 @@ def create_all_indexes(collection: Collection) -> Collection:
     
     print("description_embedding index created")
 
-    # sparse embeddings index
-    collection.create_index(
-        field_name="image_embedding",
-        index_params={
-            "metric_type": "COSINE",
-            "index_type": "HNSW",
-        },
-        index_name="image_embedding_index"
-    )
-    
-    print("image_embedding index created")
     # load
     collection.load()
     print("Collection loaded")

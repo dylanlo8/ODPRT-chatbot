@@ -31,7 +31,7 @@ class VLM:
                     {
                         "role": "user",
                         "content": [
-                            {"type": "text", "text": "Generate me a summary of this image."},
+                            {"type": "text", "text": "Generate me a summary of this image in less than 150 words."},
                             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_img}"}},
                         ],
                     }

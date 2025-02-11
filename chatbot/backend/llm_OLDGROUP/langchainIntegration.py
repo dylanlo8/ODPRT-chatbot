@@ -11,7 +11,7 @@ from langchain_openai import ChatOpenAI
 from langchain_mistralai import ChatMistralAI
 
 from .prompts import OpenAIPrompts
-from database.chroma_db import query_db, get_global_collection
+from database_OLDGROUP.chroma_db import query_db, get_global_collection
 
 from nemoguardrails import RailsConfig
 from nemoguardrails.integrations.langchain.runnable_rails import RunnableRails
