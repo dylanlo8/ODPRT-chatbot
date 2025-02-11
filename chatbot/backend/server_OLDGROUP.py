@@ -1,6 +1,6 @@
 from flask import Blueprint, Flask, jsonify, request
 from flask_cors import CORS
-from llm.langchainIntegration import get_completion, get_email_response
+from llm_OLDGROUP.langchainIntegration import get_completion, get_email_response
 
 bp = Blueprint("routes", __name__, static_folder="static/browser")
 

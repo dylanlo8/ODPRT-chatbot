@@ -1,5 +1,5 @@
-from database.chroma_db import get_global_collection
-from server import create_server
+from database_OLDGROUP.chroma_db import get_global_collection
+from chatbot.backend.server_OLDGROUP import create_server
 
 # Creates backend server and initialises vector database
 app = create_server()
