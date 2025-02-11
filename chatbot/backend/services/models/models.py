@@ -26,6 +26,28 @@ class VLM:
         img.save(buffered, format="PNG")
         return base64.b64encode(buffered.getvalue()).decode("utf-8")
     
+    def _build_payload(self, 
+                        prompt: str, 
+                        image_path: str):
+        img = Image.open(image_path)
+        base64_img = self.encode_image(img)
+        payload = {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_img}"}},
+                    ],
+                }
+            ],
+            "model": "Qwen/Qwen2-VL-7B-Instruct",
+            "max_tokens": 300,
+            "temperature": 0.1,
+            "top_p": 0.9,
+        }
+        return payload
+    
     def filter_images(self, 
                       image_paths: List[str],
                       prompt: str = FILTER_IMAGE_PROMPT) -> List[str]:
@@ -40,23 +62,7 @@ class VLM:
         """
         useful_image_paths = []
         for image_path in image_paths:
-            img = Image.open(image_path)
-            base64_img = self.encode_image(img)
-            payload = {
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": prompt},
-                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_img}"}},
-                        ],
-                    }
-                ],
-                "model": "Qwen/Qwen2-VL-7B-Instruct",
-                "max_tokens": 300,
-                "temperature": 0.1,
-                "top_p": 0.9,
-            }
+            payload = self._build_payload(prompt=prompt, image_path=image_path)
             response = requests.post(self.api, headers=self.headers, json=payload)
             answer = response.json().get("choices", [{}])[0].get("message", {}).get("content", "No classification available")
             if answer == "No classification available":
@@ -85,23 +91,7 @@ class VLM:
         """
         summaries = []
         for image_path in useful_image_paths:
-            img = Image.open(image_path)
-            base64_img = self.encode_image(img)
-            payload = {
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": prompt},
-                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_img}"}},
-                        ],
-                    }
-                ],
-                "model": "Qwen/Qwen2-VL-7B-Instruct",
-                "max_tokens": 300,
-                "temperature": 0.1,
-                "top_p": 0.9,
-            }
+            payload = self._build_payload(prompt=prompt, image_path=image_path)
             response = requests.post(self.api, headers=self.headers, json=payload)
             summary = response.json().get("choices", [{}])[0].get("message", {}).get("content", "No summary available")
             if summary != "No summary available":
