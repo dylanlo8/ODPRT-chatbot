@@ -16,4 +16,4 @@ def chunk(embed_model, path):
     return semantic_chunks
 
 
-print(chunk(embedding_model, "notebooks/1810.04805v2.pdf"))
+chunk(embedding_model, "notebooks/1810.04805v2.pdf")
