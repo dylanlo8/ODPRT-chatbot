@@ -35,3 +35,6 @@ install_conda_and_create_env() {
 
 install_conda_and_create_env
 ipython kernel install --user --name=odprt --display-name "(odprt)"
+git clone https://github.com/FlagOpen/FlagEmbedding.git
+cd FlagEmbedding/research/visual_bge
+pip install -e .

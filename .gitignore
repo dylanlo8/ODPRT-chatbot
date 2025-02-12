@@ -22,3 +22,7 @@ Thumbs.db
 # ODPRT & credentials data
 *.json
 *.pickle
+
+FlagEmbedding/
+chatbot/backend/services/Visualized_base_en_v1.5.pth
+
