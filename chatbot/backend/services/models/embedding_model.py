@@ -1,5 +1,8 @@
+import numpy as np
 import torch
 from sentence_transformers import SentenceTransformer
+
+from typing import List
 
 class EmbeddingModel:
     def __init__(self):
@@ -22,5 +25,21 @@ class EmbeddingModel:
             description_embedding = self.embedding_model.encode(text, normalize_embeddings=True).tolist()
 
         return description_embedding
+    
+    def compute_embeddings(
+        self, 
+        texts: List[str]
+    ) -> np.ndarray:
+        """
+        compute embeddings for a list of texts using bge
+        
+        Args:
+            texts (List[str]): List of text strings to encode
+            
+        Returns:
+            np.ndarray: Matrix of text embeddings
+        """
+        embeddings = self.batch_encode(texts)
+        return np.array(embeddings)
 
 embedding_model = EmbeddingModel()
