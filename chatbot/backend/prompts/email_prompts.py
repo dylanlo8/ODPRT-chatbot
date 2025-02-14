@@ -28,10 +28,11 @@ Email Thread:
 Instructions:
 1. Identify all distinct questions asked by the sender(s) within the email thread.
 2. Extract the corresponding answers from the same thread, ensuring relevance and accuracy.
-3. Maintain the chronological order of the questions and answers.
-4. If no clear question is present, return an empty list for `questions`.
-5. If a question has no available answer in the thread, return "No answer available" in the corresponding position in `answers`.
+3. Add context wherever necessary to provide a clear and concise question-answer pair.
+4. Maintain the chronological order of the questions and answers.
+5. If no clear question is present, return an empty list for `questions`.
+6. If a question has no available answer in the thread, return "No answer available" in the corresponding position in `answers`.
 
 Output Format:
-`questions`: ["First extracted question", "Second extracted question"],
-`answers`: ["First corresponding answer", "Second corresponding answer"]"""
+`questions`: ["First extracted question", "Second extracted question", ...],
+`answers`: ["First corresponding answer", "Second corresponding answer", ...]"""
