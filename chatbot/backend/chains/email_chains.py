@@ -1,3 +1,6 @@
+from langchain_core.prompts.chat import ChatPromptTemplate
+
+from chatbot.backend.prompts.email_prompts import CLASSIFICATION_PROMPT, QA_PROMPT
 from chatbot.backend.schemas.structured_outputs import UsefulnessClassification, QAPairs
 from chatbot.backend.services.models.llm import gpt_4o_mini
 
