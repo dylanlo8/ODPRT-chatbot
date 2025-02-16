@@ -19,14 +19,14 @@ A chatbot designed to answer questions relating to the ODPRT department.
 - Get relevant answers by retrieving related documents from the vector database
 - Ability to store conversation history
 - Provide feedback to the chatbot
-- Attach documents to the chatbot (NOT COMPLETED)
+- Attach documents to the chatbot
 
 ### Architecture Diagram
-![Chat](./docs/images/chat_architecture.png)
-*/chat application flow*
+![Overall Architecture](./docs/images/architecture.png)
+
+![Chat Workflow](./docs/images/chat_workflow.png)
 
 ![Email](./docs/images/email_architecture.png)
-*/email application flow*
 
 
 ### Application Flow
@@ -69,10 +69,7 @@ chmod +x bootstrap.sh
 
 # run script
 ./env/bootstrap.sh
-```
----
 
-```zsh
 # activate whenever coding
 conda activate odprt
 ```
@@ -141,19 +138,14 @@ Optionally, you can also run the command `pre-commit run --all-files` to lint an
 
 2. Add following variables to the .env file, which can also be found in example.env
 ```shell
-EMAIL_DOCUMENT_ID=
-FAQ_DOCUMENT_ID=
-MISTRAL_API_KEY=
-MISTRAL_MODEL=
-MODEL=
+# for llms
 OPENAI_API_KEY=
 OPENAI_MODEL=
-REACT_APP_FIREBASE_API_KEY=
-REACT_APP_FIREBASE_AUTH_DOMAIN=
-REACT_APP_FIREBASE_PROJECT_ID=
-REACT_APP_FIREBASE_STORAGE_BUCKET=
-REACT_APP_FIREBASE_MESSAGING_SENDER_ID=
-REACT_APP_FIREBASE_APP_ID=
+HYPERBOLIC_API_KEY=
+
+# for databases
+ZILLIS_ENDPOINT=
+ZILLIS_TOKEN=
 ```
 The following steps will detail how to set up the resources required and get the variables listed above
 
@@ -161,38 +153,6 @@ The following steps will detail how to set up the resources required and get the
 
 ##### OpenAI
 To get an OpenAI API key, you can follow the steps listed in this [article](https://medium.com/@lorenzozar/how-to-get-your-own-openai-api-key-f4d44e60c327). Thereafter, set `OPENAI_API_KEY` to the API key you just obtained and `OPENAI_MODEL` to the GPT model for your LLM (eg gpt-4o-mini).
-
-##### Mistral
-To get a Mistral API key, you can follow the steps listed in this [article](https://docs.mindmac.app/how-to.../add-api-key/create-mistral-ai-api-key). Thereafter, set `MISTRAL_API_KEY` to the API key you just obtained and `MISTRAL_MODEL` to the Mistral model for your LLM (eg mistral-small-latest).
-
-Finally, set `MODEL` to either `OPENAI` or `MISTRAL`, depending on the model you want to use.
-
-#### Setting up Firebase
-1. Go to the [Firebase Console](https://console.firebase.google.com/)
-2. Click on "Create a project"
-3. Enter project name, select default settings and click "Create Project"
-4. Click on the web icon (</>)
-5. Register your app with a nickname (e.g., "my-react-app")
-6. Once registered, you'll see your configuration object with all these credentials
-```shell
-const firebaseConfig = {
-  apiKey: "your-api-key",
-  authDomain: "your-project-id.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project-id.appspot.com",
-  messagingSenderId: "your-sender-id",
-  appId: "your-app-id"
-};
-```
-7. Copy these credentials into the respective variables below in your .env file
-```shell
-REACT_APP_FIREBASE_API_KEY=
-REACT_APP_FIREBASE_AUTH_DOMAIN=
-REACT_APP_FIREBASE_PROJECT_ID=
-REACT_APP_FIREBASE_STORAGE_BUCKET=
-REACT_APP_FIREBASE_MESSAGING_SENDER_ID=
-REACT_APP_FIREBASE_APP_ID=
-```
 
 #### Setting up Google Cloud Platform
 ##### Setting up the Google Drive API:
