@@ -1,4 +1,4 @@
-from chatbot.backend.chains.query_chains import general_chain, routing_chain
+from chatbot.backend.chains.query_chains import answer_chain, routing_chain
 
 def semantic_router(user_query) -> str: 
     result = routing_chain.invoke({"user_query": user_query})
@@ -14,4 +14,4 @@ def semantic_router(user_query) -> str:
         return generate_answer(user_query)
     
 def generate_answer(user_query) -> str: 
-    return general_chain.invoke({"user_query": user_query})
+    return answer_chain.invoke({"user_query": user_query})
