@@ -8,3 +8,7 @@ class UsefulnessClassification(BaseModel):
 class QAPairs(BaseModel):
     questions: List[str] = Field(description="A list of question(s) the client(s) is/are asking")
     answers: List[str] = Field(description="The answers to the question(s) asked")
+
+class SemanticRouting(BaseModel):
+    classification: Literal["VAGUE", "NOT_RELATED", "RELATED"] = Field(description="a string to represent if the query is vague, not related or related")
+    
