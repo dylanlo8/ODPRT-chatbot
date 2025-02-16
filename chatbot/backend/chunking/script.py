@@ -10,6 +10,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 loader = PyPDFLoader("")  # path to documents
 documents = loader.load()
 embed_model = FastEmbedEmbeddings(model_name="BAAI/bge-base-en-v1.5")
+# change to dylans embedding model
 
 semantic_chunker = SemanticChunker(embed_model,
                                    breakpoint_threshold_type="percentile")
