@@ -156,7 +156,7 @@ def get_all_emails(
             if not email.endswith('.msg'):
                 continue
             email_path = os.path.join(directory, child_dir, email)
-            cleaned_email = clean_email(read_email(email_path=email_path))
+            cleaned_email = clean_email(re_order_email_threads(read_email(email_path=email_path)))
             emails.append(cleaned_email)
     return emails
 
