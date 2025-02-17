@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from chatbot.backend.chains.query_chains import routing_chain, answer_chain
 from chatbot.backend.services.logger import logger
 
@@ -6,13 +8,15 @@ class ResponseGenerator:
     """class to generate response to user queries"""
 
     def __init__(self):
+        self.unrelated_response = "I am sorry, but I am unable to provide a response to your query at the moment."
         self.logger = logger
 
     def _router(
         self,
         user_query: str,
+        uploaded_content: str = "",
         chat_history: str = "",
-    ) -> str:
+    ) -> Tuple[str, str]:
         """
         routes user queries to the appropriate response generation
 
@@ -23,6 +27,7 @@ class ResponseGenerator:
         result = routing_chain.invoke(
             {
                 "user_query": user_query,
+                "uploaded_content": uploaded_content,
                 "chat_history": chat_history,
             }
         )
@@ -35,6 +40,7 @@ class ResponseGenerator:
     def _generate_answer(
         self,
         user_query: str,
+        uploaded_content: str = "",
         context: str = "",
         chat_history: str = "",
     ) -> str:
@@ -47,14 +53,16 @@ class ResponseGenerator:
         return answer_chain.invoke(
             {
                 "user_query": user_query,
-                "chat_history": chat_history,
+                "uploaded_content": uploaded_content,
                 "context": context,
+                "chat_history": chat_history,
             }
         )
 
     def query_workflow(
         self,
         user_query: str,
+        uploaded_content: str = "",
         context: str = "",
         chat_history: str = "",
     ) -> str:
@@ -66,17 +74,19 @@ class ResponseGenerator:
         """
         classification, clarifying_question = self._router(
             user_query=user_query,
+            uploaded_content=uploaded_content,
             chat_history=chat_history,
         )
 
-        if classification == "not_related":
-            return "The query is unrelated to IEP's responsibilities; I am unable to provide an answer."
+        if classification == "unrelated":
+            return self.unrelated_response
 
         if classification == "vague":
             return clarifying_question
 
         return self._generate_answer(
             user_query=user_query,
+            uploaded_content=uploaded_content,
             context=context,
             chat_history=chat_history,
         )

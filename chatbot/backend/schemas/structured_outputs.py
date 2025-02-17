@@ -17,8 +17,8 @@ class QAPairs(BaseModel):
 
 
 class SemanticRouting(BaseModel):
-    classification: Literal["not_related", "related", "vague"] = Field(
-        description="a string to represent if the query is vague, not related or related"
+    classification: Literal["unrelated", "related", "vague"] = Field(
+        description="a string to represent if the query is vague, unrelated or related"
     )
     clarifying_question: str = Field(
         description="A follow-up question to request more details before proceeding with further classification."
