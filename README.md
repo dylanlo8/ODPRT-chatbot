@@ -64,13 +64,11 @@ git clone https://github.com/dylanlo8/ODPRT-chatbot.git
 #### Miniconda
 
 ```zsh
-cd env
-
 # make script executable
 chmod +x bootstrap.sh
 
 # run script
-./bootstrap.sh
+./env/bootstrap.sh
 ```
 ---
 
