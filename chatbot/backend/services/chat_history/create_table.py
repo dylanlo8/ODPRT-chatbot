@@ -16,4 +16,15 @@ CREATE TABLE messages (
     text TEXT NOT NULL,
     timestamp TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE knowledge_base (
+    document_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    chunk_id UUID DEFAULT gen_random_uuid(),
+    document_source TEXT NOT NULL,
+    document_source_type VARCHAR(50) NOT NULL,
+    image_url TEXT,
+    source_url TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    metadata JSONB
+);
 """
