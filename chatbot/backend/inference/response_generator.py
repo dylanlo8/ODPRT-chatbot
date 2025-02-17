@@ -79,11 +79,14 @@ class ResponseGenerator:
         )
 
         if classification == "unrelated":
+            self.logger.info(f"route to `unrelated`")
             return self.unrelated_response
 
         if classification == "vague":
+            self.logger.info(f"route to `vague` with clarifying question")
             return clarifying_question
 
+        self.logger.info(f"route to `related`")
         return self._generate_answer(
             user_query=user_query,
             uploaded_content=uploaded_content,
