@@ -21,6 +21,13 @@ def bulk_insert_conversations(conversations: list[dict]) -> dict:
     except Exception as exception:
         return exception
 
+def bulk_insert_knowledge_base(knowledge_base: list[dict]) -> dict:
+    try:
+        response = supabase.table("knowledge_base").insert(knowledge_base).execute()
+        return response
+    except Exception as exception:
+        return exception
+
 def get_user_conversations(user_id: str) -> dict:
     """
     Retrieve all conversations for a specific user. Sorted by created_at in descending order.
