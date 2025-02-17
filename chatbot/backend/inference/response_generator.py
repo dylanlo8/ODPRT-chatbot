@@ -1,6 +1,11 @@
-from typing import Tuple
+import ast
+from typing import List, Tuple
 
-from chatbot.backend.chains.query_chains import routing_chain, answer_chain
+from chatbot.backend.chains.query_chains import (
+    routing_chain,
+    answer_chain,
+    generate_email_chain,
+)
 from chatbot.backend.services.logger import logger
 
 
@@ -93,3 +98,23 @@ class ResponseGenerator:
             context=context,
             chat_history=chat_history,
         )
+
+    def generate_email(
+        self,
+        chat_history: str,
+    ) -> Tuple[str, str, List[str]]:
+        """
+        generates email template
+
+        Returns:
+            email_subject: email subject
+            email_body: email body
+            recipients: list of email recipients
+        """
+        result = generate_email_chain.invoke({"chat_history": chat_history})
+        email_subject, email_body, email_recipients = (
+            result.subject,
+            result.body,
+            result.recipients,
+        )
+        return email_subject, email_body, email_recipients

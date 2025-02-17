@@ -1,8 +1,12 @@
 from langchain_core.prompts.chat import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-from chatbot.backend.prompts.query_prompts import ANSWER_PROMPT, ROUTING_PROMPT
-from chatbot.backend.schemas.structured_outputs import SemanticRouting
+from chatbot.backend.prompts.query_prompts import (
+    ANSWER_PROMPT,
+    ROUTING_PROMPT,
+    EMAIL_TEMPLATE,
+)
+from chatbot.backend.schemas.structured_outputs import SemanticRouting, EmailTemplate
 from chatbot.backend.services.models.llm import gpt_4o_mini
 
 # classifies user queries
@@ -29,3 +33,11 @@ answer_chain = (
     | gpt_4o_mini
     | StrOutputParser()
 )
+
+# generates emails
+generate_email_chain = ChatPromptTemplate.from_messages(
+    [
+        ("system", EMAIL_TEMPLATE),
+        ("human", "{chat_history}"),
+    ]
+) | gpt_4o_mini.with_structured_output(EmailTemplate)
