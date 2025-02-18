@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import Chatbot from './Chatbot/Chatbot';
+import ChatPage from './ChatPage';
 import './App.css'
 
 function App() {
 
   return (
-    <Chatbot/>
+    <ChatPage/>
   )
 }
 

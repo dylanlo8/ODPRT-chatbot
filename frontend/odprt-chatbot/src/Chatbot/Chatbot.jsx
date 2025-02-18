@@ -3,8 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane, faLink } from '@fortawesome/free-solid-svg-icons';
 import "./Chatbot.css";
 
-const Chatbot = () => {
-  const [messages, setMessages] = useState([]);
+const Chatbot = ({messages, onSendMessage, setIsChatModified }) => {
   const [inputText, setInputText] = useState("");
   const [attachedFile, setAttachedFile] = useState(null);
   const textareaRef = useRef(null);
@@ -20,9 +19,11 @@ const Chatbot = () => {
     if (inputText.trim() === "") return;
 
     const newMessage = { text: inputText, sender: "user" };
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
+    onSendMessage(newMessage);
+    
     setInputText(""); 
     setAttachedFile(null);
+    //setIsChatModified(true); 
 
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";  
@@ -43,11 +44,11 @@ const Chatbot = () => {
       */
 
       const botMessage = { sender: 'chatbot', text: "Bot received the message." };
-      setMessages((prevMessages) => [...prevMessages, botMessage]);
+      onSendMessage(botMessage);
     } catch (error) {
       console.error('Error:', error);
       const errorMessage = { sender: 'chatbot', text: 'Something went wrong.' };
-      setMessages((prevMessages) => [...prevMessages, errorMessage]);
+      onSendMessage(errorMessage);
     }
   };
 
