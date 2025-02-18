@@ -21,7 +21,11 @@ def upload_file(source_file_path: str, destination_file_path: str) -> dict:
         # Identify the content type
         content_type, _ = mimetypes.guess_type(source_file_path)
         if content_type is None:
-            content_type = 'application/octet-stream'  # Default content type
+            # .msg files cannot be guessed, check if path is a .msg file
+            if source_file_path.endswith(".msg"):
+                content_type = 'application/vnd.ms-outlook'
+            else:
+                content_type = 'application/octet-stream'  # Default content type
 
         # Open the file in binary mode for uploading
         with open(source_file_path, 'rb') as file:
@@ -43,3 +47,7 @@ def delete_file(file_names: list[str]) -> dict:
         return response
     except Exception as exception:
         return exception
+    
+if __name__ == "__main__":
+    response = upload_file("Agreement Type 01-02A.msg", "Agreement Type 01-02A.msg")
+    print(response)
