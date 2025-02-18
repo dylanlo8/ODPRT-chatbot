@@ -27,4 +27,20 @@ CREATE TABLE knowledge_base (
     created_at TIMESTAMP DEFAULT NOW(),
     metadata JSONB
 );
+
+CREATE TABLE knowledge_base_analytics (
+    analytics_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES knowledge_base(document_id) ON DELETE CASCADE,
+    chunk_id UUID NOT NULL,
+    conversation_id UUID REFERENCES conversations(conversation_id) ON DELETE CASCADE,
+    retrieved_at TIMESTAMP DEFAULT NOW(),
+    relevance_score FLOAT,
+    was_referenced BOOLEAN DEFAULT FALSE,
+    user_feedback INTEGER CHECK (user_feedback BETWEEN 1 AND 5),
+    metadata JSONB
+);
+
+CREATE INDEX idx_kb_analytics_document ON knowledge_base_analytics(document_id);
+CREATE INDEX idx_kb_analytics_conversation ON knowledge_base_analytics(conversation_id);
+CREATE INDEX idx_kb_analytics_timestamp ON knowledge_base_analytics(retrieved_at);
 """
