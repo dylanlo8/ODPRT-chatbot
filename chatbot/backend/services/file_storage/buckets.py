@@ -48,6 +48,9 @@ def delete_file(file_names: list[str]) -> dict:
     except Exception as exception:
         return exception
     
-if __name__ == "__main__":
-    response = upload_file("Agreement Type 01-02A.msg", "Agreement Type 01-02A.msg")
-    print(response)
+# SAMPLE EXECUTION
+# response = upload_file("email.msg", "email.msg")
+# print(response)
+
+# response = delete_file(["email.msg"])
+# print(response)
