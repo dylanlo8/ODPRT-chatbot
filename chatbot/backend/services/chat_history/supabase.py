@@ -21,13 +21,6 @@ def bulk_insert_conversations(conversations: list[dict]) -> dict:
     except Exception as exception:
         return exception
 
-def bulk_insert_knowledge_base(knowledge_base: list[dict]) -> dict:
-    try:
-        response = supabase.table("knowledge_base").insert(knowledge_base).execute()
-        return response
-    except Exception as exception:
-        return exception
-
 def get_user_conversations(user_id: str) -> dict:
     """
     Retrieve all conversations for a specific user. Sorted by created_at in descending order.
@@ -39,6 +32,10 @@ def get_user_conversations(user_id: str) -> dict:
         dict: API response containing the conversations
     """
     try:
+        # Each time a user's conversations are retrieved, the old conversations are cleaned up
+        print(clean_up_old_conversations(user_id))
+
+        # Retrieve the conversations
         response = (
             supabase.table("conversations")
             .select("*")
@@ -88,7 +85,7 @@ def clean_up_old_conversations(user_id: str):
             delete_conversation(conv['conversation_id'])
         return {'response': 'success'}
     else:
-        return {'response': 'no_conversations_to_delete'}
+        return {'response': '<10 conversations, no clean up needed'}
 
 # Querying Conversation and messages
 def get_conversation_messages(conversation_id: str) -> dict:
