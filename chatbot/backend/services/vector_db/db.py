@@ -45,7 +45,7 @@ class VectorDB:
             data=[query_embedding],  # keyword vector embedding
             anns_field='description_embedding',  # keyword vector field
             param={"metric_type": "COSINE"}, 
-            limit=1,
+            limit=5,
             output_fields=['doc_id', 'description']
         )
         
