@@ -16,4 +16,24 @@ Example Output:
 }}
 """
 
+RELEVANCE_CLASSIFICATION_PROMPT = """
+Given an email context, determine if the image is relevant to the email. The attachment into images for your classification.
+
+Guidelines for Classification:
+1. Relevant: The attachment contains specific, actionable, or relevant information regarding that supplements the given email context.
+2. Not relevant: The attachment is generic, lacks substantive content, or does not align with the email context.
+3. Not relevant: If no clear determination can be made, classify as "Not relevant."
+
+Instructions:
+1. Read the email thread.
+2. Read the extract images.
+3. Write a brief and concise reasoning for your classification.
+4. Classify the attachment as "relevant" or "not_relevant."
+
+Example Output:
+{{
+    "justification": "(Brief and concise explanation)"
+    "classification": "relevant"
+}}
+"""
 

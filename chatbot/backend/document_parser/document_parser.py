@@ -1,26 +1,24 @@
 from chatbot.backend.services.models.embedding_model import embedding_model
 from chatbot.backend.services.logger import logger
-from chatbot.backend.chains.attachment_chains import classification_chain
-from typing import List, Tuple, Optional, Literal
-
+from chatbot.backend.services.models.models import vlm
+from typing import Literal
+from langchain_experimental.text_splitter import SemanticChunker
 import os
 import mimetypes
-import fitz
 import docx
-import pytesseract
 from PIL import Image
 import numpy as np
-import logging
-from sklearn.cluster import KMeans
 import pdfplumber
 from docx import Document
 import io
-import os
 import cv2
-import numpy as np
 from pdf2image import convert_from_path
-import fitz  # PyMuPDF
-from PIL import Image
+from typing import List, Tuple, Optional, Literal
+import requests
+import json
+from docx2pdf import convert
+import shutil
+from fpdf import FPDF
 
 
 class DocumentParser:
@@ -28,7 +26,7 @@ class DocumentParser:
 
     def __init__(
         self,
-        attachment_directory: str = "docs/attachments",
+        attachment_directory: str = "processed_docs/emails_with_attachments",
         similarity_threshold: float = 0.85,
     ):
         self.directory = attachment_directory
@@ -44,22 +42,271 @@ class DocumentParser:
                 files.append(os.path.join(root, filename))
         return files
     
-    def classify_attachment_relevance(
-            self,
-            email_thread: str,
-        ) -> Literal["relevant", "not_relevant"]:
-            """
-            classify email thread based on usefulness
+    def filter_useful_attachments(self) -> List[str]:
+        """
+        Filters and processes useful attachments from emails in 'processed_docs/emails_with_attachments'.
 
-            Args:
-                email_thread (str): email thread
+        Returns:
+            List[str]: List of relevant processed attachment file paths.
+        """
+        useful_attachments = []
+        
+        if not os.path.exists(self.directory):
+            self.logger.warning(f"Directory {self.directory} does not exist.")
+            return []
 
-            Returns:
-                classification (Literal["useful", "not_useful"]): classification of email thread
-            """
-            response = classification_chain.invoke({"email_thread": email_thread})
-            return response.classification
+        for email_folder in os.listdir(self.directory):
+            email_path = os.path.join(self.directory, email_folder)
+            original_attachments_path = os.path.join(email_path, "original_attachments")
+            processed_attachments_path = os.path.join(email_path, "processed_attachments")
+            cleaned_email_path = os.path.join(email_path, "cleaned_msg.txt")
+
+            if not os.path.isdir(email_path):
+                continue
+
+            if not os.path.exists(cleaned_email_path):
+                self.logger.warning(f"Missing cleaned email: {cleaned_email_path}")
+                continue
+            
+            with open(cleaned_email_path, "r", encoding="utf-8") as f:
+                email_thread = f.read().strip()
+
+            os.makedirs(processed_attachments_path, exist_ok=True)
+
+            for file in os.listdir(original_attachments_path):
+                attachment_path = os.path.join(original_attachments_path, file)
+                file_ext = file.lower().split(".")[-1]
+
+                if file == "cleaned_msg.txt":
+                    continue
+
+                processed_file_path = ""
+
+                if file_ext in ["png", "jpg", "jpeg", "bmp", "tiff"]:
+                    payload = vlm._build_payloads_for_attachments(email_thread, [attachment_path])[0]
+                    response = requests.post(vlm.api, headers=vlm.headers, json=payload)
+
+                    try:
+                        response_json = response.json()
+                        answer = response_json.get("choices", [{}])[0].get("message", {}).get("content", "")
+
+                        if answer.strip().lower() == "relevant":
+                            processed_file_path = os.path.join(processed_attachments_path, file)
+                            shutil.copy(attachment_path, processed_file_path)
+
+                    except json.JSONDecodeError:
+                        self.logger.error(f"Invalid JSON response for {attachment_path}: {response.text}")
+
+                elif file_ext == "docx":
+                    # Convert DOCX to PDF first
+                    pdf_path = self.convert_docx_to_pdf(attachment_path)
+                    relevant_images = self.classify_attachment_relevance(email_thread, pdf_path)
+
+                    # Save only relevant pages
+                    if relevant_images:
+                        processed_file_path = os.path.join(processed_attachments_path, os.path.basename(pdf_path))
+                        shutil.copy(relevant_images, processed_file_path)
+
+                elif file_ext == "pdf":
+                    # Classify pages directly from the PDF
+                    relevant_images = self.classify_attachment_relevance(email_thread, attachment_path)
+
+                    # Save only relevant pages
+                    if relevant_images:
+                        processed_file_path = os.path.join(processed_attachments_path, os.path.basename(attachment_path))
+                        shutil.copy(relevant_images, processed_file_path)
+
+                # If a processed file was created, add it to the list of useful attachments
+                if processed_file_path:
+                    useful_attachments.append(processed_file_path)
+
+            # Cleanup intermediate processing files (like extracted images)
+            temp_image_dirs = [os.path.join(email_path, "temp_images")]
+            for temp_dir in temp_image_dirs:
+                shutil.rmtree(temp_dir, ignore_errors=True)
+
+        self.logger.info(f"Total useful attachments: {len(useful_attachments)}")
+        return useful_attachments
+
     
+    def convert_docx_to_pdf(self, docx_path: str) -> str:
+        """
+        Converts a DOCX file to PDF.
+
+        Args:
+            docx_path (str): Path to the DOCX file.
+
+        Returns:
+            str: Path to the generated PDF file.
+        """
+        output_pdf_path = os.path.join(os.path.dirname(docx_path), "converted.pdf")
+        convert(docx_path, output_pdf_path)
+        return output_pdf_path
+    
+    def convert_pdf_to_images(self, pdf_path: str, output_folder: str = None, dpi: int = 300) -> List[str]:
+        """
+        Converts a PDF into images, one image per page.
+
+        Args:
+            pdf_path (str): Path to the PDF file.
+            output_folder (str, optional): Folder to save extracted images.
+            dpi (int, optional): Resolution of the output images.
+
+        Returns:
+            List[str]: List of paths to the saved image files.
+        """
+        if output_folder is None:
+            output_folder = os.path.join(os.path.dirname(pdf_path), "temp_images")
+        os.makedirs(output_folder, exist_ok=True)
+
+        images = convert_from_path(pdf_path, dpi=dpi)
+        image_paths = []
+
+        for i, image in enumerate(images):
+            image_path = os.path.join(output_folder, f"page_{i+1}.png")
+            image.save(image_path, "PNG")
+            image_paths.append(image_path)
+
+        return image_paths
+
+    def classify_attachment_relevance(self, email_thread: str, attachment_path: str) -> str:
+        """
+        Classifies whether an attachment (PDF, DOCX, or images) is relevant based on the email context.
+
+        Args:
+            email_thread (str): The cleaned email text.
+            attachment_path (str): The file path to the attachment.
+
+        Returns:
+            str: Path to the processed relevant PDF, or "not_relevant" if no relevant content is found.
+        """
+        file_ext = attachment_path.lower().split(".")[-1]  # Extract file extension
+        useful_images = []
+
+        # Convert attachment into images (for classification)
+        if file_ext in ["pdf"]:
+            images = self.convert_pdf_to_images(attachment_path)  # Convert PDF to images
+        elif file_ext in ["docx"]:
+            pdf_path = self.convert_docx_to_pdf(attachment_path)  # Convert DOCX → PDF
+            images = self.convert_pdf_to_images(pdf_path)  # Convert PDF → Images
+        elif file_ext in ["png", "jpg", "jpeg", "bmp", "tiff"]:
+            images = [attachment_path]  # It's already an image
+        else:
+            self.logger.warning(f"Unsupported file format: {attachment_path}")
+            return "not_relevant"
+
+        # Build payloads for each extracted page/image
+        payloads = vlm._build_payloads_for_attachments(email_thread, images)
+
+        for image_path, payload in zip(images, payloads):
+            response = requests.post(vlm.api, headers=vlm.headers, json=payload)
+
+            try:
+                response_json = response.json()
+                answer = response_json.get("choices", [{}])[0].get("message", {}).get("content", "")
+
+                if not answer.strip():
+                    self.logger.error(f"Empty response for {image_path}. Skipping.")
+                    continue 
+
+                self.logger.info(f"Raw model response for {image_path}: {answer}")
+
+                # Parse JSON response
+                try:
+                    json_answer = json.loads(answer)
+                    classification = json_answer.get("classification", "not_relevant")
+                    justification = json_answer.get("justification", "")
+
+                    self.logger.info(f"Classification: {classification}, Justification: {justification}")
+
+                    if classification == "relevant":
+                        useful_images.append(image_path)
+                        self.logger.info(f"✔ Relevant Page: {image_path}")
+
+                except json.JSONDecodeError:
+                    self.logger.error(f"Invalid JSON format in response: {answer}")
+
+            except requests.exceptions.RequestException as e:
+                self.logger.error(f"VLM API request failed: {e}")
+
+        # If relevant pages exist, save them as a new processed PDF
+        if useful_images:
+            processed_pdf_path = self.combine_images_into_pdf(useful_images, attachment_path)
+            self.logger.info(f"Processed PDF saved at: {processed_pdf_path}")
+            return processed_pdf_path
+
+        self.logger.info(f"No relevant content found in {attachment_path}")
+        return "not_relevant"
+
+
+            
+    def combine_images_into_pdf(self, useful_images: List[str], attachment_path: str) -> str:
+        """
+        Combines relevant pages (images) into a single PDF.
+
+        Args:
+            useful_images (List[str]): List of image paths for relevant pages.
+            attachment_path (str): The original attachment file path.
+
+        Returns:
+            str: Path to the final processed PDF.
+        """
+        if not useful_images:
+            self.logger.info(f"No relevant pages found for {attachment_path}. Skipping PDF creation.")
+            return ""
+
+        processed_folder = os.path.join(os.path.dirname(os.path.dirname(attachment_path)), "processed_attachments")
+        os.makedirs(processed_folder, exist_ok=True)
+        output_pdf_path = os.path.join(processed_folder, os.path.basename(attachment_path).replace(".pdf", "_processed.pdf"))
+
+        pdf = FPDF()
+        for image_path in useful_images:
+            pdf.add_page()
+            pdf.image(image_path, x=0, y=0, w=210, h=297)
+
+        pdf.output(output_pdf_path, "F")
+        self.logger.info(f"Saved processed PDF: {output_pdf_path}")
+
+        temp_image_dir = os.path.dirname(useful_images[0])
+        shutil.rmtree(temp_image_dir, ignore_errors=True)
+
+        return output_pdf_path
+
+    def extract_images_from_docx(docx_path: str, output_folder: str = None) -> List[str]:
+        """
+        Extracts images from a DOCX file and saves them as image files.
+
+        Args:
+            docx_path (str): Path to the DOCX file.
+            output_folder (str, optional): Folder to save extracted images.
+
+        Returns:
+            List[str]: List of paths to the saved image files.
+        """
+        doc = docx.Document(docx_path)
+
+        if output_folder is None:
+            output_folder = os.path.splitext(docx_path)[0] + "_images"
+        os.makedirs(output_folder, exist_ok=True)
+
+        image_paths = []
+        image_count = 0
+
+        for rel in doc.part.rels:
+            if "image" in doc.part.rels[rel].target_ref:
+                image_data = doc.part.rels[rel].target_part.blob
+
+                image = Image.open(io.BytesIO(image_data))
+                image_filename = f"docx_image_{image_count+1}.png"
+                image_path = os.path.join(output_folder, image_filename)
+                image.save(image_path, "PNG")
+                
+                image_paths.append(image_path)
+                image_count += 1
+
+        return image_paths
+    
+
     def extract_text_from_pdf(self, file_path: str):
         """Extracts text from a PDF file."""
         extracted_text = ""
@@ -72,7 +319,7 @@ class DocumentParser:
     
     def extract_images_from_pdf(self, file_path: str, min_contour_area=5000):
         """Extracts images from a PDF file."""
-        save_directory = os.path.join(os.getcwd(), "extracted_data/extracted_images")
+        save_directory = os.path.join(os.getcwd(), "extracted_images", )
         os.makedirs(save_directory, exist_ok=True)
 
         poppler_path = "/opt/homebrew/bin"  # Adjust this if needed
@@ -126,7 +373,7 @@ class DocumentParser:
     def extract_images_from_docx(self, file_path: str):
         """Extracts images from a Word document and saves them to a directory."""
 
-        save_directory = os.path.join(os.getcwd(), "extracted_data/extracted_images")
+        save_directory = os.path.join(os.getcwd(), "processed_docs/attachment_chunks/email")
         os.makedirs(save_directory, exist_ok=True)
 
         doc = docx.Document(file_path)
@@ -166,13 +413,81 @@ class DocumentParser:
         elif mime_type and "word" in mime_type or file_path.endswith(".docx"):
             text = self.extract_text_from_docx(file_path)
             images = self.extract_images_from_docx(file_path)
-        elif mime_type and "image" in mime_type:
-            images.append(file_path)
-            text = self.extract_text_from_image(file_path)
         return text, images
+    
+    def chunk_text(self, text):
+        os.environ["TOKENIZERS_PARALLELISM"] = "false"
+        semantic_chunker = SemanticChunker(
+            embedding_model,
+            breakpoint_threshold_type="percentile"
+        )
+        semantic_chunks = semantic_chunker.create_documents([text])
 
-docParser = DocumentParser()
-text, images = docParser.separate_text_and_images("/Users/lishuyao/Documents/NUS/MODS/Y3S2/Capstone/ODPRT-chatbot/docs/IEP FAQ.docx")
-print(text)
-# texts, images = docParser.separate_text_and_images("/Users/lishuyao/Documents/NUS/MODS/Y3S2/Capstone/ODPRT-chatbot/docs/sample_docx.docx")
-# print(texts)
+        return [chunk.page_content for chunk in semantic_chunks]
+    
+doc_parser = DocumentParser()
+emailone = """Please find the attached documents on the EOT and funds virement request for the following project: WBS: A01-00 PI: Dr Chew Soon Hoe EOT: 1 year extension to 31/12/2024 Funds Virement: $100,000 across votes * $80,000 EOM and $20,000 OT to $45,000 EQPT and $55,000 OOE
+
+---
+
+Referring to the attached PM1 form, we would require a more detailed breakdown of the virement to reflect the actual virement into the respective votes, eg. how will the $80K from EOM be split into equipment and OOE, is it $40K each? Also which vote will the $20K from OT be vired into? [cid:image002.jpg@01DA31A8.5BCD2A10] Would appreciate if you could check with PI and amend the attached form please. Best
+
+---
+
+Please find the revised files for your onward processing.
+
+---
+
+Reference is made to the following project: RAC Ref. No.: Project Title: Joint Study on Advanced Geohydrological and Geotechnical Instrumentations for the Construction of Polder NUS PI: Dr Chew Soon Hoe, Dept. of Civil & Environmental Engineering, CDE Duration of Project: 02 Jan 2019  01 Jan 2024 Project Amount: S$1,124,132* (inclusive of 20% IRC and 7% GST is on top of the grant) *Inclusive of direct cost S$936,776.67, IRC S$187,355.33 and 7% GST of S$78,689.24 Variation details: A) Virement of funds, without requesting for additional funding: i. Virement of $20,000 from Overseas Travel vote to Equipment ii. Virement of $25,000 from EOM to Equipment iii. Virement of $55,000 from EOM to OOE B) Extension of project for 12 months  new project end date on 31 Dec 2024 Please find attached the necessary documents for DOR and grantors approval. Do let me know if any other documents are needed. Best
+
+---
+
+For projects that are funded and governed under a RCA, usually PI will have to liaise with the project manager for funders side, in this case, HDB, for the required extension to be made. A variation agreement will be required to capture the approved extension. Also with reference to the RCA attached, for virement requests, the approval of the other Project Party, in this case, HDB is required. [cid:image003.png@01DA34EC.7F063390] ODPRT Grant Admins does not liaise with the grantor for the required approvals, as we are not involved in the RCA. If there is a HDB personnel where PI has been working closely with, the requests can be sent to the HDB-in-charge for the required approvals. Please forward the email approval to me to process the virement and extension request. Please also ensure to follow up with the Variation agreement, if the extension request is approved.
+
+---
+
+Referring to the attached RCA, PI is requesting for a 12-month extension. I would like to seek advice if a VA is needed for this research project please. Best"""
+
+# doc_parser.classify_attachment_relevance(emailone, '/Users/lishuyao/Documents/NUS/MODS/Y3S2/Capstone/ODPRT-chatbot/processed_docs/emails_with_attachments/Agreement Type 01-01/original_attachments/image003.png')
+
+# doc_parser.filter_useful_attachments
+
+doc_parser = DocumentParser()
+emailtwo = """Ooi, On behalf of the Changi Collaborative Grant Committee, we are pleased to inform you that you have been awarded the Changi Collaborative Grant for a period of 2 years with effect from 1 January 2024 to 31 December 2026 for your research project titled: Rebuild, Reconnect, Revitalize (3R) Program to Transit Older Cancer Survivors in the Community - A Pilot Mixed Method Study. Please find enclosed a copy of the award letter. The approved budget and research grant terms and conditions have been appended to the award letter. To accept the award, please return a scanned copy of the signed Acceptance form (Annex C) to myself at <mailto:> by 12 January 2024. Subsequently, for grant account creation and activation, please submit the following to Ms Sunitha Nair (<mailto:>) from the NUHS Research Office: 1. Award Letter 2. Completed and duly endorsed NUH Grant Endorsement Form (GEF)  Template as attached 1. Ethics approval  DSRB/IRB (for human research)  OSHE (for lab-based project)  IACUC (for project involving animal studies) For enquiries on the grant account creation and activation, please contact Ms Sunitha Nair (<mailto:>). For other enquiries with regards to the Katong Collaborative Grant, please feel free to contact myself.  Important: This email and its attachments are confidential and may be privileged. , please notify the sender and delete it immediately; you should not copy or use it for any purpose, nor disclose its contents to any other person without prior written permission. [cid:image002.png@01DA453F.CD71E2A0]< NUHS Facebook< | LinkedIn< | Vimeo< Important: This email and its attachments are confidential and may be privileged. , please notify the sender and delete it immediately; you should not copy or use it for any purpose, nor disclose its contents to any other person without prior written permission.  The information contained in this e-mail and the attachments (if any) may be privileged and confidential and is intended solely for the named addressee. , please do not print, retain copy, disseminate, distribute, or use this e-mail or any part thereof. Please notify the sender immediately by replying to this e-mail and delete all copies of this e-mail and the attachments.  Important: This email and its attachments are confidential and may be privileged. , please notify the sender and delete it immediately; you should not copy or use it for any purpose, nor disclose its contents to any other person without prior written permission. 
+
+---
+
+Please see signed grant acceptance letter and GEF. This grant will require a DSRB before starting. I am submitting to DSRB and will update you once I have approval. It is a collaboration with NUS nursing , so I will be submitting a RCA as well and will update once confirmed.
+
+---
+
+Sure noted, since DSRB is required immediately, its not possible to for me to proceed with account creation until the approval is in, so will have to wait for that. For the GEF, could you also provide the answer for section D, point 2. Please also complete the declaration in this point.
+
+---
+
+[<extmail>] <EXTMSG> and Charlene, Understand theres a master agreement between NUS and NUH on research collaboration. Would like to clarify whether RCA is required for this project. As this is only a two-year pilot study, we are concerning about time required to process RCA.
+
+---
+
+Dr. WU Xi Vivien Assistant Professor, PhD, MEd, RN. Chair, Geriatric Care and Wellness Research Programme, NUS Nursing Alice Lee Centre for Nursing Studies, Yong Loo Lin School of Medicine, National University of Singapore Level 2, Clinical Research Centre, Block MD11, 10 Medical Drive, Singapore DID: (, Fax: (, E-mail: <mailto:>, Website: ORCID: Google Scholar: A member of the NUHS
+
+---
+
+or partnership Can please advise if NUH and NUS PIs collaborating on a project would need a RCA. Our understanding is that there is a master agreement in place
+
+---
+
+Ooi, The Memorandum of Agreement (MOA) signed is between any entities under NUHS with any of the 3 schools in NUS (YYLSOM & ALCNS, FOD or SSHSPH). Hope this clarifies. Research Office, Innovation Transfer Office (ITO) NATIONAL UNIVERSITY HEALTH SYSTEM 1E Kent Ridge Road, Mailbox 65, Singapore
+
+---
+
+and Wen Huey, As Dr Ooi (NUH PI) and I (NUS/YYLSOM & ALCNS PI) are collaborating on a pilot project, we both will manage the fund independently based on NUH and NUS. Could you please advise the process of MOA?
+
+---
+
+Dr. WU Xi Vivien Assistant Professor, PhD, MEd, RN. Chair, Geriatric Care and Wellness Research Programme, NUS Nursing Alice Lee Centre for Nursing Studies, Yong Loo Lin School of Medicine, National University of Singapore Level 2, Clinical Research Centre, Block MD11, 10 Medical Drive, Singapore DID: (, Fax: (, E-mail: <mailto:>, Website: ORCID: Google Scholar: A member of the NUHS
+
+---
+
+To provide more context to the MOA mentioned by Noelle in her email below, NUS and NUHS institutions (e.g. NUH, NTFGH, AH etc) have entered into a Memorandum of Agreement (MOA) dated 18 July 2022 to dispense the need to sign Project Agreement for Projects between NUS and NUHS institutions. The MOA also prescribes that the Project should be conducted in accordance with terms of the Singapore Public Sector Organisations Master Research Collaboration Agreement. NUS and any of the NUHS institutions can just fill in the Work Plan that is governed by the MOA. Kindly note that this Work Plan can only be used for Projects that commence on and after 18 July 2022. Is Dr Ooi performing this Project in her capacity as NUS or NUH PI? NUS and NUH are two separate legal entities. PI (with joint appointments NUS and NUH) will need to take into consideration which hat they are wearing when providing inputs in the Work Plan. Please see the attached Work Plan for your inputs, in your capacity as NUS or NUH PI. Please advise who is the NUH PI if Dr Ooi is not representing NUH. Appreciate if you could provide the grant documents supporting this Project. NUHS RO will review the Work Plan on behalf of NUH."""
+doc_parser.classify_attachment_relevance(emailtwo, '/Users/lishuyao/Documents/NUS/MODS/Y3S2/Capstone/ODPRT-chatbot/processed_docs/emails_with_attachments/Agreement Type 01-02B/original_attachments/MOA Work Plan_NUS_NUH_Changi Grant_WH12012024.docx')

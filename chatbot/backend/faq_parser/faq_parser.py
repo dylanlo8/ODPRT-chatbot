@@ -14,7 +14,7 @@ class FAQ_Parser:
 
     def __init__(
         self,
-        faq_directory: str = "docs/IEP FAQ.docx",
+        faq_directory = ["docs/IEP FAQ.docx", "docs/Additional ODPRT unit FAQ.docx"],
         similarity_threshold: float = 0.85,
     ):
         self.directory = faq_directory
@@ -24,16 +24,17 @@ class FAQ_Parser:
 
     def extract_faq(self):
         """Extracts text from a Word document."""
-        doc = Document(self.directory)
         full_text = []
+        for doc in self.directory:
+            doc = Document(doc)
 
-        for para in doc.paragraphs:
-            full_text.append(para.text)
+            for para in doc.paragraphs:
+                full_text.append(para.text)
 
-        for table in doc.tables:
-            for row in table.rows:
-                row_text = [cell.text.strip() for cell in row.cells]
-                full_text.append("\t".join(row_text))
+            for table in doc.tables:
+                for row in table.rows:
+                    row_text = [cell.text.strip() for cell in row.cells]
+                    full_text.append("\t".join(row_text))
 
         return '\n'.join(full_text)
 
@@ -141,3 +142,8 @@ class FAQ_Parser:
         )
         # dedup similar QA pairs to retain highest quality data
         return self._dedup_qa_pairs(qa_pairs=qa_pairs)
+    
+faq_parser = FAQ_Parser()
+qa_pairs = faq_parser.get_qa_pairs()
+print(len(qa_pairs))
+print(qa_pairs)
