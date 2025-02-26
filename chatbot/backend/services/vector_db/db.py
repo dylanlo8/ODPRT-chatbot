@@ -7,11 +7,11 @@ from tqdm import tqdm
 from chatbot.backend.services.vector_db.schema import SCHEMA
 from chatbot.backend.services.vector_db.index import create_all_indexes
 from chatbot.backend.services.models.embedding_model import embedding_model
+load_dotenv(override=True)
 
 class VectorDB:
     def __init__(self, collection_name):
-        load_dotenv()
-
+        
         # Establish a connection to Zillis
         self.endpoint = os.getenv('ZILLIS_ENDPOINT')
         self.token = os.getenv('ZILLIS_TOKEN')
