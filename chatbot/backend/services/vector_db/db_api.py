@@ -10,17 +10,9 @@ vector_db = VectorDB(collection_name="odprt_index")
 # ==========================
 # Pydantic Models
 # ==========================
-class Document(BaseModel):
-    doc_id: str
-    doc_source: str = "NA"
-    text: str = ""
-    text_dense_embedding: list[float] = []
-    text_sparse_embedding: list[float] = []  
-    description: str = ""
-    description_embedding: list[float] = []
 
 class InsertData(BaseModel):
-    data: list[Document]  
+    data: list
 
 class SearchQuery(BaseModel):
     query: str

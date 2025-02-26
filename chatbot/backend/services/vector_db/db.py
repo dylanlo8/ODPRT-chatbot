@@ -52,6 +52,7 @@ class VectorDB:
         hits = search_results[0]
         
         context = []
+        # TODO: Modify the context
         for res in hits:
             doc_id = res.doc_id
             description = res.description
