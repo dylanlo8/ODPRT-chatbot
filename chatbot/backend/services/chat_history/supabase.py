@@ -32,6 +32,10 @@ def get_user_conversations(user_id: str) -> dict:
         dict: API response containing the conversations
     """
     try:
+        # Each time a user's conversations are retrieved, the old conversations are cleaned up
+        print(clean_up_old_conversations(user_id))
+
+        # Retrieve the conversations
         response = (
             supabase.table("conversations")
             .select("*")
@@ -43,8 +47,47 @@ def get_user_conversations(user_id: str) -> dict:
     except Exception as exception:
         return exception
 
-# Querying Conversation and messages
+def delete_conversation(conversation_id: str) -> dict:
+    """
+    Delete a specific conversation.
+    
+    Args:
+        conversation_id (str): The UUID of the conversation
+    
+    Returns:
+        dict: API response after deleting the conversation
+    """
+    try:            
+        response = (
+            supabase.table("conversations")
+            .delete()
+            .eq("conversation_id", conversation_id)
+            .execute()
+        )
+        return response
+    except Exception as exception:
+        return exception
+    
 
+def clean_up_old_conversations(user_id: str):
+    # Clean up old conversations if user has more than 10
+    user_conversations = get_user_conversations(user_id)
+    if len(user_conversations.data) > 10:
+        # Sort by created_at descending and get conversations to delete
+        conversations_to_delete = sorted(
+            user_conversations.data,
+            key=lambda x: x['updated_at'],
+            reverse=True
+        )[10:]
+        
+        # Delete older conversations
+        for conv in conversations_to_delete:
+            delete_conversation(conv['conversation_id'])
+        return {'response': 'success'}
+    else:
+        return {'response': '<10 conversations, no clean up needed'}
+
+# Querying Conversation and messages
 def get_conversation_messages(conversation_id: str) -> dict:
     """
     Retrieve all messages for a specific conversation.
