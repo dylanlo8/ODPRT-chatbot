@@ -1,0 +1,20 @@
+.chat-page {
+    display: flex;  
+    height: 100vh;  /* Full screen height */
+  }
+  
+  .menu-button {
+    font-size: 20px; /* Adjust size */
+    margin-right: 10px; /* Add spacing */
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: absolute;
+    top: 10px;
+    left: 10px; /* Adjust this based on your layout */
+  }
+  
+  .menu-button:hover {
+    opacity: 0.8;
+  }
+  
