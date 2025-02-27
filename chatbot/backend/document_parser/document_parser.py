@@ -1,24 +1,25 @@
-from chatbot.backend.services.models.embedding_model import embedding_model
-from chatbot.backend.services.logger import logger
-from chatbot.backend.services.models.models import vlm
-from typing import Literal
-from langchain_experimental.text_splitter import SemanticChunker
-import os
-import mimetypes
-import docx
-from PIL import Image
-import numpy as np
-import pdfplumber
-from docx import Document
-import io
 import cv2
-from pdf2image import convert_from_path
-from typing import List, Tuple, Optional, Literal
-import requests
+import docx
+import io
 import json
-from docx2pdf import convert
+import mimetypes
+import numpy as np
+import os
+import pdfplumber
+import requests
 import shutil
+
+from docx import Document
+from docx2pdf import convert
 from fpdf import FPDF
+from langchain_experimental.text_splitter import SemanticChunker
+from pdf2image import convert_from_path
+from PIL import Image
+from typing import List
+
+from chatbot.backend.services.logger import logger
+from chatbot.backend.services.models.embedding_model import embedding_model
+from chatbot.backend.services.models.models import vlm
 
 
 class DocumentParser:
@@ -41,7 +42,7 @@ class DocumentParser:
             for filename in filenames:
                 files.append(os.path.join(root, filename))
         return files
-    
+
     def filter_useful_attachments(self) -> List[str]:
         """
         Filters and processes useful attachments from emails in 'processed_docs/emails_with_attachments'.
@@ -50,7 +51,7 @@ class DocumentParser:
             List[str]: List of relevant processed attachment file paths.
         """
         useful_attachments = []
-        
+
         if not os.path.exists(self.directory):
             self.logger.warning(f"Directory {self.directory} does not exist.")
             return []
@@ -58,7 +59,9 @@ class DocumentParser:
         for email_folder in os.listdir(self.directory):
             email_path = os.path.join(self.directory, email_folder)
             original_attachments_path = os.path.join(email_path, "original_attachments")
-            processed_attachments_path = os.path.join(email_path, "processed_attachments")
+            processed_attachments_path = os.path.join(
+                email_path, "processed_attachments"
+            )
             cleaned_email_path = os.path.join(email_path, "cleaned_msg.txt")
 
             if not os.path.isdir(email_path):
@@ -67,7 +70,7 @@ class DocumentParser:
             if not os.path.exists(cleaned_email_path):
                 self.logger.warning(f"Missing cleaned email: {cleaned_email_path}")
                 continue
-            
+
             with open(cleaned_email_path, "r", encoding="utf-8") as f:
                 email_thread = f.read().strip()
 
@@ -83,37 +86,56 @@ class DocumentParser:
                 processed_file_path = ""
 
                 if file_ext in ["png", "jpg", "jpeg", "bmp", "tiff"]:
-                    payload = vlm._build_payloads_for_attachments(email_thread, [attachment_path])[0]
+                    payload = vlm._build_payloads_for_attachments(
+                        email_thread, [attachment_path]
+                    )[0]
                     response = requests.post(vlm.api, headers=vlm.headers, json=payload)
 
                     try:
                         response_json = response.json()
-                        answer = response_json.get("choices", [{}])[0].get("message", {}).get("content", "")
+                        answer = (
+                            response_json.get("choices", [{}])[0]
+                            .get("message", {})
+                            .get("content", "")
+                        )
 
                         if answer.strip().lower() == "relevant":
-                            processed_file_path = os.path.join(processed_attachments_path, file)
+                            processed_file_path = os.path.join(
+                                processed_attachments_path, file
+                            )
                             shutil.copy(attachment_path, processed_file_path)
 
                     except json.JSONDecodeError:
-                        self.logger.error(f"Invalid JSON response for {attachment_path}: {response.text}")
+                        self.logger.error(
+                            f"Invalid JSON response for {attachment_path}: {response.text}"
+                        )
 
                 elif file_ext == "docx":
                     # Convert DOCX to PDF first
                     pdf_path = self.convert_docx_to_pdf(attachment_path)
-                    relevant_images = self.classify_attachment_relevance(email_thread, pdf_path)
+                    relevant_images = self.classify_attachment_relevance(
+                        email_thread, pdf_path
+                    )
 
                     # Save only relevant pages
                     if relevant_images:
-                        processed_file_path = os.path.join(processed_attachments_path, os.path.basename(pdf_path))
+                        processed_file_path = os.path.join(
+                            processed_attachments_path, os.path.basename(pdf_path)
+                        )
                         shutil.copy(relevant_images, processed_file_path)
 
                 elif file_ext == "pdf":
                     # Classify pages directly from the PDF
-                    relevant_images = self.classify_attachment_relevance(email_thread, attachment_path)
+                    relevant_images = self.classify_attachment_relevance(
+                        email_thread, attachment_path
+                    )
 
                     # Save only relevant pages
                     if relevant_images:
-                        processed_file_path = os.path.join(processed_attachments_path, os.path.basename(attachment_path))
+                        processed_file_path = os.path.join(
+                            processed_attachments_path,
+                            os.path.basename(attachment_path),
+                        )
                         shutil.copy(relevant_images, processed_file_path)
 
                 # If a processed file was created, add it to the list of useful attachments
@@ -128,7 +150,6 @@ class DocumentParser:
         self.logger.info(f"Total useful attachments: {len(useful_attachments)}")
         return useful_attachments
 
-    
     def convert_docx_to_pdf(self, docx_path: str) -> str:
         """
         Converts a DOCX file to PDF.
@@ -142,8 +163,10 @@ class DocumentParser:
         output_pdf_path = os.path.join(os.path.dirname(docx_path), "converted.pdf")
         convert(docx_path, output_pdf_path)
         return output_pdf_path
-    
-    def convert_pdf_to_images(self, pdf_path: str, output_folder: str = None, dpi: int = 300) -> List[str]:
+
+    def convert_pdf_to_images(
+        self, pdf_path: str, output_folder: str = None, dpi: int = 300
+    ) -> List[str]:
         """
         Converts a PDF into images, one image per page.
 
@@ -169,7 +192,9 @@ class DocumentParser:
 
         return image_paths
 
-    def classify_attachment_relevance(self, email_thread: str, attachment_path: str) -> str:
+    def classify_attachment_relevance(
+        self, email_thread: str, attachment_path: str
+    ) -> str:
         """
         Classifies whether an attachment (PDF, DOCX, or images) is relevant based on the email context.
 
@@ -185,7 +210,9 @@ class DocumentParser:
 
         # Convert attachment into images (for classification)
         if file_ext in ["pdf"]:
-            images = self.convert_pdf_to_images(attachment_path)  # Convert PDF to images
+            images = self.convert_pdf_to_images(
+                attachment_path
+            )  # Convert PDF to images
         elif file_ext in ["docx"]:
             pdf_path = self.convert_docx_to_pdf(attachment_path)  # Convert DOCX → PDF
             images = self.convert_pdf_to_images(pdf_path)  # Convert PDF → Images
@@ -203,11 +230,15 @@ class DocumentParser:
 
             try:
                 response_json = response.json()
-                answer = response_json.get("choices", [{}])[0].get("message", {}).get("content", "")
+                answer = (
+                    response_json.get("choices", [{}])[0]
+                    .get("message", {})
+                    .get("content", "")
+                )
 
                 if not answer.strip():
                     self.logger.error(f"Empty response for {image_path}. Skipping.")
-                    continue 
+                    continue
 
                 self.logger.info(f"Raw model response for {image_path}: {answer}")
 
@@ -217,7 +248,9 @@ class DocumentParser:
                     classification = json_answer.get("classification", "not_relevant")
                     justification = json_answer.get("justification", "")
 
-                    self.logger.info(f"Classification: {classification}, Justification: {justification}")
+                    self.logger.info(
+                        f"Classification: {classification}, Justification: {justification}"
+                    )
 
                     if classification == "relevant":
                         useful_images.append(image_path)
@@ -231,16 +264,18 @@ class DocumentParser:
 
         # If relevant pages exist, save them as a new processed PDF
         if useful_images:
-            processed_pdf_path = self.combine_images_into_pdf(useful_images, attachment_path)
+            processed_pdf_path = self.combine_images_into_pdf(
+                useful_images, attachment_path
+            )
             self.logger.info(f"Processed PDF saved at: {processed_pdf_path}")
             return processed_pdf_path
 
         self.logger.info(f"No relevant content found in {attachment_path}")
         return "not_relevant"
 
-
-            
-    def combine_images_into_pdf(self, useful_images: List[str], attachment_path: str) -> str:
+    def combine_images_into_pdf(
+        self, useful_images: List[str], attachment_path: str
+    ) -> str:
         """
         Combines relevant pages (images) into a single PDF.
 
@@ -252,12 +287,19 @@ class DocumentParser:
             str: Path to the final processed PDF.
         """
         if not useful_images:
-            self.logger.info(f"No relevant pages found for {attachment_path}. Skipping PDF creation.")
+            self.logger.info(
+                f"No relevant pages found for {attachment_path}. Skipping PDF creation."
+            )
             return ""
 
-        processed_folder = os.path.join(os.path.dirname(os.path.dirname(attachment_path)), "processed_attachments")
+        processed_folder = os.path.join(
+            os.path.dirname(os.path.dirname(attachment_path)), "processed_attachments"
+        )
         os.makedirs(processed_folder, exist_ok=True)
-        output_pdf_path = os.path.join(processed_folder, os.path.basename(attachment_path).replace(".pdf", "_processed.pdf"))
+        output_pdf_path = os.path.join(
+            processed_folder,
+            os.path.basename(attachment_path).replace(".pdf", "_processed.pdf"),
+        )
 
         pdf = FPDF()
         for image_path in useful_images:
@@ -272,7 +314,9 @@ class DocumentParser:
 
         return output_pdf_path
 
-    def extract_images_from_docx(docx_path: str, output_folder: str = None) -> List[str]:
+    def extract_images_from_docx(
+        docx_path: str, output_folder: str = None
+    ) -> List[str]:
         """
         Extracts images from a DOCX file and saves them as image files.
 
@@ -300,12 +344,11 @@ class DocumentParser:
                 image_filename = f"docx_image_{image_count+1}.png"
                 image_path = os.path.join(output_folder, image_filename)
                 image.save(image_path, "PNG")
-                
+
                 image_paths.append(image_path)
                 image_count += 1
 
         return image_paths
-    
 
     def extract_text_from_pdf(self, file_path: str):
         """Extracts text from a PDF file."""
@@ -316,14 +359,17 @@ class DocumentParser:
                 if text:
                     extracted_text += f"\nPage {i+1}\n{text.strip()}\n\n"
         return extracted_text
-    
+
     def extract_images_from_pdf(self, file_path: str, min_contour_area=5000):
         """Extracts images from a PDF file."""
-        save_directory = os.path.join(os.getcwd(), "extracted_images", )
+        save_directory = os.path.join(
+            os.getcwd(),
+            "extracted_images",
+        )
         os.makedirs(save_directory, exist_ok=True)
 
         poppler_path = "/opt/homebrew/bin"  # Adjust this if needed
-        images = convert_from_path(file_path,  poppler_path = poppler_path)
+        images = convert_from_path(file_path, poppler_path=poppler_path)
         extracted_figures = {}
 
         for page_num, image in enumerate(images):
@@ -333,7 +379,9 @@ class DocumentParser:
             gray = cv2.cvtColor(open_cv_image, cv2.COLOR_BGR2GRAY)
             edges = cv2.Canny(gray, 50, 150)
 
-            contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            contours, _ = cv2.findContours(
+                edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+            )
 
             figure_paths = []
             figure_count = 0
@@ -345,7 +393,9 @@ class DocumentParser:
                 x, y, w, h = cv2.boundingRect(contour)
                 figure_image = image.crop((x, y, x + w, y + h))
 
-                figure_path = os.path.join(save_directory, f"page_{page_num+1}_figure_{figure_count+1}.png")
+                figure_path = os.path.join(
+                    save_directory, f"page_{page_num+1}_figure_{figure_count+1}.png"
+                )
                 figure_image.save(figure_path, "PNG")
                 figure_paths.append(figure_path)
 
@@ -368,12 +418,14 @@ class DocumentParser:
                 row_text = [cell.text.strip() for cell in row.cells]
                 full_text.append("\t".join(row_text))
 
-        return '\n'.join(full_text)
-    
+        return "\n".join(full_text)
+
     def extract_images_from_docx(self, file_path: str):
         """Extracts images from a Word document and saves them to a directory."""
 
-        save_directory = os.path.join(os.getcwd(), "processed_docs/attachment_chunks/email")
+        save_directory = os.path.join(
+            os.getcwd(), "processed_docs/attachment_chunks/email"
+        )
         os.makedirs(save_directory, exist_ok=True)
 
         doc = docx.Document(file_path)
@@ -397,7 +449,7 @@ class DocumentParser:
                 print(f"Saved: {image_path}")
 
         return extracted_images
-    
+
     def separate_text_and_images(self, file_path: str):
         """
         Extracts both text and images from an attachment.
@@ -414,12 +466,11 @@ class DocumentParser:
             text = self.extract_text_from_docx(file_path)
             images = self.extract_images_from_docx(file_path)
         return text, images
-    
+
     def chunk_text(self, text):
         os.environ["TOKENIZERS_PARALLELISM"] = "false"
         semantic_chunker = SemanticChunker(
-            embedding_model,
-            breakpoint_threshold_type="percentile"
+            embedding_model, breakpoint_threshold_type="percentile"
         )
         semantic_chunks = semantic_chunker.create_documents([text])
 
