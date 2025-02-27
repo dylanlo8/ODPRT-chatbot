@@ -8,6 +8,11 @@ class UsefulnessClassification(BaseModel):
         description="a string to represent if the thread is useful or not useful"
     )
 
+class RelevanceClassification(BaseModel):
+    reasoning: str = Field(description="The reasoning behind the classification")
+    classification: Literal["relevant", "not_relevant"] = Field(
+        description="a string to represent if the attachment is relevant or not relevant to the email context"
+    )
 
 class QAPairs(BaseModel):
     questions: List[str] = Field(
