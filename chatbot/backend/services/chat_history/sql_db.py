@@ -7,6 +7,15 @@ supabase: Client = create_client(url, key)
 
 # Bulk Insertion of Messages
 def bulk_insert_messages(messages: list[dict]) -> dict:
+    """
+    Bulk Insertion of Messages
+
+    Args:
+        messages (list[dict]): A list of dictionaries containing the messages to insert
+
+    Returns:
+        dict: API response after inserting the messages
+    """
     try:
         response = supabase.table("messages").insert(messages).execute()
         return response
@@ -15,6 +24,15 @@ def bulk_insert_messages(messages: list[dict]) -> dict:
     
 # Bulk Insertion of Conversations
 def bulk_insert_conversations(conversations: list[dict]) -> dict:
+    """
+    Bulk Insertion of Conversations
+
+    Args:
+        conversations (list[dict]): A list of dictionaries containing the conversations to insert
+
+    Returns:
+        dict: API response after inserting the conversations
+    """
     try:
         response = supabase.table("conversations").insert(conversations).execute()
         return response
