@@ -38,7 +38,7 @@ class VectorDB:
         self.collection.insert(data)
         self.collection.load()
 
-    def image_hybrid_search(self, query: str) -> str:
+    def hybrid_search(self, query: str) -> str:
         # Get query embedding
         dense_embedding, sparse_embedding = self.embedding_model.encode_texts([query])
         
