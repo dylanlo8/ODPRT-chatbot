@@ -98,6 +98,7 @@ class VLM:
                 classification, justification = json_answer.get("classification", "Not Useful"), json_answer.get("justification", "No justification provided")
                 if classification == "Useful":
                     useful_image_paths.append(image_path)
+                    print(justification)
             except json.JSONDecodeError:
                 continue
         

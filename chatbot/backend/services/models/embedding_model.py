@@ -9,7 +9,7 @@ class EmbeddingModel:
         self.embedding_model = SentenceTransformer('BAAI/bge-large-en-v1.5')
         self.embedding_model.eval()
 
-    def batch_encode(self, texts):
+    def embed_documents(self, texts):
         """Generates dense embeddings for texts."""
         description_embeddings = []
 
@@ -39,7 +39,7 @@ class EmbeddingModel:
         Returns:
             np.ndarray: Matrix of text embeddings
         """
-        embeddings = self.batch_encode(texts)
+        embeddings = self.embed_documents(texts)
         return np.array(embeddings)
 
 embedding_model = EmbeddingModel()
