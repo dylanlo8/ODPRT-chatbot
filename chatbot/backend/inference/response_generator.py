@@ -38,8 +38,8 @@ class ResponseGenerator:
         )
 
         classification, clarifying_question = (
-            result['classification'],
-            result['clarifying_question'],
+            result.classification,
+            result.clarifying_question,
         )
         return classification, clarifying_question
 
