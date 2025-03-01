@@ -7,11 +7,11 @@ from tqdm import tqdm
 from chatbot.backend.services.vector_db.schema import SCHEMA
 from chatbot.backend.services.vector_db.index import create_all_indexes
 from chatbot.backend.services.models.embedding_model import embedding_model
+load_dotenv(override=True)
 
 class VectorDB:
     def __init__(self, collection_name):
-        load_dotenv()
-
+        
         # Establish a connection to Zillis
         self.endpoint = os.getenv('ZILLIS_ENDPOINT')
         self.token = os.getenv('ZILLIS_TOKEN')
@@ -45,13 +45,14 @@ class VectorDB:
             data=[query_embedding],  # keyword vector embedding
             anns_field='description_embedding',  # keyword vector field
             param={"metric_type": "COSINE"}, 
-            limit=1,
+            limit=5,
             output_fields=['doc_id', 'description']
         )
         
         hits = search_results[0]
         
         context = []
+        # TODO: Modify the context
         for res in hits:
             doc_id = res.doc_id
             description = res.description

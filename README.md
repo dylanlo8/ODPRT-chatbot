@@ -112,11 +112,16 @@ pip install -r requirements.txt
 
 Navigate to `chatbot/frontend`
 ```shell
-cd chatbot/frontend
+cd chatbot/frontend/odprt-chatbot
 ```
 Install dependencies
 ```shell
 npm install
+```
+
+Start frontend development
+```shell
+npm run dev
 ```
 
 4. Install pre commit hook in root directory
