@@ -31,13 +31,13 @@
   margin: 5px;
 }
 
-.user {
+.Human {
   align-self: flex-end;
   background: #1B3753;
   color: white;
 }
 
-.chatbot {
+.AI {
   align-self: flex-start;
   background: lightgray;
   color: black;
@@ -68,7 +68,6 @@
   align-items: center;
 }
 
-
 .input-container input {
   padding: 40px;
 }
@@ -95,7 +94,6 @@
   cursor: pointer;
   padding-top: 10px;
 }
-
 .placeholder {
   color: #1B3753;
 }
@@ -107,9 +105,17 @@
   color: #1B3753;
   border-radius: 5px;
   font-size: 14px;
-  display: block;
-  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   width: auto;
   box-sizing: border-box;
-  margin-left: 0;
 }
+
+.delete-icon {
+  cursor: pointer;
+  color: #1B3753; /* Red color for the delete icon */
+  margin-left: 10px;
+  transition: color 0.2s ease-in-out;
+}
+

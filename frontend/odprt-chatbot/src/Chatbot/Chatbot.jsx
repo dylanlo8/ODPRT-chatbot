@@ -1,13 +1,14 @@
 import React, { useState, useRef } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane, faLink } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faLink, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import "./Chatbot.css";
 
-const Chatbot = ({messages, onSendMessage, setIsChatModified }) => {
+const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
   const [inputText, setInputText] = useState("");
   const [attachedFile, setAttachedFile] = useState(null);
   const textareaRef = useRef(null);
 
+  // Function to auto-resize the textarea
   const autoResizeTextarea = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';  
@@ -15,39 +16,56 @@ const Chatbot = ({messages, onSendMessage, setIsChatModified }) => {
     }
   };
 
+  const handleDeleteFile = () => { 
+    setAttachedFile(null);
+  };
+
+  const formatChatHistory = (messages) => {
+    return messages
+      .map((msg) => `${msg.sender}:${msg.text}`) 
+      .join("\n\n");
+  };
+
   const handleSendMessage = async () => {
     if (inputText.trim() === "") return;
 
-    const newMessage = { text: inputText, sender: "user" };
+    const newMessage = { text: inputText, sender: "Human" }; 
     onSendMessage(newMessage);
     
     setInputText(""); 
     setAttachedFile(null);
-    //setIsChatModified(true); 
 
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";  
     }
 
     try {
+      const chatHistoryString = formatChatHistory([...messages, newMessage]);
+      console.log("Formatted History:", chatHistoryString); 
+
+      //link for api endpoint
       /*
       const response = await fetch('', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: userInput }),
+        body: JSON.stringify({ 
+          message: inputText,
+          chatHistory: chatHistoryString,
+        }),
       });
 
       const data = await response.json();
-      const botMessage = { sender: 'chatbot', text: data.message };
+      const botMessage = { sender: 'AI', text: data.message };
       */
 
-      const botMessage = { sender: 'chatbot', text: "Bot received the message." };
+      // Simulate a bot response (for testing purposes)
+      const botMessage = { sender: 'AI', text: "Bot received the message." };
       onSendMessage(botMessage);
     } catch (error) {
       console.error('Error:', error);
-      const errorMessage = { sender: 'chatbot', text: 'Something went wrong.' };
+      const errorMessage = { sender: 'AI', text: 'Something went wrong.' };
       onSendMessage(errorMessage);
     }
   };
@@ -118,7 +136,12 @@ const Chatbot = ({messages, onSendMessage, setIsChatModified }) => {
       </div>
       {attachedFile && (
         <div className="file-info">
-          Attached file: {attachedFile.name}
+          <span>Attached file: {attachedFile.name}</span>
+          <FontAwesomeIcon
+            icon={faTimesCircle}
+            className="delete-icon"
+            onClick={handleDeleteFile}
+          />
         </div>
       )}
     </div>
