@@ -40,13 +40,28 @@ class VectorDB:
 
     def image_hybrid_search(self, query: str) -> str:
         # Get query embedding
-        query_embedding = self.embedding_model.batch_encode(query)[0]
-        search_results = self.collection.search(
-            data=[query_embedding],  # keyword vector embedding
-            anns_field='description_embedding',  # keyword vector field
-            param={"metric_type": "COSINE"}, 
-            limit=5,
-            output_fields=['doc_id', 'description']
+        dense_embedding, sparse_embedding = self.embedding_model.encode_texts([query])
+        
+        # New hybrid search implementation
+        search_results = self.collection.hybrid_search(
+            reqs=[
+                AnnSearchRequest(
+                    data=dense_embedding,  # content vector embedding
+                    anns_field='text_dense_embedding',
+                    param={"metric_type": "COSINE"}, 
+                    limit=3
+                ),
+                AnnSearchRequest(
+                    data= self.embedding_model.convert_sparse_embeddings(sparse_embedding),  # keyword vector embedding
+                    anns_field='text_sparse_embedding',
+                    param={"metric_type": "IP"}, 
+                    limit=3
+                )
+            ],
+            output_fields=['doc_id', 'text', 'doc_source'],
+            # using RRFRanker here for reranking
+            rerank=RRFRanker(),
+            limit=5
         )
         
         hits = search_results[0]
@@ -55,8 +70,8 @@ class VectorDB:
         # TODO: Modify the context
         for res in hits:
             doc_id = res.doc_id
-            description = res.description
-            context.append(f"Doc_id: {doc_id} \n Description: {description}")
+            text = res.text
+            context.append(f"Doc_id: {doc_id} \n Text: {text}")
         
         return "\n\n".join(context)
             
