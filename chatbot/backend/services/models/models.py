@@ -8,7 +8,7 @@ from io import BytesIO
 from typing import List
 from PIL import Image
 
-from chatbot.backend.prompts.vlm_prompts import IMAGE_SUMMARY_PROMPT, FILTER_IMAGE_PROMPT
+from chatbot.backend.prompts.vlm_prompts import IMAGE_SUMMARY_PROMPT, FILTER_IMAGE_PROMPT, RELEVANCE_CLASSIFICATION_PROMPT
 
 class VLM:
     def __init__(self):
@@ -48,6 +48,32 @@ class VLM:
         }
         return payload
     
+    def _build_payloads_for_attachments(self, 
+                   email_context: str, 
+                   extracted_images: List[str]):
+        payloads = []
+        for image_path in extracted_images:
+            img = Image.open(image_path)
+            base64_img = self.encode_image(img)
+            payload = {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": RELEVANCE_CLASSIFICATION_PROMPT},
+                            {"type": "text", "text": f"Email Context:\n{email_context}"},
+                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_img}"}},
+                        ],
+                    }
+                ],
+                "model": "Qwen/Qwen2-VL-7B-Instruct",
+                "max_tokens": 300,
+                "temperature": 0.1,
+                "top_p": 0.9,
+            }
+            payloads.append(payload)
+        return payloads
+    
     def filter_images(self, 
                       image_paths: List[str],
                       prompt: str = FILTER_IMAGE_PROMPT) -> List[str]:
@@ -72,6 +98,7 @@ class VLM:
                 classification, justification = json_answer.get("classification", "Not Useful"), json_answer.get("justification", "No justification provided")
                 if classification == "Useful":
                     useful_image_paths.append(image_path)
+                    print(justification)
             except json.JSONDecodeError:
                 continue
         

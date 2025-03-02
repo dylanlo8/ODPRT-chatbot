@@ -4,9 +4,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 from typing import List, Tuple, Optional, Literal
 
 from chatbot.backend.chains.email_chains import classification_chain, qa_chain
-from chatbot.backend.email_processor.utils import get_all_emails
+from chatbot.backend.email_processor.utils import get_all_emails_and_attachments
 from chatbot.backend.services.models.embedding_model import embedding_model
 from chatbot.backend.services.logger import logger
+import os
+import shutil
 
 
 class EmailProcessor:
@@ -41,20 +43,40 @@ class EmailProcessor:
 
     def _filter_useful_emails(self) -> List[str]:
         """
-        filter useful emails from emails
-
-        Args:
-            emails (List[str]): list of emails
+        Filters useful emails from the extracted email directory.
+        Deletes entire email directories (including attachments) if emails are not useful.
 
         Returns:
-            useful_emails (List[str]): list of useful emails
+            List[str]: Paths of useful emails.
         """
-        all_emails = get_all_emails(self.directory)
-        self.logger.info(f"Total emails: {len(all_emails)}")
+        cleaned_email_paths, email_attachments = get_all_emails_and_attachments()
+        self.logger.info(f"Total emails: {len(cleaned_email_paths)}")
+
         useful_emails = []
-        for email in all_emails:
-            if self._classify_email(email) == "useful":
-                useful_emails.append(email)
+
+        for email_path in cleaned_email_paths:
+            cleaned_email_txt = os.path.join(email_path)
+            email_dir = os.path.dirname(email_path)
+
+            if not os.path.exists(cleaned_email_txt):
+                self.logger.warning(f"Missing cleaned email file: {cleaned_email_txt}. Deleting directory.")
+                shutil.rmtree(email_dir, ignore_errors=True)
+                continue
+            
+            try:
+                with open(cleaned_email_txt, "r", encoding="utf-8") as f:
+                    email_content = f.read().strip()
+            except Exception as e:
+                self.logger.error(f"Error reading {cleaned_email_txt}: {e}. Deleting directory.")
+                shutil.rmtree(email_dir, ignore_errors=True)
+                continue
+
+            if self._classify_email(email_content) == "useful":
+                useful_emails.append(email_content)
+            else:
+                self.logger.info(f"Email deemed not useful. Deleting directory: {email_dir}")
+                shutil.rmtree(email_dir, ignore_errors=True)
+
         self.logger.info(f"Useful emails: {len(useful_emails)}")
         return useful_emails
 
