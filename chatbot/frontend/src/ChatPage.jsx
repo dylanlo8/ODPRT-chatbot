@@ -34,6 +34,34 @@ const ChatPage = () => {
   }, [chatHistory, currentChatId, showChatHistory]);
 
   useEffect(() => {
+    if (messages.length > 0) {
+      const chatId = currentChatId || messages[0].text; 
+      const existingChat = chatHistory.find(chat => chat.id === chatId);
+
+      if (existingChat) {
+        // Update the existing chat
+        setChatHistory(prevHistory =>
+          prevHistory.map(chat =>
+            chat.id === chatId ? { ...chat, messages } : chat
+          )
+        );
+      } else {
+        // Create a new chat and add it to chatHistory
+        const newChat = {
+          id: chatId,
+          messages,
+          date: new Date().toISOString(),
+        };
+        setChatHistory(prevHistory => [newChat, ...prevHistory].slice(0, 10)); 
+      }
+
+      if (!currentChatId) {
+        setCurrentChatId(chatId);
+      }
+    }
+  }, [messages]); 
+
+  useEffect(() => {
     window.addEventListener('mousemove', resetTimer);
     window.addEventListener('keydown', resetTimer);
     window.addEventListener('scroll', resetTimer);
@@ -46,34 +74,21 @@ const ChatPage = () => {
   }, []);
 
   const handleSendMessage = (message) => {
-    setMessages((prevMessages) => {
-      const updatedMessages = [...prevMessages, message];
-
-      setChatHistory((prevHistory) => {
-        return prevHistory.map((chat) =>
-          chat.id === currentChatId
-            ? { ...chat, messages: updatedMessages }
-            : chat
-        );
-      });
-
-      return updatedMessages;
-    });
+    setMessages((prevMessages) => [...prevMessages, message]);
     resetTimer();
   };
 
   const handleNewChat = () => {
-    if (messages.length > 0 && !chatHistory.some(chat => chat.id === messages[0].text)) {
-      setChatHistory((prevHistory) => {
+    if (messages.length > 0) {
+      const chatId = messages[0].text;
+      if (!chatHistory.some(chat => chat.id === chatId)) {
         const newChat = {
-          id: messages[0].text,
+          id: chatId,
           messages,
-          date: new Date().toISOString()
+          date: new Date().toISOString(),
         };
-        const newHistory = [newChat, ...prevHistory].slice(0, 10);
-        localStorage.setItem("chatHistory", JSON.stringify(newHistory));
-        return newHistory;
-      });
+        setChatHistory(prevHistory => [newChat, ...prevHistory].slice(0, 10)); // Keep only the last 10 chats
+      }
     }
 
     setMessages([]);

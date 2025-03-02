@@ -40,27 +40,11 @@ TEXT_SPARSE_EMBEDDING = FieldSchema(
     dtype=DataType.SPARSE_FLOAT_VECTOR
 )
 
-### IMAGE FEATURES
-
-DESCRIPTION = FieldSchema(
-    name="description",
-    dtype=DataType.VARCHAR,
-    max_length=5000,
-    default_value=""
-)
-
-DESCRIPTION_EMBEDDING = FieldSchema(
-    name="description_embedding",
-    dtype=DataType.FLOAT_VECTOR,
-    dim=1024
-)
-
 ### DEFINING THE SCHEMA
 
 SCHEMA = CollectionSchema(
     fields=[AUTO_ID, DOC_ID, DOC_SOURCE, TEXT, 
-            TEXT_DENSE_EMBEDDING, TEXT_SPARSE_EMBEDDING, 
-            DESCRIPTION, DESCRIPTION_EMBEDDING],
+            TEXT_DENSE_EMBEDDING, TEXT_SPARSE_EMBEDDING],
     description="Schema for indexing documents and images",
     enable_dynamic_field=True
 )
