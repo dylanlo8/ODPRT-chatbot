@@ -1,0 +1,83 @@
+import { ResponsiveLine } from "@nivo/line";
+import { tokens } from "../../theme";
+
+
+const LineChart = ({ data }) => {
+  const colors = tokens();
+
+  return (
+    <ResponsiveLine
+      data={data}
+      theme={{
+        axis: {
+          domain: {
+            line: {
+              stroke: "transparent",
+            },
+          },
+          legend: {
+            text: {
+              fill: colors.text,
+            },
+          },
+          ticks: {
+            line: {
+              stroke: colors.text,
+              strokeWidth: 1,
+            },
+            text: {
+              fill: colors.text,
+            },
+          },
+        },
+        legends: {
+          text: {
+            fill: colors.comp_background,
+          },
+        },
+        tooltip: {
+          container: {
+            color: colors.indigo[500],
+          },
+        },
+      }}
+      colors={{ datum: "color" }} 
+      margin={{ top: 50, right: 100, bottom: 50, left: 100 }}
+      xScale={{ type: "point" }}
+      yScale={{
+        type: "linear",
+        min: "auto",
+        max: "auto",
+        stacked: true,
+        reverse: false,
+      }}
+      yFormat=" >-.2f"
+      curve="catmullRom"
+      axisTop={null}
+      axisRight={null}
+      axisBottom={{
+        orient: "bottom",
+        tickSize: 0,
+        tickPadding: 20,
+        tickRotation: 0,
+      }}
+      axisLeft={{
+        orient: "left",
+        tickValues: 5, 
+        tickSize: 0,
+        tickPadding: 20,
+        tickRotation: 0,
+      }}
+      enableGridX={false}
+      enableGridY={false}
+      pointSize={8}
+      pointColor={{ theme: "background" }}
+      pointBorderWidth={2}
+      pointBorderColor={{ from: "serieColor" }}
+      pointLabelYOffset={-12}
+      useMesh={true}
+    />
+  );
+};
+
+export default LineChart;
