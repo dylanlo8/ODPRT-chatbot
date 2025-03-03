@@ -3,19 +3,7 @@ import os
 import re
 
 
-def read_email(
-    email_path: str
-):
-    """
-    read email from path
-
-    Args:
-        email_path (str): email path
-    """
-    msg = extract_msg.Message(email_path)
-    return msg.body
-
-def extract_email_attachments(
+def read_email_with_attachments(
     email_path: str
 ):
     """
@@ -25,28 +13,34 @@ def extract_email_attachments(
         email_path (str): email path
     """
     files = []
-    root_dir = os.path.dirname(os.path.abspath(__file__))
-    save_directory = os.path.join(root_dir, 'extracted_attachments')
-    os.makedirs(save_directory, exist_ok=True)
-
     msg = extract_msg.Message(email_path)
-    msg.save()
-
+    email_filename = os.path.basename(email_path)
+    save_directory = os.path.join(os.getcwd(), 'processed_docs', 'emails_with_attachments', os.path.splitext(email_filename)[0])
+    os.makedirs(save_directory, exist_ok=True)
+    cleaned_email_thread = clean_email(re_order_email_threads(msg.body))
+    cleaned_email_path = os.path.join(save_directory, "cleaned_msg.txt")
+    with open(cleaned_email_path, "w", encoding="utf-8") as file:
+        file.write(cleaned_email_thread)
+        
+    attachement_dir = os.path.join(save_directory, "original_attachments")
+    os.makedirs(attachement_dir, exist_ok=True)
     for attachment in msg.attachments:
         filename = attachment.longFilename or attachment.shortFilename
         filename = filename.replace("/", "_").replace("\\", "_").replace(":", "_")
 
-        file_path = os.path.join(save_directory, filename)
+        file_path = os.path.join(attachement_dir, filename)
 
         try:
-            attachment.save(customPath=save_directory)
+            attachment.save(customPath=attachement_dir)
             files.append(file_path)
-            print(f"✅ Saved attachment: {file_path}")
+            print(f"Saved attachment: {attachement_dir}")
 
         except Exception as e:
-            print(f"❌ Error saving {filename}: {e}")
+            print(f"Error saving {filename}: {e}")
+    
+    print(f"Saved cleaned email at: {cleaned_email_path}")
 
-    return files
+    return cleaned_email_path, files
 
 def clean_email(
     email_thread: str
@@ -66,8 +60,13 @@ def clean_email(
     cleaned_threads = []
 
     for thread in email_threads:
-        if not thread.strip():
+
+        thread = thread.strip()
+
+        if not thread:
             continue
+
+        thread = re.sub(r"(?i)-+\s*External Email\s*-+", "", thread, flags=re.MULTILINE)
 
         thread = re.sub(r"^(From|To|Cc|BCC|Sent|Subject): .*?$", "", thread, flags=re.MULTILINE)
 
@@ -136,7 +135,7 @@ def clean_email(
     return "\n\n---\n\n".join(cleaned_threads)
 
 
-def get_all_emails(
+def get_all_emails_and_attachments(
     directory: str = 'docs/emails'
 ):
     """
@@ -156,9 +155,10 @@ def get_all_emails(
             if not email.endswith('.msg'):
                 continue
             email_path = os.path.join(directory, child_dir, email)
-            cleaned_email = clean_email(re_order_email_threads(read_email(email_path=email_path)))
-            emails.append(cleaned_email)
-    return emails
+            cleaned_email_path, files = read_email_with_attachments(email_path=email_path)
+            emails.append(cleaned_email_path)
+            files.append(files)
+    return emails, files
 
 def re_order_email_threads(
         email_thread: str

@@ -1,28 +1,43 @@
 from langchain_core.prompts.chat import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-from chatbot.backend.prompts.query_prompts import ANSWER_PROMPT, ROUTING_PROMPT
-from chatbot.backend.schemas.structured_outputs import SemanticRouting
+from chatbot.backend.prompts.query_prompts import (
+    ANSWER_PROMPT,
+    ROUTING_PROMPT,
+    EMAIL_TEMPLATE,
+)
+from chatbot.backend.schemas.structured_outputs import SemanticRouting, EmailTemplate
 from chatbot.backend.services.models.llm import gpt_4o_mini
 
 # classifies user queries
-routing_chain = (
-    ChatPromptTemplate.from_messages([
+routing_chain = ChatPromptTemplate.from_messages(
+    [
         ("system", ROUTING_PROMPT),
         ("human", "{user_query}"),
-        ("human", "{chat_history}")
-    ])
-    | gpt_4o_mini.with_structured_output(SemanticRouting)
-)
+        ("human", "{uploaded_content}"),
+        ("human", "{chat_history}"),
+    ]
+) | gpt_4o_mini.with_structured_output(SemanticRouting)
 
 # generates responses
 answer_chain = (
-    ChatPromptTemplate.from_messages([
-        ("system", ANSWER_PROMPT),
-        ("human", "{user_query}"),
-        ("human", "{context}"),
-        ("human", "{chat_history}")
-    ])
+    ChatPromptTemplate.from_messages(
+        [
+            ("system", ANSWER_PROMPT),
+            ("human", "{user_query}"),
+            ("human", "{uploaded_content}"),
+            ("human", "{context}"),
+            ("human", "{chat_history}"),
+        ]
+    )
     | gpt_4o_mini
     | StrOutputParser()
 )
+
+# generates emails
+generate_email_chain = ChatPromptTemplate.from_messages(
+    [
+        ("system", EMAIL_TEMPLATE),
+        ("human", "{chat_history}"),
+    ]
+) | gpt_4o_mini.with_structured_output(EmailTemplate)

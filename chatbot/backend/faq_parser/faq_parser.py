@@ -14,7 +14,7 @@ class FAQ_Parser:
 
     def __init__(
         self,
-        faq_directory: str = "docs/IEP FAQ.docx",
+        faq_directory = ["docs/IEP FAQ.docx", "docs/Additional ODPRT unit FAQ.docx"],
         similarity_threshold: float = 0.85,
     ):
         self.directory = faq_directory
@@ -24,16 +24,17 @@ class FAQ_Parser:
 
     def extract_faq(self):
         """Extracts text from a Word document."""
-        doc = Document(self.directory)
         full_text = []
+        for doc in self.directory:
+            doc = Document(doc)
 
-        for para in doc.paragraphs:
-            full_text.append(para.text)
+            for para in doc.paragraphs:
+                full_text.append(para.text)
 
-        for table in doc.tables:
-            for row in table.rows:
-                row_text = [cell.text.strip() for cell in row.cells]
-                full_text.append("\t".join(row_text))
+            for table in doc.tables:
+                for row in table.rows:
+                    row_text = [cell.text.strip() for cell in row.cells]
+                    full_text.append("\t".join(row_text))
 
         return '\n'.join(full_text)
 
@@ -67,63 +68,6 @@ class FAQ_Parser:
             qa_pairs.append(qa)
         return qa_pairs
 
-    def _find_duplicates(
-        self,
-        texts: List[str],
-    ) -> List[int]:
-        """
-        find duplicate texts based on semantic similarity
-
-        Args:
-            texts (List[str]): List of text strings to check for duplicates
-
-        Returns:
-            List[int]: Indices of texts that are duplicates
-        """
-        # compute embeddings for all texts
-        embeddings = self.embedding_model.compute_embeddings(texts)
-
-        # compute pairwise similarities using cosine similarity
-        similarities = cosine_similarity(embeddings)
-
-        # find indices of similar pairs
-        duplicate_indices = set()
-        for i in range(len(texts)):
-            for j in range(i + 1, len(texts)):
-                if similarities[i][j] > self.similarity_threshold:
-                    # keep the first occurrence, mark the later one as duplicate
-                    duplicate_indices.add(j)
-
-        return sorted(list(duplicate_indices))
-
-    def _dedup_qa_pairs(
-        self,
-        qa_pairs: List[str],
-    ) -> List[str]:
-        """
-        remove duplicate QA pairs based on semantic similarity.
-
-        Args:
-            qa_pairs (List[str]): List of question-answer pairs
-
-        Returns:
-            List[str]: Deduplicated question-answer pairs
-        """
-        if not qa_pairs:
-            return []
-
-        # find duplicates based on combined question-answer similarity
-        duplicate_indices = self._find_duplicates(qa_pairs)
-
-        # create deduplicated list preserving original format
-        unique_pairs = []
-        for idx, qa in enumerate(qa_pairs):
-            if idx not in duplicate_indices:
-                unique_pairs.append(qa)
-
-        self.logger.info(f"Removed {len(duplicate_indices)} duplicate QA pairs")
-        return unique_pairs
-
     def get_qa_pairs(self) -> List[str]:
         final_questions = []
         final_answers = []
@@ -136,8 +80,6 @@ class FAQ_Parser:
             final_questions.append(questions[idx])
             final_answers.append(answers[idx])
 
-        qa_pairs = self._merge_qa_pairs(
+        return self._merge_qa_pairs(
             questions=final_questions, answers=final_answers
         )
-        # dedup similar QA pairs to retain highest quality data
-        return self._dedup_qa_pairs(qa_pairs=qa_pairs)

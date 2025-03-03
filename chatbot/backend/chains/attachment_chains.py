@@ -7,4 +7,5 @@ from chatbot.backend.services.models.llm import gpt_4o_mini
 classification_chain = ChatPromptTemplate([
     ("system", CLASSIFICATION_PROMPT),
     ("human", "{email_thread}"),
+    ("human", "{attachment_content}")
 ]) | gpt_4o_mini.with_structured_output(RelevanceClassification)

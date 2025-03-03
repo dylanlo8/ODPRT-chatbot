@@ -1,4 +1,4 @@
-create_table_query = """
+create_table_sql_query = """
 CREATE TABLE conversations (
     conversation_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,

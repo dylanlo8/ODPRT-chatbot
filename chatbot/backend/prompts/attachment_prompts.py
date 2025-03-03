@@ -3,6 +3,9 @@ CLASSIFICATION_PROMPT = """You are a classification assistant determining whethe
 Email Thread:
 {email_thread}
 
+Attachment:
+{attachment_content}
+
 Context:
 The NUS Office of the Deputy President (Research & Technology) (ODPRT) oversees research compliance, integrity, grant administration, strategic initiatives, industry engagement, and research communications at NUS. The Industry Engagements & Partnerships (IEP) team within ODPRT manages industry partnerships and collaborations.
 

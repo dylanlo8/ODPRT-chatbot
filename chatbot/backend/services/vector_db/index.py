@@ -32,18 +32,6 @@ def create_all_indexes(collection: Collection) -> Collection:
 
     print("Sparse embeddings index created")
 
-    # description embeddings index
-    collection.create_index(
-        field_name="description_embedding",
-        index_params={
-            "metric_type": "COSINE",
-            "index_type": "HNSW"
-        },
-        index_name="description_embedding_index"
-    )
-    
-    print("description_embedding index created")
-
     # load
     collection.load()
     print("Collection loaded")

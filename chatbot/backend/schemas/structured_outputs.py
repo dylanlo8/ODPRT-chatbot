@@ -22,9 +22,17 @@ class QAPairs(BaseModel):
 
 
 class SemanticRouting(BaseModel):
-    classification: Literal["not_related", "related", "vague"] = Field(
-        description="a string to represent if the query is vague, not related or related"
+    classification: Literal["unrelated", "related", "vague"] = Field(
+        description="a string to represent if the query is vague, unrelated or related"
     )
     clarifying_question: str = Field(
         description="A follow-up question to request more details before proceeding with further classification."
+    )
+
+
+class EmailTemplate(BaseModel):
+    subject: str = Field(description="The subject of the email")
+    body: str = Field(description="The body of the email")
+    recipients: List[str] = Field(
+        description="A list of email addresses to send the email to. Infer the recipient's email address from the chat history."
     )
