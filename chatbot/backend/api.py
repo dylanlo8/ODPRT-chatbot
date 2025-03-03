@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from chatbot.backend.services.file_storage.buckets_api import buckets_router
 from chatbot.backend.services.chat_history.sql_db_api import messages_router, conversations_router, users_router
 from chatbot.backend.services.vector_db.db_api import vector_db_router
@@ -8,6 +9,14 @@ from chatbot.backend.inference.inference_api import chat_router
 # FastAPI Application
 # ==========================
 app = FastAPI()
+
+app.add_middleware(  # {{ edit_2 }}
+    CORSMiddleware,
+    allow_origins=["*"],  # Adjust this as needed for your use case
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # File Storage
 app.include_router(buckets_router)

@@ -3,7 +3,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane, faLink, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import "./Chatbot.css";
 
+
+
 const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
+  const QUERY_SERVICE = "http://localhost:8000/chat/query/"
   const [inputText, setInputText] = useState("");
   const [attachedFile, setAttachedFile] = useState(null);
   const textareaRef = useRef(null);
@@ -44,24 +47,20 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
       console.log("Formatted History:", chatHistoryString); 
 
       //link for api endpoint
-      /*
-      const response = await fetch('', {
+      const response = await fetch(QUERY_SERVICE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          message: inputText,
-          chatHistory: chatHistoryString,
+          user_query: inputText,
+          chat_history: chatHistoryString,
         }),
       });
 
       const data = await response.json();
-      const botMessage = { sender: 'AI', text: data.message };
-      */
-
-      // Simulate a bot response (for testing purposes)
-      const botMessage = { sender: 'AI', text: "Bot received the message." };
+      const botMessage = { sender: 'AI', text: data.answer };
+      
       onSendMessage(botMessage);
     } catch (error) {
       console.error('Error:', error);
