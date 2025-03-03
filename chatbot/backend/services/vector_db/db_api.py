@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, APIRouter
 from pydantic import BaseModel
 from chatbot.backend.services.vector_db.db import VectorDB
+import logging
 
 # ==========================
 # Initialize VectorDB instance
