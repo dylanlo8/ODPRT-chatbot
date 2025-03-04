@@ -61,7 +61,7 @@ class VectorDB:
             output_fields=['doc_id', 'text', 'doc_source'],
             # using RRFRanker here for reranking
             rerank=RRFRanker(),
-            limit=5
+            limit=3
         )
         
         hits = search_results[0]
