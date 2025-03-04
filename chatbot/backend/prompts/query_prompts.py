@@ -18,6 +18,7 @@ ROUTING_PROMPT = """You are an intelligent query classifier responsible for cate
 1. "unrelated": The query is unrelated to IEP's responsibilities, such as general inquiries, personal matters, or topics outside research-industry engagements. 
 
 2. "related": The query should be classified as related if any of these conditions are met:
+   - Questions about NUS Office of the Deputy President (Research & Technology) (ODPRT) activities 
    - References a specific project, team, or initiative mentioned in the query/uploaded content
    - Asks about timelines, status, or updates of known projects
    - Seeks contact information for specific teams/people mentioned in query
