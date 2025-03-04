@@ -305,7 +305,7 @@ class DocumentParser:
         os.makedirs(processed_folder, exist_ok=True)
         output_pdf_path = os.path.join(
             processed_folder,
-            os.path.basename(attachment_path).replace(".pdf", "_processed.pdf"),
+            os.path.basename(attachment_path),
         )
 
         pdf = FPDF()
