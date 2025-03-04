@@ -11,7 +11,7 @@ const StatBox = ({ title, figure, arrow, percentage, isIncreasing}) => {
       {/* TITLE */}
       <Box display="flex" justifyContent="space-between">
           <Typography
-            variant="h4"
+            variant="h5"
             fontWeight="600"
             sx={{ color: colors.text }}
           >
@@ -21,8 +21,8 @@ const StatBox = ({ title, figure, arrow, percentage, isIncreasing}) => {
 
       {/* FIGURE */}
       <Box display="flex" justifyContent="space-between" mt="2px">
-        <Box my="10px">
-          <Typography variant="h2" 
+        <Box my="5px">
+          <Typography variant="h3" 
           fontWeight="bold"
           sx={{ color: colors.text }}>
             {figure}
@@ -34,7 +34,7 @@ const StatBox = ({ title, figure, arrow, percentage, isIncreasing}) => {
       <Box display="flex" justifyContent="centre" mt="2px">
       {arrow}
         <Typography
-            variant="h5"
+            variant="h6"
             sx={{ color: isIncreasing ? colors.green[500] : colors.red[500] }}
           >
           {percentage}

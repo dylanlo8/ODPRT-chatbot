@@ -13,7 +13,7 @@ const BarBox = ({ title, data }) => {
           {/* TITLE */}
             <Box display="flex" justifyContent="space-between">
                 <Typography
-                    variant="h4"
+                    variant="h5"
                     fontWeight="600"
                     sx={{ color: colors.text }}
                 >
@@ -23,7 +23,7 @@ const BarBox = ({ title, data }) => {
         </Box>
 
         {/* LINE CHART */}
-        <Box height="250px" >
+        <Box height="190px" >
             <LineChart 
             data={data} />
         </Box>
