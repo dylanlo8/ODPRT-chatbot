@@ -7,6 +7,7 @@ from chatbot.backend.inference.inference_api import chat_router
 from chatbot.backend.document_parser.doc_parsing_api import document_parser_router
 from chatbot.backend.email_processor.email_processing_api import email_processor_router
 from chatbot.backend.faq_parser.faq_parsing_api import faq_parser_router
+from chatbot.backend.ingestion.ingestion_api import ingestion_router
 
 # ==========================
 # FastAPI Application
@@ -39,6 +40,9 @@ app.include_router(vector_db_router)
 app.include_router(document_parser_router)
 app.include_router(faq_parser_router)
 app.include_router(email_processor_router)
+
+# Ingestion API
+app.include_router(ingestion_router)
 
 if __name__ == "__main__":
     import uvicorn

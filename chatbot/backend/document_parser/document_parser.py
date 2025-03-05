@@ -20,6 +20,10 @@ from typing import List
 from chatbot.backend.services.logger import logger
 from chatbot.backend.services.models.embedding_model import embedding_model
 from chatbot.backend.services.models.models import vlm
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv(override=True)
 
 
 class DocumentParser:
@@ -34,6 +38,7 @@ class DocumentParser:
         self.similarity_threshold = similarity_threshold
         self.embedding_model = embedding_model
         self.logger = logger
+        self.poppler_path = os.getenv("POPPLER_PATH")
 
     def read_attachments(self):
         """Reads all attachments in the directory and returns a list of file paths."""
@@ -181,8 +186,7 @@ class DocumentParser:
         if output_folder is None:
             output_folder = os.path.join(os.path.dirname(os.path.dirname(pdf_path)), "temp_images")
         os.makedirs(output_folder, exist_ok=True)
-        poppler_path = poppler_path = "/opt/homebrew/bin"
-        images = convert_from_path(pdf_path, dpi=dpi, poppler_path = poppler_path)
+        images = convert_from_path(pdf_path, dpi=dpi, poppler_path=self.poppler_path)
         image_paths = []
 
         for i, image in enumerate(images):
@@ -359,11 +363,10 @@ class DocumentParser:
 
     def extract_text_from_pdf(self, file_path: str):
         """Extracts text from a PDF file."""
-        """Extracts text from a scanned PDF using OCR."""
         extracted_text = ""
 
         # Convert PDF pages to images
-        images = convert_from_path(file_path, poppler_path="/opt/homebrew/bin")  # Adjust poppler_path if needed
+        images = convert_from_path(file_path, poppler_path=self.poppler_path)
 
         for i, image in enumerate(images):
             text = pytesseract.image_to_string(image)
@@ -389,8 +392,7 @@ class DocumentParser:
                 os.remove(os.path.join(save_directory, file))  # Clear the directory before saving new images
         os.makedirs(save_directory, exist_ok=True)
 
-        poppler_path = "/opt/homebrew/bin"
-        images = convert_from_path(file_path, poppler_path=poppler_path)
+        images = convert_from_path(file_path, poppler_path=self.poppler_path)
         extracted_figures = {}
         all_extracted_images = []
 
@@ -579,7 +581,7 @@ class DocumentParser:
     #             extracted_text, extracted_images, _ = self.separate_text_and_images(attachment_path)
 
     #             # Print extracted text
-    #             print(f"\n Extracted Text from {file}:\n")
+    #             print(f"\n📄 Extracted Text from {file}:\n")
     #             print(extracted_text)
     #             print("=" * 80)  # Separator for readability
 

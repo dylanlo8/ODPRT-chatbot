@@ -1,12 +1,7 @@
 from fastapi import FastAPI, HTTPException, APIRouter
 from pydantic import BaseModel
-from chatbot.backend.services.vector_db.db import VectorDB
+from chatbot.backend.services.vector_db.db import vector_db
 import logging
-
-# ==========================
-# Initialize VectorDB instance
-# ==========================
-vector_db = VectorDB(collection_name="odprt_index")
 
 # ==========================
 # Pydantic Models

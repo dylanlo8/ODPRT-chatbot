@@ -103,3 +103,5 @@ class VectorDB:
             batch = data[start:end]  # Slice batch correctly
 
             self.collection.insert(batch)  # Insert batch into collection
+
+vector_db = VectorDB(collection_name="odprt_index_test")
