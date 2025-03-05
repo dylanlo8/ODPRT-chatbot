@@ -104,4 +104,4 @@ class VectorDB:
 
             self.collection.insert(batch)  # Insert batch into collection
 
-vector_db = VectorDB(collection_name="odprt_index_test")
+vector_db = VectorDB(collection_name="odprt_index")
