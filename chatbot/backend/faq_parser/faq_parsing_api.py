@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, APIRouter
 from pydantic import BaseModel
 from typing import List
-from chatbot.backend.services.faq_parser.faq_parser import FAQ_Parser
+from chatbot.backend.faq_parser.faq_parser import FAQ_Parser
 
 # ==========================
 # Initialize FastAPI and FAQ_Parser

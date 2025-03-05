@@ -4,7 +4,7 @@ from typing import List
 import os
 import pickle
 import shutil
-from chatbot.backend.services.document_parser.document_parser import DocumentParser
+from chatbot.backend.document_parser.document_parser import DocumentParser
 
 # ==========================
 # Initialize FastAPI and DocumentParser
@@ -111,5 +111,5 @@ async def process_upload(file: UploadFile = File(...)):
     text_chunks, image_summaries = document_parser.process_user_uploads(file_path)
     
     os.remove(file_path)
-    
+
     return {"text_chunks": text_chunks, "image_summaries": image_summaries}
