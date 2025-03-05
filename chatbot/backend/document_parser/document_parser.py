@@ -474,8 +474,7 @@ class DocumentParser:
 
         if mime_type and "pdf" in mime_type:
             text = self.extract_text_from_pdf(file_path)
-            # images = self.extract_images_from_pdf(file_path)
-            images = self.extract_images_from_pdf_without_filtering(file_path)
+            images = self.extract_images_from_pdf(file_path)
         elif mime_type and "word" in mime_type or file_path.endswith(".docx"):
             text = self.extract_text_from_docx(file_path)
             images = self.extract_images_from_docx(file_path)
@@ -580,7 +579,7 @@ class DocumentParser:
     #             extracted_text, extracted_images, _ = self.separate_text_and_images(attachment_path)
 
     #             # Print extracted text
-    #             print(f"\n📄 Extracted Text from {file}:\n")
+    #             print(f"\n Extracted Text from {file}:\n")
     #             print(extracted_text)
     #             print("=" * 80)  # Separator for readability
 
@@ -604,95 +603,18 @@ class DocumentParser:
     #             self.logger.info(f"  - Images saved in: {images_dir}")
 
     #     print("Finished processing all attachments.")
+    
+    def extract_text_from_user_uploads(self, file_path: str):
+        mime_type, _ = mimetypes.guess_type(file_path)
+        text = ""
+        if mime_type and "pdf" in mime_type:
+            text = self.extract_text_from_pdf(file_path)
+        elif mime_type and "word" in mime_type or file_path.endswith(".docx"):
+            text = self.extract_text_from_docx(file_path)
+        return text
 
-    def extract_images_from_pdf_without_filtering(self, file_path: str, min_contour_area=5000):
-        """
-        Extracts images from a PDF file.
-
-        Args:
-            file_path (str): Path to the PDF file.
-            min_contour_area (int): Minimum contour area to consider an object as a figure.
-
-        Returns:
-            dict: A dictionary containing extracted figures.
-        """
-        save_directory = os.path.join(os.getcwd(), "extracted_images")
-        if os.path.exists(save_directory):
-            for file in os.listdir(save_directory):
-                os.remove(os.path.join(save_directory, file))  # Clear the directory before saving new images
-        os.makedirs(save_directory, exist_ok=True)
-
-        poppler_path = "/opt/homebrew/bin"
-        images = convert_from_path(file_path, poppler_path=poppler_path)
-        extracted_figures = {}
-        all_extracted_images = []
-
-        for page_num, image in enumerate(images):
-            try:
-                if image is None:
-                    self.logger.warning(f"Skipping page {page_num+1} in {file_path} (No image content).")
-                    continue
-
-                open_cv_image = np.array(image.convert("RGB"))
-                print(f"Processing Page {page_num+1} of {file_path}")
-
-                if open_cv_image is None or open_cv_image.size == 0:
-                    self.logger.warning(f"Skipping page {page_num+1} in {file_path} (Invalid image data).")
-                    continue
-
-                if len(open_cv_image.shape) == 3:
-                    open_cv_image = cv2.cvtColor(open_cv_image, cv2.COLOR_RGB2BGR)
-                else:
-                    self.logger.warning(f"Skipping page {page_num+1}: Unexpected image shape {open_cv_image.shape}")
-                    continue
-
-                gray = cv2.cvtColor(open_cv_image, cv2.COLOR_BGR2GRAY)
-                edges = cv2.Canny(gray, 50, 150)
-
-                contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                figure_paths = []
-
-                for idx, contour in enumerate(contours):
-                    if cv2.contourArea(contour) < min_contour_area:
-                        continue
-                    x, y, w, h = cv2.boundingRect(contour)
-                    figure_image = image.crop((x, y, x + w, y + h))
-                    figure_path = os.path.join(save_directory, f"page_{page_num+1}_figure_{idx+1}.png")
-                    figure_image.save(figure_path, "PNG")
-                    figure_paths.append(figure_path)
-
-                all_extracted_images.extend(figure_paths)
-
-            except Exception as e:
-                self.logger.error(f"Error processing page {page_num+1} of {file_path}: {e}")
-
-        extracted_figures = {os.path.basename(img_path).split("_figure_")[0].replace("page_", "Page "): [] for img_path in all_extracted_images}
-        for img_path in all_extracted_images:
-            page_info = os.path.basename(img_path).split("_figure_")[0].replace("page_", "Page ")
-            extracted_figures[page_info].append(img_path)
-
-        return extracted_figures
 
     def process_user_uploads(self, file_path: str):
-        """
-        Processes a user-uploaded document:
-        1. Extracts text and images using the `separate_text_and_images` method.
-        2. Chunks the extracted text using `chunk_text`.
-        3. Generates image summaries using `vlm.generate_image_summaries()`.
-        4. Returns the list of text chunks and image summaries.
-        
-        Args:
-            file_path (str): The path to the uploaded file.
-        
-        Returns:
-            Tuple[List[str], List[str]]: A tuple containing a list of text chunks and a list of image summaries.
-        """
-        document_parser = DocumentParser()
-        
-        extracted_text, extracted_images, _ = document_parser.separate_text_and_images(file_path)
-        
-        text_chunks = document_parser.chunk_text(extracted_text)
-
-        # image_summaries = vlm.generate_image_summaries(extracted_images)
-
+        extracted_text = self.extract_text_from_user_uploads(file_path)
+        text_chunks = self.chunk_text(extracted_text)
         return text_chunks
