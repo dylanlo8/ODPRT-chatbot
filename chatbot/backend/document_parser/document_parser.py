@@ -603,3 +603,30 @@ class DocumentParser:
     #             self.logger.info(f"  - Images saved in: {images_dir}")
 
     #     print("Finished processing all attachments.")
+
+    def process_user_uploads(file_path: str):
+        """
+        Processes a user-uploaded document:
+        1. Extracts text and images using the `separate_text_and_images` method.
+        2. Chunks the extracted text using `chunk_text`.
+        3. Generates image summaries using `vlm.generate_image_summaries()`.
+        4. Returns the list of text chunks and image summaries.
+        
+        Args:
+            file_path (str): The path to the uploaded file.
+        
+        Returns:
+            Tuple[List[str], List[str]]: A tuple containing a list of text chunks and a list of image summaries.
+        """
+        document_parser = DocumentParser()
+        
+        # Extract text and images
+        extracted_text, extracted_images, _ = document_parser.separate_text_and_images(file_path)
+        
+        # Chunk the extracted text
+        text_chunks = document_parser.chunk_text(extracted_text)
+        
+        # Generate image summaries
+        image_summaries = vlm.generate_image_summaries(extracted_images)
+        
+        return text_chunks, image_summaries

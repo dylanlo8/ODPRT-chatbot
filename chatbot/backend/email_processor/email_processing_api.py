@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, APIRouter
 from pydantic import BaseModel
 from typing import List
-from chatbot.backend.services.email_processor import EmailProcessor
+from chatbot.backend.services.email_processor.email_processor import EmailProcessor
 
 # ==========================
 # Initialize FastAPI and EmailProcessor
