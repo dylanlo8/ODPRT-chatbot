@@ -30,7 +30,7 @@ class ChunkTextResponse(BaseModel):
 
 class ProcessUserUploads(BaseModel):
     text_chunks: List[str]
-    image_summaries: List[str]
+    # image_summaries: List[str]
 
 # ==========================
 # API Endpoints
@@ -108,8 +108,8 @@ async def process_upload(file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
-    text_chunks, image_summaries = document_parser.process_user_uploads(file_path)
+    text_chunks = document_parser.process_user_uploads(file_path)
     
     os.remove(file_path)
 
-    return {"text_chunks": text_chunks, "image_summaries": image_summaries}
+    return {"text_chunks": text_chunks}
