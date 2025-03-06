@@ -1,12 +1,11 @@
 import React, { useState, useRef } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane, faLink, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import ReactMarkdown from 'react-markdown';
 import "./Chatbot.css";
 
-
-
 const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
-  const QUERY_SERVICE = "http://localhost:8000/chat/query/"
+  const QUERY_SERVICE = "http://localhost:8000/chat/query/";
   const [inputText, setInputText] = useState("");
   const [attachedFile, setAttachedFile] = useState(null);
   const textareaRef = useRef(null);
@@ -64,7 +63,10 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
       onSendMessage(botMessage);
     } catch (error) {
       console.error('Error:', error);
-      const errorMessage = { sender: 'AI', text: 'Something went wrong.' };
+      const errorMessage = { 
+        sender: 'AI', 
+        text: "Something went wrong"
+      };
       onSendMessage(errorMessage);
     }
   };
@@ -98,11 +100,27 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
         <h2 className="placeholder">Ask NUS ODPRT anything!</h2>
       ) : (
         <div className="chat-box">
-          {messages.map((msg, index) => (
-            <div key={index} className={`message ${msg.sender}`}>
-              {msg.text}
-            </div>
-          ))}
+          {messages.map((msg, index) => {
+            console.log(msg.text); // Debug the string
+            const result = msg.text.trim() ;
+            return (
+              <div key={index} className={`message ${msg.sender}`}>
+                <ReactMarkdown
+                  components={{
+
+                    // Modify `p` to reduce padding
+                    p(props) {
+                      const { node, ...rest } = props;
+                      return <p style={{ margin: '0' }} {...rest} />;
+                    }
+                  }}
+                >
+                  {result}
+                </ReactMarkdown>
+
+              </div>
+            );
+          })}
         </div>
       )}
       <div className="input-container">

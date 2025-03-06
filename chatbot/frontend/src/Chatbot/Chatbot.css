@@ -14,7 +14,8 @@
 
 .chat-box {
   width: 100%;
-  overflow-y: auto;
+  max-height: 500px; /* Adjust height as needed */
+  overflow-y: auto; /* Allow scrolling */
   border: 1px solid #ddd;
   border-radius: 5px;
   padding: 10px;
@@ -24,24 +25,6 @@
   box-sizing: border-box;
 }
 
-.message {
-  max-width: 70%;
-  padding: 10px;
-  border-radius: 10px;
-  margin: 5px;
-}
-
-.Human {
-  align-self: flex-end;
-  background: #1B3753;
-  color: white;
-}
-
-.AI {
-  align-self: flex-start;
-  background: lightgray;
-  color: black;
-}
 
 .input-container {
   width: 100%;
@@ -118,4 +101,30 @@
   margin-left: 10px;
   transition: color 0.2s ease-in-out;
 }
+
+/* Ensure that text inside message bubbles wraps properly */
+.message {
+  max-width: 75%; /* Ensure message bubbles don't become too wide */
+  padding: 10px;
+  border-radius: 10px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  word-break: break-word; /* Prevent word overflow */
+}
+
+.Human {
+  align-self: flex-end;
+  background: #1B3753;
+  color: white;
+}
+
+.AI {
+  align-self: flex-start;
+  background: lightgray;
+  color: black;
+}
+
+
+
 
