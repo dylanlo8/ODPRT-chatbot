@@ -12,42 +12,6 @@ class TextIngestionRequest(BaseModel):
     text_chunks: list
     doc_source: str
     doc_type: str
-
-@ingestion_router.post("/ingest-images/")
-async def ingest_images(files: list[UploadFile] = File(...)):
-    image_paths = []
-
-    for file in files:
-        # Check if its an image
-        if file.content_type.startswith('image/'):
-            try:
-                # Save the uploaded file to a temporary location
-                temp_file_path = f"/tmp/{file.filename}"
-                with open(temp_file_path, "wb") as buffer:
-                    shutil.copyfileobj(file.file, buffer)
-
-                # Append the file path to the list of image paths
-                image_paths.append(temp_file_path)
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Failed to save file {file.filename}: {str(e)}")
-        else:
-            raise HTTPException(status_code=400, detail=f"Invalid file type for {file.filename}. Only image files are allowed.")
-    
-    # Sends the temporarily saved image paths to the ingestion service
-    try:
-        # Ingest the images
-        ingestion_service.ingest_images(image_paths)
-        return {"message": "Images ingested successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
-@ingestion_router.post("/ingest-texts/")
-async def ingest_texts(request: TextIngestionRequest):
-    try:
-        ingestion_service.ingest_texts(request.text_chunks, request.doc_source, request.doc_type)
-        return {"message": "Texts ingested successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
     
 @ingestion_router.post("/ingest-files/")
 async def ingest_files(files: list[UploadFile] = File(...)):

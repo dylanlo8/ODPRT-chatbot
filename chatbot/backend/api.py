@@ -38,8 +38,8 @@ app.include_router(vector_db_router)
 
 # Document Processing API
 app.include_router(document_parser_router)
-app.include_router(faq_parser_router)
-app.include_router(email_processor_router)
+# app.include_router(faq_parser_router)
+# app.include_router(email_processor_router)
 
 # Ingestion API
 app.include_router(ingestion_router)
