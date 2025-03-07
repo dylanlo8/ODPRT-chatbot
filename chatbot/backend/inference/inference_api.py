@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel  # Import Pydantic's BaseModel
 from chatbot.backend.inference.response_generator import ResponseGenerator
+from chatbot.backend.services.vector_db.db import vectordb
 import requests
 import httpx
 
@@ -26,11 +27,7 @@ async def chat_query(request: ChatQueryRequest) -> dict:  # Use the Pydantic mod
             "query": request.user_query 
         }
         
-        async with httpx.AsyncClient() as client:  # Use httpx for async requests
-            hybrid_search_response = await client.post(HYBRID_SEARCH_URL, json=search_query, timeout=10)
-        context = hybrid_search_response.json()["context"]
-        
-        # TODO: Retrieve chat history and uploaded Content
+        context = vectordb.hybrid_search(search_query)
         
         # Prepare Query Workflow
         answer = response_generator.query_workflow(
