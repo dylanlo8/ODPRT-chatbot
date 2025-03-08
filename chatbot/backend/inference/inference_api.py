@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel  # Import Pydantic's BaseModel
 from chatbot.backend.inference.response_generator import ResponseGenerator
-from chatbot.backend.services.vector_db.db import vectordb
+from chatbot.backend.services.vector_db.db import vector_db
 import requests
 import httpx
 
@@ -27,7 +27,7 @@ async def chat_query(request: ChatQueryRequest) -> dict:  # Use the Pydantic mod
             "query": request.user_query 
         }
         
-        context = vectordb.hybrid_search(search_query)
+        context = vector_db.hybrid_search(search_query['query'])
         
         # Prepare Query Workflow
         answer = response_generator.query_workflow(

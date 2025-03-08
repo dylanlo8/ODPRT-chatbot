@@ -63,7 +63,7 @@ const ChatPage = () => {
   useEffect(() => {
     if (userId) {
       const preferences = { showChatHistory }; // Add more preferences if needed
-      sendToBackend(userId, chatHistory, preferences); // Send to backend when user data changes
+      // sendToBackend(userId, chatHistory, preferences); // Send to backend when user data changes
 
       if (chatHistory.length > 0 && currentChatId) {
         const savedChat = chatHistory.find(chat => chat.id === currentChatId);
@@ -80,7 +80,7 @@ const ChatPage = () => {
     localStorage.setItem("currentChatId", JSON.stringify(currentChatId));
     localStorage.setItem("showChatHistory", JSON.stringify(showChatHistory));
 
-    sendToBackend(userId, chatHistory, { showChatHistory }); // Send updated data to backend
+    // sendToBackend(userId, chatHistory, { showChatHistory }); // Send updated data to backend
 
   }, [chatHistory, currentChatId, showChatHistory]);
 

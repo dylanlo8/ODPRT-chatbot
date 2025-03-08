@@ -6,8 +6,10 @@ import "./Chatbot.css";
 
 const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
   const QUERY_SERVICE = "http://localhost:8000/chat/query/";
+  const DOCUMENT_PARSER_SERVICE = "http://localhost:8000/document-parser/process-upload/";
   const [inputText, setInputText] = useState("");
   const [attachedFile, setAttachedFile] = useState(null);
+  const [uploadedContent, setUploadedContent] = useState("");
   const textareaRef = useRef(null);
 
   // Function to auto-resize the textarea
@@ -20,6 +22,7 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
 
   const handleDeleteFile = () => { 
     setAttachedFile(null);
+    setUploadedContent("");
   };
 
   const formatChatHistory = (messages) => {
@@ -29,7 +32,7 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
   };
 
   const handleSendMessage = async () => {
-    if (inputText.trim() === "") return;
+    if (inputText.trim() === "" && !attachedFile) return;
 
     const newMessage = { text: inputText, sender: "Human" }; 
     onSendMessage(newMessage);
@@ -45,7 +48,6 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
       const chatHistoryString = formatChatHistory([...messages, newMessage]);
       console.log("Formatted History:", chatHistoryString); 
 
-      //link for api endpoint
       const response = await fetch(QUERY_SERVICE, {
         method: 'POST',
         headers: {
@@ -54,6 +56,7 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
         body: JSON.stringify({ 
           user_query: inputText,
           chat_history: chatHistoryString,
+          uploaded_content: uploadedContent,
         }),
       });
 
@@ -71,6 +74,19 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
     }
   };
 
+  const uploadAndExtractFile = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(DOCUMENT_PARSER_SERVICE, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await response.json();
+    return data.text_chunks.join(" ");
+  };
+
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -83,10 +99,12 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
     autoResizeTextarea();
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const uploadedFile = e.target.files[0];
     if (uploadedFile) {
       setAttachedFile(uploadedFile);
+      const extractedContent = await uploadAndExtractFile(uploadedFile);
+      setUploadedContent(extractedContent);
     }
   };
 
@@ -101,8 +119,8 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
       ) : (
         <div className="chat-box">
           {messages.map((msg, index) => {
-            console.log(msg.text); // Debug the string
-            const result = msg.text.trim() ;
+            // console.log(msg.text); // Debug the string
+            const result = msg.text; // Replace all occurrences of '\\n' with '\n'
             return (
               <div key={index} className={`message ${msg.sender}`}>
                 <ReactMarkdown
