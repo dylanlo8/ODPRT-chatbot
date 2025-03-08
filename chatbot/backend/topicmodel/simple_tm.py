@@ -1,7 +1,6 @@
 import yaml
 import numpy as np
 
-from concurrent.futures import ThreadPoolExecutor
 from sklearn.metrics.pairwise import cosine_similarity
 
 from chatbot.backend.services.logger import logger
@@ -13,6 +12,7 @@ class SimpleTopicModel:
         self,
         embedding_model=embedding_model,
         topics_path: str = "chatbot/backend/configs/topics.yml",
+        max_workers: int = 4,
     ):
         """
         topics.yml file should be structured as follows:
@@ -24,6 +24,7 @@ class SimpleTopicModel:
         """
         self.embedding_model = embedding_model
         self.topics_path = topics_path
+        self.max_workers = max_workers
         with open(topics_path, "r") as file:
             yaml_content = yaml.safe_load(file)
             self.topic_descriptions = yaml_content.get("topics", [])
@@ -35,6 +36,7 @@ class SimpleTopicModel:
 
         # pre-compute embeddings for all topics
         self.topic_embeddings = self._compute_topic_embeddings()
+        self.topic_desc_list = list(self.topic_embeddings.keys())
 
     def _compute_topic_embeddings(self):
         """
@@ -53,56 +55,49 @@ class SimpleTopicModel:
         }
         return topic_embeddings
 
-    def _map_one_topic(
-        self,
-        qa_pair: str,
-    ):
-        """
-        uses cosine similarity to map a user's question-answer pair (from history) to the most relevant topic
-
-        Args:
-            qa_pair (str): question-answer pair
-
-        Returns:
-            best_topic (str): the topic that best matches the qa_pair
-        """
-        # generate embedding for the qa_pair
-        qa_embedding = self.embedding_model.embed_documents([qa_pair])[0]
-        qa_array = np.array([qa_embedding])
-
-        # track the highest similarity and corresponding topic
-        max_similarity = -1
-        best_topic = ""
-
-        # optimize by pre-computing all similarities at once
-        for topic_desc, topic_embedding in self.topic_embeddings.items():
-            topic_array = np.array([topic_embedding])
-            similarity = cosine_similarity(qa_array, topic_array)[0][0]
-
-            # keep track of the highest similarity
-            if similarity > max_similarity:
-                max_similarity = similarity
-                best_topic = topic_desc
-
-        return best_topic
-
     def map_all_topics(
         self,
         qa_pairs: list,
+        threshold=0.2,
     ):
         """
-        calls `_map_one_topic` in parallel to find the best matching topic for each QA pair
+        maps multiple qa pairs to topics using batch embedding
 
-        Args:
+        args:
             qa_pairs (list): list of question-answer pairs
+            threshold (float): minimum similarity score required
 
-        Returns:
-            list: list of best matching topics for each QA pair
+        returns:
+            list: list of best matching topics for each qa pair
         """
-        # use threadpoolexecutor for parallel processing
-        with ThreadPoolExecutor() as executor:
-            # map each qa_pair to topics in parallel
-            results = list(executor.map(self._map_one_topic, qa_pairs))
+        # batch embed all qa pairs
+        qa_embeddings = self.embedding_model.embed_documents(qa_pairs)
+
+        # topic matrix
+        topic_embeddings_matrix = np.array(
+            [self.topic_embeddings[desc] for desc in self.topic_desc_list]
+        )
+
+        results = []
+        for i, qa_embedding in enumerate(qa_embeddings):
+            qa_array = np.array([qa_embedding]).reshape(1, -1)
+
+            # calculate all similarities
+            similarities = cosine_similarity(qa_array, topic_embeddings_matrix)[0]
+
+            # get index of highest similarity
+            best_index = np.argmax(similarities)
+            best_topic = self.topic_desc_list[best_index]
+            max_similarity = similarities[best_index]
+
+            # apply threshold chec
+            if max_similarity < threshold:
+                self.logger.info(
+                    f"no topic found for {qa_pairs[i]} with similarity {round(max_similarity, 2)}"
+                )
+                results.append("no topic found")
+            else:
+                results.append(best_topic)
 
         return results
 
