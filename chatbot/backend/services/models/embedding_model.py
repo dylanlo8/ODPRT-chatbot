@@ -36,6 +36,9 @@ class EmbeddingModel:
             {j: float(sparse_embeddings[i, j]) for j in sparse_embeddings[[i], :].nonzero()[1].tolist()}
             for i in range(sparse_embeddings.shape[0])
         ]
+    
+    def embed_documents(self, texts):
+        return self.batch_encode_dense(texts)
 
 # Create an instance of the fused model
 embedding_model = EmbeddingModel()

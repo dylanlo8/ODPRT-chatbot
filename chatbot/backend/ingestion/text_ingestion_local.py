@@ -1,7 +1,8 @@
 import os
 import pickle
 import requests
-from chatbot.backend.services.models.embedding_model import embedding_model  # Ensure this import is present
+from chatbot.backend.services.models.embedding_model import embedding_model
+from chatbot.backend.services.vector_db.db import vector_db
 
 # Ensure that API Service is up and running
 # Set directory where all the data files are located
@@ -14,6 +15,7 @@ def ingest_text_documents():
         if os.path.isdir(sub_dir_path):  # Check if it's a directory
             # Walk through each subdirectory to find .pkl files
             for root, _, files in os.walk(sub_dir_path):
+                print(f"Processing {root}...")
                 for filename in files:
                     file_path = os.path.join(root, filename)
 
@@ -24,25 +26,23 @@ def ingest_text_documents():
                             text_chunks = pickle.load(f)
 
                         # Embed the text Chunks
+                        print("Encoding Text")
                         dense_embeddings, sparse_embeddings = embedding_model.encode_texts(text_chunks)
 
                         # Prepare the payload for ingestion
                         doc_type = "FAQ" if "faq" in filename.lower() else "Emails"  # Determine doc_source based on filename
-                        payload = {
-                            "data": [
-                                [doc_type] * len(text_chunks), # doc_name
-                                [dir] * len(text_chunks),  # Use the subdirectory name as doc_source
-                                text_chunks, # text
-                                dense_embeddings,  # Dense embeddings
-                                embedding_model.convert_sparse_embeddings(sparse_embeddings),  # payload sparse embeddings
-                            ]
-                        }
-
+                        data = [
+                            [doc_type] * len(text_chunks), # doc_name
+                            [dir] * len(text_chunks),  # Use the subdirectory name as doc_source
+                            text_chunks, # text
+                            dense_embeddings,  # Dense embeddings
+                            embedding_model.convert_sparse_embeddings(sparse_embeddings),  # payload sparse embeddings
+                        ]
+                        print("Ingesting Data")
                         # Ingest the original email attachment into the vector database via API
                         try:
-                            response = requests.post("http://localhost:8000/vector-db/insert-documents/", json=payload)
-                            response.raise_for_status()  # Raise an error for bad responses
-                            print(f"Successfully ingested data from {filename}: {response.json()}")
+                            vector_db.batch_ingestion(data)
+                            print(f"Successfully ingested data from {filename}")
                         except Exception as e:
                             print(f"Failed to ingest data from {filename}: {str(e)}")
 
@@ -58,6 +58,7 @@ def ingest_text_documents():
                             print(f"Failed to upload {filename} to file storage: {str(e)}")
 
 if __name__ == "__main__":
+    print("Ingesting text documents...")
     ingest_text_documents()
 
 
