@@ -1,3 +1,3 @@
-from .simple_tm import SimpleTopicModel
+from .simple_tm import simple_tm
 
-__all__ = ["SimpleTopicModel"]
+__all__ = ["simple_tm"]

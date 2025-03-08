@@ -105,3 +105,6 @@ class SimpleTopicModel:
             results = list(executor.map(self._map_one_topic, qa_pairs))
 
         return results
+
+
+simple_tm = SimpleTopicModel()
