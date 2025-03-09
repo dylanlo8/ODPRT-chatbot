@@ -52,30 +52,30 @@
   
   .emoji:hover {
     transform: scale(1.2);
-    color: #1f355e;
+    color: #003882;
   }
   
   /* Highlight selected emoji */
   .emoji.selected {
     transform: scale(1.4);
-    color: #007bff; /* Blue to indicate selection */
+    color: #003882; /* Blue to indicate selection */
   }
   
   .feedback-modal textarea {
-    width: 80%;           /* Reduced width to avoid full-width stretching */
-    height: 80px;
-    margin: 10px auto;    /* Auto left/right margins center the element */
-    padding: 8px;
+    width: 98%;          
+    height: 100px;
+    margin: 10px auto;   
     border: 1px solid #ccc;
     border-radius: 5px;
     resize: none;
-    display: block;       /* Ensures it's treated as a block-level element */
-    text-align: center;   /* Centers the placeholder/text inside the textarea */
+    display: block;       
+    text-align: left;   /* Centers the placeholder/text inside the textarea */
   }
   
   
   .feedback-modal button.submit-button {
-    background: #1f355e;
+    width: 100%;
+    background: #003882;
     color: white;
     padding: 10px;
     border: none;
@@ -85,7 +85,5 @@
     font-size: 16px;
   }
   
-  .feedback-modal button.submit-button:hover {
-    background: #162a4d;
-  }
+
   
