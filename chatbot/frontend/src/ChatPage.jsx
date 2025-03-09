@@ -4,19 +4,16 @@ import ChatHistory from "./ChatHistory/ChatHistory";
 import FeedbackForm from "./FeedbackForm/FeedbackForm";
 import "./ChatPage.css";
 
-// Function to get a cookie value by name
 const getCookie = (name) => {
   return document.cookie.split('; ').find(row => row.startsWith(name + '='))?.split('=')[1];
 };
 
-// Function to set a cookie with a specified name, value, and expiration time in days
 const setCookie = (name, value, days) => {
   const expires = new Date();
   expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
   document.cookie = `${name}=${value}; path=/; expires=${expires.toUTCString()}`;
 };
 
-// Function to get or create a unique user ID and store it in a cookie
 const getUserId = () => {
   let userId = getCookie("userId");
   if (!userId) {
@@ -26,7 +23,6 @@ const getUserId = () => {
   return userId;
 };
 
-// Function to send user data to the backend (database)
 const sendToBackend = async (userId, chatHistory, preferences) => {
   try {
     const response = await fetch('/api/saveUserData', {
@@ -58,30 +54,33 @@ const ChatPage = () => {
   const [currentChatId, setCurrentChatId] = useState(() => JSON.parse(localStorage.getItem("currentChatId")) || null);
   const [showChatHistory, setShowChatHistory] = useState(() => JSON.parse(localStorage.getItem("showChatHistory")) ?? true);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [idleTimer, setIdleTimer] = useState(null);
 
-  // Effect to send user data to the backend when the userId is detected or updated
   useEffect(() => {
-    if (userId) {
-      const preferences = { showChatHistory }; // Add more preferences if needed
-      // sendToBackend(userId, chatHistory, preferences); // Send to backend when user data changes
+    const resetIdleTimer = () => {
+      if (idleTimer) clearTimeout(idleTimer);
+      setIdleTimer(setTimeout(() => setShowFeedback(true), 30000)); // 5 minutes
+    };
 
-      if (chatHistory.length > 0 && currentChatId) {
-        const savedChat = chatHistory.find(chat => chat.id === currentChatId);
-        if (savedChat) {
-          setMessages(savedChat.messages);
-        }
-      }
-    }
-  }, [userId, chatHistory, showChatHistory]); // Trigger when userId, chatHistory, or showChatHistory change
+    resetIdleTimer();
+    window.addEventListener("mousemove", resetIdleTimer);
+    window.addEventListener("keydown", resetIdleTimer);
+    window.addEventListener("click", resetIdleTimer);
+    window.addEventListener("scroll", resetIdleTimer);
 
-  // Effect to save data to local storage and send updated data to the backend
+    return () => {
+      if (idleTimer) clearTimeout(idleTimer);
+      window.removeEventListener("mousemove", resetIdleTimer);
+      window.removeEventListener("keydown", resetIdleTimer);
+      window.removeEventListener("click", resetIdleTimer);
+      window.removeEventListener("scroll", resetIdleTimer);
+    };
+  }, []);
+
   useEffect(() => {
     localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
     localStorage.setItem("currentChatId", JSON.stringify(currentChatId));
     localStorage.setItem("showChatHistory", JSON.stringify(showChatHistory));
-
-    // sendToBackend(userId, chatHistory, { showChatHistory }); // Send updated data to backend
-
   }, [chatHistory, currentChatId, showChatHistory]);
 
   const handleSendMessage = (message) => {
@@ -151,7 +150,6 @@ const ChatPage = () => {
     });
   };
 
-  const handleFeedbackSubmit = () => setShowFeedback(false);
   const handleFeedbackClose = () => setShowFeedback(false);
 
   return (
@@ -161,7 +159,7 @@ const ChatPage = () => {
         <ChatHistory chatHistory={chatHistory} onNewChat={handleNewChat} onLoadChat={handleLoadChat} onDeleteChat={handleDeleteChat} />
       )}
       <Chatbot messages={messages} onSendMessage={handleSendMessage} />
-      {showFeedback && <FeedbackForm onSubmit={handleFeedbackSubmit} onClose={handleFeedbackClose} />}
+      {showFeedback && <FeedbackForm onClose={handleFeedbackClose} />}
     </div>
   );
 };
