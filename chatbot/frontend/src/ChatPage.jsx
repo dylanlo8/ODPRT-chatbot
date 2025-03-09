@@ -59,7 +59,7 @@ const ChatPage = () => {
   useEffect(() => {
     const resetIdleTimer = () => {
       if (idleTimer) clearTimeout(idleTimer);
-      setIdleTimer(setTimeout(() => setShowFeedback(true), 1)); // 5 minutes
+      setIdleTimer(setTimeout(() => setShowFeedback(true), 30000)); // 5 minutes
     };
 
     resetIdleTimer();
