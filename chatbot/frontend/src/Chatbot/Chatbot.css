@@ -82,6 +82,7 @@ textarea::placeholder {
   cursor: pointer;
   padding-top: 10px;
 }
+
 .placeholder {
   color: #003882;
 }
@@ -107,29 +108,80 @@ textarea::placeholder {
   transition: color 0.2s ease-in-out;
 }
 
-/* Ensure that text inside message bubbles wraps properly */
+
+.attached-files {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; 
+  margin-top: 10px; 
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #f1f1f1;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.attached-files-message ul {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 4px 0;
+  align-items: right;
+  flex-direction: row;
+}
+
+.attached-files-message li {
+  background-color: #f1f1f1;
+  padding: 4px 8px;
+  border-radius: 10px;
+  margin-right: 4px;
+  margin-top: 10px;
+}
+
 .message {
-  max-width: 75%; /* Ensure message bubbles don't become too wide */
+  display: inline-block;
+  max-width: 80%;
   padding: 10px;
   border-radius: 10px;
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap;
-  word-break: break-word; /* Prevent word overflow */
+  word-break: break-word;
 }
 
-.Human {
-  align-self: flex-end;
+.message-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 16px; 
+  width: 100%;
+}
+
+.message-container.Human {
+  align-items: flex-end;
+}
+
+.attached-files-message {
+  flex-direction: column;
+  border: 2px solid #003882;
+  margin-bottom: 10px;;
+  border-radius: 10px;;
+  padding: 10px;
+}
+
+/* Human messages */
+.Human .message {
   background: #003882;
   color: white;
+  align-self: flex-end;
 }
 
-.AI {
-  align-self: flex-start;
+/* AI messages */
+.AI .message {
   background: lightgray;
   color: black;
+  align-self: flex-start;
 }
-
-
-
-

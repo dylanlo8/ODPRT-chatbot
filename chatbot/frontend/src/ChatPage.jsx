@@ -56,12 +56,16 @@ const ChatPage = () => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [idleTimer, setIdleTimer] = useState(null);
 
-  useEffect(() => {
-    const resetIdleTimer = () => {
+  const resetIdleTimer = () => {
+    if (!showFeedback) {
+      console.log("Resetting idle timer");
       if (idleTimer) clearTimeout(idleTimer);
-      setIdleTimer(setTimeout(() => setShowFeedback(true), 30000)); // 5 minutes
-    };
+      setShowFeedback(false);
+      setIdleTimer(setTimeout(() => setShowFeedback(true), 300000)); 
+    }
+  };
 
+  useEffect(() => {
     resetIdleTimer();
     window.addEventListener("mousemove", resetIdleTimer);
     window.addEventListener("keydown", resetIdleTimer);
@@ -75,7 +79,7 @@ const ChatPage = () => {
       window.removeEventListener("click", resetIdleTimer);
       window.removeEventListener("scroll", resetIdleTimer);
     };
-  }, []);
+  }, [showFeedback]); 
 
   useEffect(() => {
     localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
@@ -150,7 +154,10 @@ const ChatPage = () => {
     });
   };
 
-  const handleFeedbackClose = () => setShowFeedback(false);
+  const handleFeedbackClose = () =>  {
+    setShowFeedback(false);
+    resetIdleTimer(); 
+  }
 
   return (
     <div className="chat-page">
