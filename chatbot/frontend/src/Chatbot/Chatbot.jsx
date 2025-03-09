@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane, faLink, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRight, faLink, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import ReactMarkdown from 'react-markdown';
 import "./Chatbot.css";
 
@@ -164,7 +164,7 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
           data-gramm_editor="false"
         />
         <FontAwesomeIcon 
-          icon={faPaperPlane} 
+          icon={faArrowRight} 
           className="send-icon" 
           onClick={handleSendMessage}
         />
