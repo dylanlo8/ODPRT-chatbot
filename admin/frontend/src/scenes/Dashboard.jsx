@@ -17,7 +17,7 @@ const Dashboard = () => {
       {/* HEADER */}
       <Header title="DASHBOARD"/>
 
-      {/* GRID & CHARTS */}
+      {/* GRID & COMPONENTS */}
       <Box
         display="grid"
         gridTemplateColumns="repeat(12, 1fr)"

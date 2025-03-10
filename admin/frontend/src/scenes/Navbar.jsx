@@ -27,7 +27,7 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
 
 const Navbar = () => {
   const colors = tokens();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [selected, setSelected] = useState("Dashboard");
 
   return (
@@ -88,7 +88,7 @@ const Navbar = () => {
             />
             <Item
               title="File Upload"
-              to="/team"
+              to="/fileupload"
               icon={<FileUploadIcon />}
               selected={selected}
               setSelected={setSelected}
