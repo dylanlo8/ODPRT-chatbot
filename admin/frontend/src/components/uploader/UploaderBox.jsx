@@ -8,7 +8,6 @@ const UploaderBox = () => {
 
   return (
     <Box width="100%" display="flex" justifyContent="center" alignItems="center">
-      <Box>
         
         <Box height="200px" display="flex" justifyContent="center" alignItems="center">
             <Box display="flex" flexDirection="column" alignItems="center">
@@ -27,11 +26,6 @@ const UploaderBox = () => {
             
             </Box>  
         </Box>
-
-
-
-
-      </Box>
     </Box>
   );
 };

@@ -9,7 +9,7 @@ const TableBox = () => {
   return (
     <Box width="100%">
  
-        <Box ml="30px">
+        <Box ml="30px" mt="30px">
           {/* TITLE */}
             <Box display="flex" justifyContent="space-between">
             <Typography
@@ -23,12 +23,11 @@ const TableBox = () => {
         </Box>
 
         {/* TABLE */}
-        <Box height="152px" >
+        <Box height="50vh">
             <Table/>
         </Box>
 
     </Box>
   );
 };
-
 export default TableBox;

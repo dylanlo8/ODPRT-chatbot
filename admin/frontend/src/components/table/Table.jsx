@@ -1,101 +1,116 @@
-import { Box } from "@mui/material";
+import { useState } from "react";
+import { Box, IconButton, Menu, MenuItem, ListItemIcon, Typography } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
-import { mockDataContacts } from "../../data/mockData";
-import Header from "../../components/Header";
+import { mockUploadedFiles } from "../../data/mockData";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import DownloadIcon from '@mui/icons-material/Download';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-const Contacts = () => {
+const Table = () => {
   const colors = tokens();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedRow, setSelectedRow] = useState(null);
+
+  const handleMenuOpen = (event, rowId) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedRow(rowId);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedRow(null);
+  };
+
+  const handleActionClick = (action) => {
+    console.log(`Performing ${action} on row ${selectedRow}`);
+    handleMenuClose();
+  };
 
   const columns = [
-    { field: "id", headerName: "ID", flex: 0.5 },
-    { field: "registrarId", headerName: "Registrar ID" },
     {
-      field: "name",
-      headerName: "Name",
-      flex: 1,
-      cellClassName: "name-column--cell",
-    },
-    {
-      field: "age",
-      headerName: "Age",
-      type: "number",
-      headerAlign: "left",
-      align: "left",
-    },
-    {
-      field: "phone",
-      headerName: "Phone Number",
+      field: "file_name",
+      headerName: "File Name",
       flex: 1,
     },
     {
-      field: "email",
-      headerName: "Email",
+      field: "file_size",
+      headerName: "File Size",
       flex: 1,
     },
     {
-      field: "address",
-      headerName: "Address",
+      field: "upload_date",
+      headerName: "Upload Date",
       flex: 1,
     },
     {
-      field: "city",
-      headerName: "City",
+      field: "actions",
+      headerName: "Actions",
       flex: 1,
-    },
-    {
-      field: "zipCode",
-      headerName: "Zip Code",
-      flex: 1,
+      renderCell: (params) => (
+        <>
+          <IconButton onClick={(event) => handleMenuOpen(event, params.row.id)}>
+            <MoreHorizIcon />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl) && selectedRow === params.row.id}
+            onClose={handleMenuClose}
+            PaperProps={{
+              elevation: 3,
+              sx: { minWidth: 150, borderRadius: "8px", p: 1 },
+            }}
+          >
+            <MenuItem onClick={() => handleActionClick("Preview")}>
+              <ListItemIcon>
+                <VisibilityIcon fontSize="small" />
+              </ListItemIcon>
+              <Typography variant="inherit">Preview</Typography>
+            </MenuItem>
+            <MenuItem onClick={() => handleActionClick("Download")}>
+              <ListItemIcon>
+                <DownloadIcon fontSize="small" />
+              </ListItemIcon>
+              <Typography variant="inherit">Download</Typography>
+            </MenuItem>
+            <MenuItem onClick={() => handleActionClick("Delete")} sx={{ color: colors.red[500] }}>
+              <ListItemIcon>
+                <DeleteIcon fontSize="small" sx={{ color: colors.red[500] }} />
+              </ListItemIcon>
+              <Typography variant="inherit">Delete</Typography>
+            </MenuItem>
+          </Menu>
+        </>
+      ),
+      sortable: false,
+      filterable: false,
     },
   ];
 
   return (
-    <Box m="20px">
-      <Header
-        title="CONTACTS"
-        subtitle="List of Contacts for Future Reference"
-      />
+    <Box mx="40px" my="30px">
       <Box
-        m="40px 0 0 0"
-        height="75vh"
+        height="50vh"
         sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-          },
-          "& .MuiDataGrid-cell": {
-            borderBottom: "none",
-          },
-          "& .name-column--cell": {
-            color: colors.text,
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor: colors.text,
-            borderBottom: "none",
-          },
-          "& .MuiDataGrid-virtualScroller": {
-            backgroundColor: colors.white,
-          },
-          "& .MuiDataGrid-footerContainer": {
-            borderTop: "none",
-            backgroundColor: colors.white,
-          },
-          "& .MuiCheckbox-root": {
-            color: `${colors.white} !important`,
-          },
-          "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-            color: `${colors.white} !important`,
-          },
+          "& .MuiDataGrid-root": { border: "none" },
+          "& .MuiDataGrid-cell": { borderBottom: "none" },
+          "& .MuiDataGrid-columnHeaders": { backgroundColor: colors.text, borderBottom: "none" },
+          "& .MuiDataGrid-virtualScroller": { backgroundColor: colors.white },
+          "& .MuiDataGrid-footerContainer": { borderTop: "none", backgroundColor: colors.white },
+          "& .MuiCheckbox-root": { color: `${colors.white} !important` },
+          "& .MuiDataGrid-toolbarContainer .MuiButton-text": { color: `${colors.white} !important` },
         }}
       >
         <DataGrid
-          rows={mockDataContacts}
+          rows={mockUploadedFiles}
           columns={columns}
           components={{ Toolbar: GridToolbar }}
+          pageSizeOptions={[10, 25, 100]}
         />
       </Box>
     </Box>
   );
 };
 
-export default Contacts;
+export default Table;

@@ -69,7 +69,7 @@ const Navbar = () => {
                 ml="15px"
               >
                 <Typography variant="h3" color={colors.white}>
-                  Admin
+                  ODPRT Admin
                 </Typography>
                 <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
                   <MenuOutlinedIcon sx={{ color: colors.white }}/>
