@@ -14,7 +14,8 @@
 
 .chat-box {
   width: 100%;
-  overflow-y: auto;
+  height: 100%;
+  overflow-y: auto; /* Allow scrolling */
   border: 1px solid #ddd;
   border-radius: 5px;
   padding: 10px;
@@ -22,25 +23,12 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  gap: 10px;
 }
 
-.message {
-  max-width: 70%;
-  padding: 10px;
-  border-radius: 10px;
-  margin: 5px;
-}
-
-.user {
-  align-self: flex-end;
-  background: #1B3753;
+textarea::placeholder {
   color: white;
-}
-
-.chatbot {
-  align-self: flex-start;
-  background: lightgray;
-  color: black;
+  line-height: 1;
 }
 
 .input-container {
@@ -53,8 +41,8 @@
 
 .input-container textarea {
   flex: 1;
-  padding: 15px 10px 10px 50px;
-  background-color: #1B3753;
+  padding: 28px 10px 10px 50px;
+  background-color: #003882;
   color: white;
   border-radius: 5px;
   font-size: 16px;
@@ -67,7 +55,6 @@
   line-height: 1;
   align-items: center;
 }
-
 
 .input-container input {
   padding: 40px;
@@ -95,9 +82,8 @@
   cursor: pointer;
   padding-top: 10px;
 }
-
 .placeholder {
-  color: #1B3753;
+  color: #003882;
 }
 
 .file-info {
@@ -107,9 +93,43 @@
   color: #1B3753;
   border-radius: 5px;
   font-size: 14px;
-  display: block;
-  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   width: auto;
   box-sizing: border-box;
-  margin-left: 0;
 }
+
+.delete-icon {
+  cursor: pointer;
+  color: #1B3753; /* Red color for the delete icon */
+  margin-left: 10px;
+  transition: color 0.2s ease-in-out;
+}
+
+/* Ensure that text inside message bubbles wraps properly */
+.message {
+  max-width: 75%; /* Ensure message bubbles don't become too wide */
+  padding: 10px;
+  border-radius: 10px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  word-break: break-word; /* Prevent word overflow */
+}
+
+.Human {
+  align-self: flex-end;
+  background: #003882;
+  color: white;
+}
+
+.AI {
+  align-self: flex-start;
+  background: lightgray;
+  color: black;
+}
+
+
+
+

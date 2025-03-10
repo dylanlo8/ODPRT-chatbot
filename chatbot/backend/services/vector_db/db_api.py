@@ -1,11 +1,7 @@
 from fastapi import FastAPI, HTTPException, APIRouter
 from pydantic import BaseModel
-from chatbot.backend.services.vector_db.db import VectorDB
-
-# ==========================
-# Initialize VectorDB instance
-# ==========================
-vector_db = VectorDB(collection_name="odprt_index")
+from chatbot.backend.services.vector_db.db import vector_db
+import logging
 
 # ==========================
 # Pydantic Models
@@ -33,10 +29,10 @@ async def insert_documents(insert_data: InsertData):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@vector_db_router.post("/image-search/")
-async def image_search(search_query: SearchQuery) -> dict:
+@vector_db_router.post("/hybrid-search/")
+async def hybrid_search(search_query: SearchQuery) -> dict:
     try:
-        context = vector_db.image_hybrid_search(search_query.query)
+        context = vector_db.hybrid_search(search_query.query)
         return {"context": context}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

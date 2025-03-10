@@ -1,19 +1,27 @@
 IMAGE_SUMMARY_PROMPT = "Generate me a summary of this image in less than 150 words."
 
-FILTER_IMAGE_PROMPT = """Assess the image for relevance to research grant administration. Useful images include charts, graphs, diagrams, and research-related visuals. Non-useful images include clipart, decorative graphics, stock icons, and unrelated objects.  
+FILTER_IMAGE_PROMPT = """Assess the image for relevance to research grant administration. Useful images include full tables, charts, graphs, diagrams, and research-related visuals. 
 
-Instructions:  
-- Briefly justify your classification.  
-- Categorize as:  
-  1. Useful: Contains research-relevant data (e.g., visualizations, organizational charts).  
-  2. Not Useful: Lacks research value (e.g., clipart, decorative elements, generic images).
-- Return the classification and justification in a JSON format, without any preambles or additional text.
+Non-useful images include:
+- Clipart, decorative graphics, stock icons, logos.
+- Empty table cells, small table fragments, isolated numbers, or isolated labels without context.
+- Generic headers, section dividers, timestamps, metadata and table headers without context.
+- Contract related fields, Signature fields, signature-like elements, and authorization stamps.
+- Contract Events
 
-Example Output:
-{{
-    "justification": "The image contains a bar graph depicting research funding trends over five years, relevant to grant administration"
+**Instructions:**  
+- Provide a brief justification for your classification.  
+- Categorize the image as either:  
+  1. `"Useful"`: The image contains structured tabular data, figures, or research-relevant visuals.  
+  2. `"Not Useful"`: The image lacks meaningful research context (e.g., isolated numbers, decorative elements, logos, signatures).
+
+**Example Outputs:**
+```json
+{
+    "justification": "This image contains a detailed budget table with labeled headers and multiple data points, making it relevant to grant administration.",
     "classification": "Useful"
-}}
+}
+
 """
 
 RELEVANCE_CLASSIFICATION_PROMPT = """

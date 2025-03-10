@@ -1,45 +1,44 @@
 import numpy as np
 import torch
 from sentence_transformers import SentenceTransformer
+from pymilvus import model  # Ensure to import the correct module
 
 from typing import List
 
 class EmbeddingModel:
     def __init__(self):
-        self.embedding_model = SentenceTransformer('BAAI/bge-large-en-v1.5')
-        self.embedding_model.eval()
+        self.dense_embedding_model = SentenceTransformer('BAAI/bge-large-en-v1.5')
+        self.dense_embedding_model.eval()
+        self.sparse_embedding_model = model.sparse.SpladeEmbeddingFunction(
+            model_name="naver/splade-cocondenser-ensembledistil",
+            device="cpu",
+        )
 
-    def batch_encode(self, texts):
+    def batch_encode_dense(self, texts):
         """Generates dense embeddings for texts."""
-        description_embeddings = []
-
-        for text in texts:
-            description_embeddings.append(self.__encode_text(text))
-
+        description_embeddings = self.dense_embedding_model.encode(texts, normalize_embeddings=True).tolist()
         return description_embeddings
 
-    def __encode_text(self, text):
-        """Generates dense embeddings for text."""
-        with torch.no_grad():
-            # Generate embedding for summary of image
-            description_embedding = self.embedding_model.encode(text, normalize_embeddings=True).tolist()
+    def batch_encode_sparse(self, texts):
+        """Generates sparse embeddings for texts."""
+        sparse_embeddings = self.sparse_embedding_model.encode_documents(texts)
+        return sparse_embeddings
 
-        return description_embedding
+    def encode_texts(self, texts):
+        """Generates both dense and sparse embeddings for texts."""
+        dense_embeddings = self.batch_encode_dense(texts)
+        sparse_embeddings = self.batch_encode_sparse(texts)
+        return dense_embeddings, sparse_embeddings
 
-    def compute_embeddings(
-        self,
-        texts: List[str]
-    ) -> np.ndarray:
-        """
-        compute embeddings for a list of texts using bge
+    def convert_sparse_embeddings(self, sparse_embeddings):
+        """Converts sparse embeddings into an ingestable dictionary format."""
+        return [
+            {j: float(sparse_embeddings[i, j]) for j in sparse_embeddings[[i], :].nonzero()[1].tolist()}
+            for i in range(sparse_embeddings.shape[0])
+        ]
+    
+    def embed_documents(self, texts):
+        return self.batch_encode_dense(texts)
 
-        Args:
-            texts (List[str]): List of text strings to encode
-
-        Returns:
-            np.ndarray: Matrix of text embeddings
-        """
-        embeddings = self.batch_encode(texts)
-        return np.array(embeddings)
-
+# Create an instance of the fused model
 embedding_model = EmbeddingModel()
