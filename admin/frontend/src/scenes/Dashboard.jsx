@@ -59,7 +59,7 @@ const Dashboard = () => {
           border={`2px solid ${colors.gray[200]}`}
         >
           <StatBox
-            title="Active Conversations"
+            title="Avg No. of Messages Per Conversation"
             figure="XX"
             percentage="x.x%"
             isIncreasing={false}
