@@ -1,8 +1,8 @@
 from fastapi import FastAPI, APIRouter, HTTPException
 from pydantic import BaseModel
 from chatbot.backend.services.chat_history.sql_db import (
-    insert_messages,
-    insert_conversations,
+    insert_message,
+    insert_conversation,
     get_user_conversations,
     delete_conversation,
     get_messages,
@@ -47,7 +47,7 @@ def get_conversation_messages_route(conversation_id: str):
 
 @conversations_router.post("insert")
 def insert_conversations_route(conversation: Conversation):
-    response = insert_conversations([conversation.content])
+    response = insert_conversation([conversation.content])
     return response
 
 @conversations_router.delete("/{conversation_id}")
@@ -65,7 +65,7 @@ def update_conversation_rating_route(conversation_id: str, feedback: Feedback):
 ################################
 @messages_router.post("/insert")
 def insert_messages_route(message: Message):
-    response = insert_messages([message.content])
+    response = insert_message([message.content])
     return response
 
 """

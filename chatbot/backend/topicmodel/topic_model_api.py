@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from typing import List
 
 from chatbot.backend.topicmodel import simple_tm
-from chatbot.backend.services.chat_history.sql_db import bulk_insert_conversations
 
 # router
 app = FastAPI()
