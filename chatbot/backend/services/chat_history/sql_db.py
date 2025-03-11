@@ -6,7 +6,7 @@ key: str = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
 
 # Bulk Insertion of Messages
-def bulk_insert_messages(messages: list[dict]) -> dict:
+def insert_message(message: dict) -> dict:
     """
     Bulk Insertion of Messages
 
@@ -16,25 +16,27 @@ def bulk_insert_messages(messages: list[dict]) -> dict:
     Returns:
         dict: API response after inserting the messages
     """
+
     try:
-        response = supabase.table("messages").insert(messages).execute()
+        update_conversation_timing(message["conversation_id"])
+        response = supabase.table("messages").insert([message]).execute()
         return response
     except Exception as exception:
         return exception
     
 # Bulk Insertion of Conversations
-def bulk_insert_conversations(conversations: list[dict]) -> dict:
+def insert_conversation(conversation: dict) -> dict:
     """
     Bulk Insertion of Conversations
 
     Args:
-        conversations (list[dict]): A list of dictionaries containing the conversations to insert
+        conversation ([dict]): A dictionary containing the conversations to insert
 
     Returns:
         dict: API response after inserting the conversations
     """
     try:
-        response = supabase.table("conversations").insert(conversations).execute()
+        response = supabase.table("conversations").insert([conversation]).execute()
         return response
     except Exception as exception:
         return exception
@@ -50,15 +52,13 @@ def get_user_conversations(user_id: str) -> dict:
         dict: API response containing the conversations
     """
     try:
-        # Each time a user's conversations are retrieved, the old conversations are cleaned up
-        print(clean_up_old_conversations(user_id))
-
+        
         # Retrieve the conversations
         response = (
             supabase.table("conversations")
             .select("*")
             .eq("user_id", user_id)
-            .order("created_at", desc=True)
+            .order("updated_at", desc=True) # Sort by updated_at in descending order
             .execute()
         )
         return response
@@ -88,7 +88,7 @@ def delete_conversation(conversation_id: str) -> dict:
     
 
 def clean_up_old_conversations(user_id: str):
-    # Clean up old conversations if user has more than 10
+    # TODO: Clean up old conversations if user has more than 10
     user_conversations = get_user_conversations(user_id)
     if len(user_conversations.data) > 10:
         # Sort by created_at descending and get conversations to delete
@@ -106,7 +106,7 @@ def clean_up_old_conversations(user_id: str):
         return {'response': '<10 conversations, no clean up needed'}
 
 # Querying Conversation and messages
-def get_conversation_messages(conversation_id: str) -> dict:
+def get_messages(conversation_id: str) -> dict:
     """
     Retrieve all messages for a specific conversation.
     
@@ -129,13 +129,14 @@ def get_conversation_messages(conversation_id: str) -> dict:
     
 # Updating conversation feedback and ratings
 
-def update_conversation_rating(conversation_id: str, rating: int) -> dict:
+def update_conversation_rating(conversation_id: str, rating: int, text: str) -> dict:
     """
     Update the feedback for a specific conversation.
     
     Args:
         conversation_id (str): The UUID of the conversation
         feedback (int): 1 to 5 star ratings for the conversation
+        text (str): Feedback text
         
     Returns:
         dict: API response after updating the feedback
@@ -143,7 +144,28 @@ def update_conversation_rating(conversation_id: str, rating: int) -> dict:
     try:
         response = (
             supabase.table("conversations")
-            .update({"rating": rating})
+            .update({"rating": rating, "feedback": text})
+            .eq("conversation_id", conversation_id)
+            .execute()
+        )
+        return response
+    except Exception as exception:
+        return exception
+    
+def update_conversation_timing(conversation_id: str) -> dict:
+    """
+    Update the conversation timing for a specific conversation.
+    
+    Args:
+        conversation_id (str): The UUID of the conversation
+        
+    Returns:
+        dict: API response after updating the conversation timing
+    """
+    try:
+        response = (
+            supabase.table("conversations")
+            .update({"updated_at": "now()"})
             .eq("conversation_id", conversation_id)
             .execute()
         )
