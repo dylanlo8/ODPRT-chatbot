@@ -182,38 +182,33 @@ import { format, addDays } from "date-fns";
   export const mockUploadedFiles = [
     {
       id:1, 
-      file_name: "ODPRT_Annual_Report_202X.pdf",
-      file_size:"5MB",
+      file_name: "[ODPRT] Chatbot Project #472.pdf",
+      file_size:"197KB",
       upload_date: "19/05/2021 10:10:00",
-      actions: "test",
     },
     {
       id: 2,
-      file_name: "Grant_Application_Form_ODPRT.docx",
-      file_size:"450KB",
+      file_name: "BT4103_CourseIntroduction_AY2425Sem2.pdf",
+      file_size:"336KB",
       upload_date: "18/05/2021 15:12:00",
-      actions: "test",
     },
     {
       id: 3,
-      file_name: "Tech_Transfer_Guidelines_ODPRT.docx",
-      file_size:"600KB",
+      file_name: "Business Analytics Capstone Project introduction.pdf",
+      file_size:"188KB",
       upload_date: "17/05/2021 14:15:00",
-      actions: "test",
     },
     {
       id: 4,
-      file_name: "Research_Ethics_and_Compliance_Manual.pdf",
-      file_size:"2MB",
+      file_name: "NUS_logo.png",
+      file_size:"29KB",
       upload_date: "23/04/2021 13:15:00",
-      actions: "test",
     },
     {
       id: 5,
-      file_name: "Startup_Incubation_Policy_202X.pdf",
-      file_size:"3MB",
+      file_name: "ODPRT_Website.png",
+      file_size:"4.3MB",
       upload_date: "20/04/2021 08:01:00",
-      actions: "test",
     },
   ];
   

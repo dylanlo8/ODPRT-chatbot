@@ -6,7 +6,6 @@ import Navbar from "./scenes/Navbar";
 import Dashboard from "./scenes/Dashboard";
 import FileUpload from "./scenes/FileUpload";
 
-
 function App() {
   const theme = themeSettings();
   const [isNavbar] = useState(true);
