@@ -1,29 +1,21 @@
 import React, { useState, useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
 import Chatbot from "./Chatbot/Chatbot";
 import ChatHistory from "./ChatHistory/ChatHistory";
 import FeedbackForm from "./FeedbackForm/FeedbackForm";
 import "./ChatPage.css";
 
-const getCookie = (name) => {
-  return document.cookie.split('; ').find(row => row.startsWith(name + '='))?.split('=')[1];
-};
-
-const setCookie = (name, value, days) => {
-  const expires = new Date();
-  expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
-  document.cookie = `${name}=${value}; path=/; expires=${expires.toUTCString()}`;
-};
-
-const getUserId = () => {
-  let userId = getCookie("userId");
-  if (!userId) {
-    userId = `user-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-    setCookie("userId", userId, 365);
+// Generate or retrieve userUUID from localStorage
+const getUserUUID = () => {
+  let userUUID = localStorage.getItem("userUUID");
+  if (!userUUID) {
+    userUUID = uuidv4();
+    localStorage.setItem("userUUID", userUUID);
   }
-  return userId;
+  return userUUID;
 };
 
-const sendToBackend = async (userId, chatHistory, preferences) => {
+const sendToBackend = async (userId, chatHistory) => {
   try {
     const response = await fetch('/api/saveUserData', {
       method: 'POST',
@@ -48,48 +40,27 @@ const sendToBackend = async (userId, chatHistory, preferences) => {
 };
 
 const ChatPage = () => {
-  const userId = getUserId();
+  const userUUID = getUserUUID();
   const [messages, setMessages] = useState([]);
-  const [chatHistory, setChatHistory] = useState(() => JSON.parse(localStorage.getItem("chatHistory")) || []);
-  const [currentChatId, setCurrentChatId] = useState(() => JSON.parse(localStorage.getItem("currentChatId")) || null);
-  const [showChatHistory, setShowChatHistory] = useState(() => JSON.parse(localStorage.getItem("showChatHistory")) ?? true);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [idleTimer, setIdleTimer] = useState(null);
+  const [chatHistory, setChatHistory] = useState([]);
+  const [currentChatId, setCurrentChatId] = useState(null);
+  const [showChatHistory, setShowChatHistory] = useState(true);
 
-  useEffect(() => {
-    const resetIdleTimer = () => {
-      if (idleTimer) clearTimeout(idleTimer);
-      setIdleTimer(setTimeout(() => setShowFeedback(true), 30000)); // 5 minutes
-    };
-
-    resetIdleTimer();
-    window.addEventListener("mousemove", resetIdleTimer);
-    window.addEventListener("keydown", resetIdleTimer);
-    window.addEventListener("click", resetIdleTimer);
-    window.addEventListener("scroll", resetIdleTimer);
-
-    return () => {
-      if (idleTimer) clearTimeout(idleTimer);
-      window.removeEventListener("mousemove", resetIdleTimer);
-      window.removeEventListener("keydown", resetIdleTimer);
-      window.removeEventListener("click", resetIdleTimer);
-      window.removeEventListener("scroll", resetIdleTimer);
-    };
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
-    localStorage.setItem("currentChatId", JSON.stringify(currentChatId));
-    localStorage.setItem("showChatHistory", JSON.stringify(showChatHistory));
-  }, [chatHistory, currentChatId, showChatHistory]);
+  // Function to handle chat history updates
+  const updateChatHistory = (newChatHistory) => {
+    setChatHistory(newChatHistory);
+    // Optionally, you can send the updated chat history to the backend here
+    sendToBackend(userUUID, newChatHistory);
+  };
 
   const handleSendMessage = (message) => {
     setMessages((prevMessages) => {
       const updatedMessages = [...prevMessages, message];
       if (currentChatId) {
-        setChatHistory(prevHistory => prevHistory.map(chat =>
+        const updatedHistory = chatHistory.map(chat =>
           chat.id === currentChatId ? { ...chat, messages: updatedMessages } : chat
-        ));
+        );
+        updateChatHistory(updatedHistory);
       }
       return updatedMessages;
     });
@@ -110,7 +81,7 @@ const ChatPage = () => {
 
   const handleDeleteChat = (chatId) => {
     const updatedHistory = chatHistory.filter((chat) => chat.id !== chatId);
-    setChatHistory(updatedHistory);
+    updateChatHistory(updatedHistory);
     setMessages([]);
     setCurrentChatId(null);
   };
@@ -118,22 +89,22 @@ const ChatPage = () => {
   useEffect(() => {
     if (messages.length > 0) {
       const chatIndex = chatHistory.length;
-      const chatId = currentChatId || `${userId}-${chatIndex}`;
+      const chatId = currentChatId || `${userUUID}-${chatIndex}`;
       const existingChat = chatHistory.find(chat => chat.id === chatId);
 
       if (existingChat) {
-        setChatHistory(prevHistory =>
-          prevHistory.map(chat =>
-            chat.id === chatId ? { ...chat, messages } : chat
-          )
+        const updatedHistory = chatHistory.map(chat =>
+          chat.id === chatId ? { ...chat, messages } : chat
         );
+        updateChatHistory(updatedHistory);
       } else {
         const newChat = {
           id: chatId,
           messages,
           date: new Date().toISOString(),
         };
-        setChatHistory(prevHistory => [newChat, ...prevHistory].slice(0, 10));
+        const updatedHistory = [newChat, ...chatHistory].slice(0, 10);
+        updateChatHistory(updatedHistory);
       }
 
       if (!currentChatId) {
@@ -143,14 +114,8 @@ const ChatPage = () => {
   }, [messages]);
 
   const toggleChatHistory = () => {
-    setShowChatHistory(prev => {
-      const newState = !prev;
-      localStorage.setItem("showChatHistory", JSON.stringify(newState));
-      return newState;
-    });
+    setShowChatHistory(prev => !prev);
   };
-
-  const handleFeedbackClose = () => setShowFeedback(false);
 
   return (
     <div className="chat-page">
@@ -159,7 +124,6 @@ const ChatPage = () => {
         <ChatHistory chatHistory={chatHistory} onNewChat={handleNewChat} onLoadChat={handleLoadChat} onDeleteChat={handleDeleteChat} />
       )}
       <Chatbot messages={messages} onSendMessage={handleSendMessage} />
-      {showFeedback && <FeedbackForm onClose={handleFeedbackClose} />}
     </div>
   );
 };
