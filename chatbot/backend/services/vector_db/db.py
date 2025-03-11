@@ -7,6 +7,7 @@ from tqdm import tqdm
 from chatbot.backend.services.vector_db.schema import SCHEMA
 from chatbot.backend.services.vector_db.index import create_all_indexes
 from chatbot.backend.services.models.embedding_model import embedding_model
+from chatbot.backend.services.logger import logger
 load_dotenv(override=True)
 
 class VectorDB:
@@ -15,6 +16,7 @@ class VectorDB:
         # Establish a connection to Zillis
         self.endpoint = os.getenv('ZILLIS_ENDPOINT')
         self.token = os.getenv('ZILLIS_TOKEN')
+        self.logger = logger
         connections.connect(uri=self.endpoint, token=self.token)
 
         # Checking if collection was already created
@@ -72,6 +74,8 @@ class VectorDB:
             doc_id = res.doc_id
             text = res.text
             context.append(f"Doc_id: {doc_id} \n Text: {text}")
+            self.logger.info(f"Doc_source: {res.doc_source}")
+            self.logger.info(f"Context: {text}")
         
         return "\n\n".join(context)
             

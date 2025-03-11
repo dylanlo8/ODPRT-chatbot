@@ -1,11 +1,7 @@
 import numpy as np
-
-from sklearn.metrics.pairwise import cosine_similarity
 from typing import List, Tuple, Optional, Literal
 from docx import Document
 
-from chatbot.backend.chains.faq_chains import qa_chain
-from chatbot.backend.services.models.embedding_model import embedding_model
 from chatbot.backend.services.logger import logger
 
 
@@ -15,71 +11,51 @@ class FAQ_Parser:
     def __init__(
         self,
         faq_directory = ["docs/IEP FAQ.docx", "docs/Additional ODPRT unit FAQ.docx"],
-        similarity_threshold: float = 0.85,
     ):
         self.directory = faq_directory
-        self.similarity_threshold = similarity_threshold
-        self.embedding_model = embedding_model
         self.logger = logger
 
-    def extract_faq(self):
-        """Extracts text from a Word document."""
-        full_text = []
-        for doc in self.directory:
-            doc = Document(doc)
-
-            for para in doc.paragraphs:
-                full_text.append(para.text)
-
-            for table in doc.tables:
-                for row in table.rows:
-                    row_text = [cell.text.strip() for cell in row.cells]
-                    full_text.append("\t".join(row_text))
-
-        return '\n'.join(full_text)
-
-    def _qa_faq(
-        self,
-        faq_thread: str,
-    ) -> Tuple[List[str], List[str]]:
-        # invoke chain
-        response = qa_chain.invoke({"faq_thread": faq_thread})
-        return response.questions, response.answers
-
-    def _merge_qa_pairs(
-        self,
-        questions: List[str],
-        answers: List[str],
-    ) -> List[str]:
+    def extract_qa_from_tables(self):
         """
-        merge questions and answers
-
-        Args:
-            questions (List[str]): list of questions
-            answers (List[str]): list of answers
-
-        Returns:
-            qa_pairs (List[str]): list of questions and answers
+        Extracts question-answer pairs from tables in a Word document (.docx).
         """
         qa_pairs = []
-        for idx, question in enumerate(questions):
-            answer = answers[idx]
-            qa = f"question: {question} answer: {answer}"
-            qa_pairs.append(qa)
+        for doc in self.directory:
+            doc = Document(doc)
+            for table in doc.tables:  
+                for row in table.rows:
+                    if len(row.cells) >= 2:  # Ensure the row has at least two columns
+                        question = row.cells[0].text.strip()
+                        answer = row.cells[1].text.strip()
+                        
+                        if question and answer:  # Avoid empty rows
+                            qa_pairs.append((question, answer))
+                            self.logger.info((question, answer))
         return qa_pairs
+    
+    def correct_qa_pairing(self, qa_pairs):
+        """
+        Cleans and formats extracted question-answer pairs.
+        Ensures valid pairing and removes unwanted labels.
+        """
+        cleaned_pairs = []
+        current_question = None
 
-    def get_qa_pairs(self) -> List[str]:
-        final_questions = []
-        final_answers = []
-        questions, answers = self._qa_faq(self.extract_faq())
-        for idx, answer in enumerate(answers):
-            # filter if no answer is available
-            if answer == "No answer available":
-                continue
-            # append if have
-            final_questions.append(questions[idx])
-            final_answers.append(answers[idx])
+        for entry in qa_pairs:
+            key, text = entry  # Key is "Question" or "Answer", text is the actual content
 
-        return self._merge_qa_pairs(
-            questions=final_questions, answers=final_answers
-        )
+            # If the entry is a question
+            if key.lower().startswith("question") or key.lower().startswith("questions"):
+                if current_question:  # If there's an existing question without an answer, discard it
+                    cleaned_pairs.append((current_question, "No answer provided"))
+                current_question = text.strip()  # Store the new question
+            
+            # If the entry is an answer and there's an active question, store the pair
+            elif key.lower().startswith("answer") and current_question:
+                cleaned_pairs.append((current_question, text.strip()))
+                current_question = None  # Reset for next pair
+
+        return [f"question: {q}, answer: {a}" for q, a in cleaned_pairs]
+    
+    def extract_faq(self):
+        return self.correct_qa_pairing(self.extract_qa_from_tables())
