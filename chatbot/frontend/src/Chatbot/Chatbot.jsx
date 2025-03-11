@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRight, faLink, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRight, faLink, faTimesCircle, faThumbsUp, faThumbsDown } from '@fortawesome/free-solid-svg-icons';
 import ReactMarkdown from 'react-markdown';
 import "./Chatbot.css";
 
@@ -140,6 +140,30 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
     document.getElementById("fileInput").click();
   };
 
+  const handleFeedback = async (message, feedback) => {
+    console.log('Feedback:', feedback, "for message:", message.text);
+    try {
+      const response = await fetch(FEEDBACK_SERVICE, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: message.text,
+          feedback: feedback,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send feedback');
+      }
+
+      console.log('Feedback sent successfully');
+    } catch (error) {
+      console.error('Error sending feedback:', error);
+    }
+  };
+
   return (
     <div className="chat-container">
       {messages.length === 0 ? (
@@ -174,9 +198,28 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
           >
             {result}
           </ReactMarkdown>
+          
         </div>
+        {msg.sender === 'AI' && (
+            <div className="feedback-buttons">
+              <button className="feedback-button" 
+                onClick={() => handleFeedback(msg, 'like')}
+                title="Like"
+              >
+                <FontAwesomeIcon icon={faThumbsUp} />
+              </button>
+              <button className="feedback-button" 
+                onClick={() => handleFeedback(msg, 'dislike')}
+                title="Dislike"
+              >
+                <FontAwesomeIcon icon={faThumbsDown} />
+              </button>
+            </div>
+          )}
       </div>
+      
     );
+    
   })}
 </div>
       )}

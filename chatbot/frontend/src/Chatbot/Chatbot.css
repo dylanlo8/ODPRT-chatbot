@@ -185,3 +185,24 @@ textarea::placeholder {
   color: black;
   align-self: flex-start;
 }
+
+.feedback-button {
+  background-color: transparent;
+  color: darkgray;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.feedback-button.liked {
+  color: green; /* Style for liked feedback */
+}
+
+.feedback-button.disliked {
+  color: red; 
+}
+
+.feedback-button:disabled {
+  opacity: 0.6; 
+  cursor: not-allowed; 
+}
