@@ -36,7 +36,7 @@ const PieChart = ({ data }) => {
           },
         },
       }}
-      margin={{right: 80, bottom: 50, left: 80 }}
+      margin={{right: 80, bottom: 30, left: 80 }}
       innerRadius={0.5}
       padAngle={0.7}
       cornerRadius={3}
@@ -48,7 +48,7 @@ const PieChart = ({ data }) => {
       enableArcLabels={true}
       enableArcLinkLabels={false}
       arcLabel={(e) => `${((e.value / total) * 100).toFixed(1)}%`} 
-      arcLabelsRadiusOffset={0.5} 
+      arcLabelsRadiusOffset={0.475} 
       arcLabelsSkipAngle={10} 
       arcLabelsTextColor={({ data }) =>
         data.color === tokens().gray[500] ? "#000000" : "#FFFFFF"
@@ -80,10 +80,10 @@ const PieChart = ({ data }) => {
           direction: "row",
           justify: false,
           translateX: 0,
-          translateY: 45,
+          translateY: 35,
           itemsSpacing: 0,
           itemWidth: 100,
-          itemHeight: 20,
+          itemHeight: 30,
           itemTextColor: colors.text,
           itemDirection: "left-to-right",
           itemOpacity: 1,

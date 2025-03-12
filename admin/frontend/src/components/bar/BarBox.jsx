@@ -13,7 +13,7 @@ const BarBox = ({ title, data, keys, index, showLegend }) => {
           {/* TITLE */}
             <Box display="flex" justifyContent="space-between">
                 <Typography
-                    variant="h4"
+                    variant="h5"
                     fontWeight="600"
                     sx={{ color: colors.text }}
                 >
@@ -23,7 +23,7 @@ const BarBox = ({ title, data, keys, index, showLegend }) => {
         </Box>
 
         {/* BAR CHART */}
-        <Box height="250px" >
+        <Box height="190px" >
             <BarChart 
             data={data} 
             keys={keys}

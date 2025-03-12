@@ -13,7 +13,7 @@ const PieBox = ({ title, figure, data }) => {
           {/* TITLE */}
             <Box display="flex" justifyContent="space-between">
             <Typography
-                variant="h4"
+                variant="h5"
                 fontWeight="600"
                 sx={{ color: colors.text }}
             >
@@ -23,8 +23,8 @@ const PieBox = ({ title, figure, data }) => {
 
         {/* FIGURE */}
         <Box display="flex" justifyContent="space-between" mt="2px">
-            <Box my="10px">
-            <Typography variant="h2" 
+            <Box my="5px">
+            <Typography variant="h3" 
             fontWeight="bold"
             sx={{ color: colors.text }}>
                 {figure}
@@ -34,7 +34,7 @@ const PieBox = ({ title, figure, data }) => {
         </Box>
 
         {/* PIE CHART */}
-        <Box height="200px" >
+        <Box height="152px" >
             <PieChart data={data}/>
         </Box>
 

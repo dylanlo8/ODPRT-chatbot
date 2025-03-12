@@ -13,16 +13,16 @@ const Dashboard = () => {
   const colors = tokens();
 
   return (
-    <Box mt="40px" mx="50px" pb="40px">
+    <Box mt="30px" mx="30px">
       {/* HEADER */}
       <Header title="DASHBOARD"/>
 
-      {/* GRID & CHARTS */}
+      {/* GRID & COMPONENTS */}
       <Box
         display="grid"
         gridTemplateColumns="repeat(12, 1fr)"
-        gridAutoRows="150px"
-        gap="25px"
+        gridAutoRows="110px"
+        gap="20px"
       >
         {/* ROW 1 */}
         {/* CONVERSATIONS */}
@@ -59,7 +59,7 @@ const Dashboard = () => {
           border={`2px solid ${colors.gray[200]}`}
         >
           <StatBox
-            title="Active Conversations"
+            title="Avg No. of Messages Per Conversation"
             figure="XX"
             percentage="x.x%"
             isIncreasing={false}
