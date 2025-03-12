@@ -7,7 +7,8 @@ Instructions:
 1. Identify all distinct questions.
 2. Extract the corresponding answers, ensuring relevance and accuracy.
 3. Maintain the chronological order of the questions and answers.
-4. If no clear question is present, return an empty list for `questions`.
+4. Do not paraphrase any questions or answers, extract it it its original form.
+5. If no clear question is present, return an empty list for `questions`.
 
 Output Format:
 `questions`: ["First extracted question", "Second extracted question", ...],
