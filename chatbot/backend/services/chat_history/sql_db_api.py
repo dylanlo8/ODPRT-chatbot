@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException
 from pydantic import BaseModel
+from typing import Optional
 from chatbot.backend.services.chat_history.sql_db import (
     insert_message,
     insert_conversation,
@@ -12,14 +13,20 @@ from chatbot.backend.services.chat_history.sql_db import (
 # ==========================
 # Pydantic Models
 # ==========================
-class Message(BaseModel):
-    content: dict
+class MessageContent(BaseModel):
+    conversation_id: str
+    sender: str
+    text: str
 
-class Conversation(BaseModel):
-    content: dict
+class ConversationContent(BaseModel):
+    conversation_id: str
+    user_id: str
+    conversation_title: str
+    rating: Optional[int] = None
+    feedback: Optional[str] = None
 
 class Feedback(BaseModel):
-    rating: int  # conversation_id is now passed in the URL
+    rating: int
     text: str
 
 ################################
@@ -45,9 +52,9 @@ def get_conversation_messages_route(conversation_id: str):
     response = get_messages(conversation_id)
     return response
 
-@conversations_router.post("insert")
-def insert_conversations_route(conversation: Conversation):
-    response = insert_conversation([conversation.content])
+@conversations_router.post("/insert")
+def insert_conversations_route(conversation: ConversationContent):
+    response = insert_conversation([conversation.model_dump()])
     return response
 
 @conversations_router.delete("/{conversation_id}")
@@ -64,37 +71,6 @@ def update_conversation_rating_route(conversation_id: str, feedback: Feedback):
 # Messages Routes
 ################################
 @messages_router.post("/insert")
-def insert_messages_route(message: Message):
-    response = insert_message([message.content])
+def insert_messages_route(message: MessageContent):
+    response = insert_message([message.model_dump()])
     return response
-
-"""
-# Sample payload for conversations table
-conversation_payload = {
-    "conversation_id": "123e4567-e89b-12d3-a456-426614174000", # DEFAULT
-    "session_id": "123e4567-e89b-12d3-a456-426614174001", # NEED TO INPUT
-    "conversation_title": "Sample Conversation", # NEED TO INPUT
-    "created_at": "2025-03-11T10:00:00Z", # DEFAULT
-    "updated_at": "2025-03-11T10:00:00Z", # DEFAULT
-    "rating": 4,
-    "feedback": "This was a helpful conversation."
-}
-
-# Sample payload for messages table
-message_payload = {
-    "message_id": "123e4567-e89b-12d3-a456-426614174002",
-    "conversation_id": "123e4567-e89b-12d3-a456-426614174000",
-    "sender": "user",
-    "text": "Hello, how can I help you?",
-    "is_useful": True,
-    "created_at": "2025-03-11T10:01:00Z"
-}
-
-# Insert sample data into conversations table
-response_conversation = supabase.table("conversations").insert([conversation_payload]).execute()
-print(response_conversation)
-
-# Insert sample data into messages table
-response_message = supabase.table("messages").insert([message_payload]).execute()
-print(response_message)
-"""

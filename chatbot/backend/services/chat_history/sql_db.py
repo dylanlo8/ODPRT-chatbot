@@ -18,8 +18,8 @@ def insert_message(message: dict) -> dict:
     """
 
     try:
-        update_conversation_timing(message["conversation_id"])
-        response = supabase.table("messages").insert([message]).execute()
+        # update_conversation_timing(message["conversation_id"])
+        response = supabase.table("messages").insert(message).execute()
         return response
     except Exception as exception:
         return exception
@@ -36,7 +36,7 @@ def insert_conversation(conversation: dict) -> dict:
         dict: API response after inserting the conversations
     """
     try:
-        response = supabase.table("conversations").insert([conversation]).execute()
+        response = supabase.table("conversations").insert(conversation).execute()
         return response
     except Exception as exception:
         return exception
