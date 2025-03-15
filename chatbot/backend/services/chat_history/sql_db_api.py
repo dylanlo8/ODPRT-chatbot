@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException
 from pydantic import BaseModel
+from typing import Optional
 from chatbot.backend.services.chat_history.sql_db import (
     insert_message,
     insert_conversation,
@@ -13,14 +14,20 @@ from chatbot.backend.services.chat_history.sql_db import (
 # ==========================
 # Pydantic Models
 # ==========================
-class Message(BaseModel):
-    content: dict
+class MessageContent(BaseModel):
+    conversation_id: str
+    sender: str
+    text: str
 
-class Conversation(BaseModel):
-    content: dict
+class ConversationContent(BaseModel):
+    conversation_id: str
+    user_id: str
+    conversation_title: str
+    rating: Optional[int] = None
+    feedback: Optional[str] = None
 
 class Feedback(BaseModel):
-    rating: int  # conversation_id is now passed in the URL
+    rating: int
     text: str
 
 class DateRange(BaseModel):
@@ -51,9 +58,9 @@ def get_conversation_messages_route(conversation_id: str):
     response = get_messages(conversation_id)
     return response
 
-@conversations_router.post("insert")
-def insert_conversations_route(conversation: Conversation):
-    response = insert_conversation([conversation.content])
+@conversations_router.post("/insert")
+def insert_conversations_route(conversation: ConversationContent):
+    response = insert_conversation([conversation.model_dump()])
     return response
 
 @conversations_router.delete("/{conversation_id}")
@@ -70,18 +77,6 @@ def update_conversation_rating_route(conversation_id: str, feedback: Feedback):
 # Messages Routes
 ################################
 @messages_router.post("/insert")
-def insert_messages_route(message: Message):
-    response = insert_message([message.content])
-    return response
-
-
-################################
-# Dashboard Routes
-################################
-@dashboard_router.post("/fetch")
-def fetch_dashboard_statistics_route(date_range: DateRange):
-    response = fetch_dashboard_statistics(
-        start_date=date_range.start_date, 
-        end_date=date_range.end_date
-    )
+def insert_messages_route(message: MessageContent):
+    response = insert_message([message.model_dump()])
     return response
