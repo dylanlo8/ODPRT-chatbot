@@ -17,7 +17,6 @@ const getUserUUID = () => {
   return userUUID;
 };
 
-
 const fetchUserConversations = async (userId) => {
   try {
     const response = await fetch(`${API_SERVICE}/users/${userId}/conversations`);

@@ -160,7 +160,7 @@
   width: 100%;
 }
 
-.message-container.Human {
+.message-container.user {
   align-items: flex-end;
 }
 
@@ -173,14 +173,14 @@
 }
 
 /* Human messages */
-.Human .message {
+.user .message {
   background: #003882;
   color: white;
   align-self: flex-end;
 }
 
-/* AI messages */
-.AI .message {
+/* bot messages */
+.bot .message {
   background: lightgray;
   color: black;
   align-self: flex-start;
