@@ -7,8 +7,7 @@ import "./Chatbot.css";
 
 const API_SERVICE = "http://localhost:8000";
 
-const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage }) => {
-  const QUERY_SERVICE = `${API_SERVICE}/chat/query/`;
+const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConversationCreated }) => {  const QUERY_SERVICE = `${API_SERVICE}/chat/query/`;
   const DOCUMENT_PARSER_SERVICE = `${API_SERVICE}/document-parser/process-upload/`;
   const [inputText, setInputText] = useState("");
   const [attachedFiles, setAttachedFiles] = useState([]); 
@@ -30,7 +29,6 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage }) => {
   };
 
   const handleSendMessage = async () => {
-
     console.log('Sending message:', inputText);
     if (inputText.trim() === "" && attachedFiles.length === 0) return;
 
@@ -43,7 +41,6 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage }) => {
 
     const insertedMessage = await insertMessage(currentChatId, humanMessage.sender, humanMessage.text);
     if (insertedMessage) {
-
       onSendMessage(insertedMessage);
     }
 
@@ -103,11 +100,13 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage }) => {
       if (!conversationId) {    
         // Insert conversation into the database
         conversationId = uuidv4();
-        createConversation(userUUID, conversationId, text); // Empty title for now, later can update title
-
-        // How to set the Global State of currentChatId
+        const newConversation = createConversation(userUUID, conversationId, text); // Empty title for now, later can update title
+        if (newConversation) {
+          onNewConversationCreated(conversationId);
+        }  
       }
-  
+
+
       // Insert message into the database
       const response = await fetch(`${API_SERVICE}/messages/insert`, {
         method: 'POST',
