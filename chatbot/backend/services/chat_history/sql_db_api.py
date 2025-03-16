@@ -8,7 +8,8 @@ from chatbot.backend.services.chat_history.sql_db import (
     delete_conversation,
     get_messages,
     update_conversation_rating,
-    fetch_dashboard_statistics
+    update_conversation_title,
+    update_message_useful
 )
 
 # ==========================
@@ -60,7 +61,7 @@ def get_conversation_messages_route(conversation_id: str):
 
 @conversations_router.post("/insert")
 def insert_conversations_route(conversation: ConversationContent):
-    response = insert_conversation([conversation.model_dump()])
+    response = insert_conversation(conversation.model_dump())
     return response
 
 @conversations_router.delete("/{conversation_id}")
@@ -73,10 +74,20 @@ def update_conversation_rating_route(conversation_id: str, feedback: Feedback):
     response = update_conversation_rating(conversation_id, feedback.rating, feedback.text)
     return response
 
+@conversations_router.put("/{conversation_id}/title")
+def update_conversation_title_route(conversation_id: str, title: str):
+    response = update_conversation_title(conversation_id, title)
+    return response
+
 ################################
 # Messages Routes
 ################################
 @messages_router.post("/insert")
 def insert_messages_route(message: MessageContent):
-    response = insert_message([message.model_dump()])
+    response = insert_message(message.model_dump())
+    return response
+
+@messages_router.put("/{message_id}/useful")
+def update_message_useful_route(message_id: str, is_useful: bool):
+    response = update_message_useful(message_id, is_useful)
     return response

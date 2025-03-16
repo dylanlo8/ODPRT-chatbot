@@ -1,4 +1,5 @@
 import os
+import logging
 from supabase import create_client, Client
 from datetime import datetime
 
@@ -19,10 +20,11 @@ def insert_message(message: dict) -> dict:
     """
 
     try:
-        # update_conversation_timing(message["conversation_id"])
-        response = supabase.table("messages").insert(message).execute()
+        update_conversation_timing(message['conversation_id'])
+        response = supabase.table("messages").insert([message]).execute()
         return response
     except Exception as exception:
+        logging.error(f"Error inserting message: {exception}")
         return exception
     
 # Bulk Insertion of Conversations
@@ -37,7 +39,7 @@ def insert_conversation(conversation: dict) -> dict:
         dict: API response after inserting the conversations
     """
     try:
-        response = supabase.table("conversations").insert(conversation).execute()
+        response = supabase.table("conversations").insert([conversation]).execute()
         return response
     except Exception as exception:
         return exception
@@ -174,36 +176,46 @@ def update_conversation_timing(conversation_id: str) -> dict:
     except Exception as exception:
         return exception
     
-def fetch_dashboard_statistics(
-    start_date: str = "01-01-2024",  # dd-mm-yyyy
-    end_date: str = "31-12-2025"
-) -> dict:
+def update_message_useful(message_id: str, is_useful: bool) -> dict:
     """
-    Calls the Supabase RPC function to fetch dashboard statistics as a JSON object.
-
-    Parameters:
-        start_date (str): Start date in 'dd-mm-yyyy' format.
-        end_date (str): End date in 'dd-mm-yyyy' format.
-
+    Update the usefulness of a specific message.
+    
+    Args:
+        message_id (str): The UUID of the message
+        is_useful (bool): True if the message is useful, False otherwise
+        
     Returns:
-        dict: JSON result from fetch_conversation_stats_json() SQL function.
+        dict: API response after updating the message usefulness
     """
     try:
-        # Parse using dd-mm-yyyy format
-        start_dt = datetime.strptime(start_date, "%Y-%m-%d")
-        end_dt = datetime.strptime(end_date, "%Y-%m-%d")
-
-        # Format into proper timestamp strings
-        start_timestamp = start_dt.strftime("%Y-%m-%d 00:00:00")
-        end_timestamp = end_dt.strftime("%Y-%m-%d 23:59:59")
-
-        # Call Supabase RPC function
-        response = supabase.rpc("fetch_conversation_stats_json", {
-            "start_date": start_timestamp,
-            "end_date": end_timestamp
-        }).execute()
-
-        return response.data if hasattr(response, "data") else response
-    except Exception as e:
-        print("Error fetching dashboard statistics:", e)
-        return {"error": str(e)}
+        response = (
+            supabase.table("messages")
+            .update({"is_useful": is_useful})
+            .eq("message_id", message_id)
+            .execute()
+        )
+        return response
+    except Exception as exception:
+        return exception
+    
+def update_conversation_title(conversation_id: str, title: str) -> dict:
+    """
+    Update the title of a specific conversation.
+    
+    Args:
+        conversation_id (str): The UUID of the conversation
+        title (str): The new title for the conversation
+        
+    Returns:
+        dict: API response after updating the conversation title
+    """
+    try:
+        response = (
+            supabase.table("conversations")
+            .update({"conversation_title": title})
+            .eq("conversation_id", conversation_id)
+            .execute()
+        )
+        return response
+    except Exception as exception:
+        return exception

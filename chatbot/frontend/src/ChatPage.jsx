@@ -6,6 +6,8 @@ import FeedbackForm from "./FeedbackForm/FeedbackForm";
 import "./ChatPage.css";
 import { mockResponses } from "./mockApi";
 
+const API_SERVICE = "http://localhost:8000";
+
 const getUserUUID = () => {
   let userUUID = localStorage.getItem("userUUID");
   if (!userUUID) {
@@ -18,7 +20,7 @@ const getUserUUID = () => {
 
 const fetchUserConversations = async (userId) => {
   try {
-    const response = await fetch(`/api/users/${userId}/conversations`);
+    const response = await fetch(`${API_SERVICE}/users/${userId}/conversations`);
     const data = await response.json();
     if (response.ok) {
       return data.data;
@@ -34,7 +36,7 @@ const fetchUserConversations = async (userId) => {
 
 const fetchConversationMessages = async (conversationId) => {
   try {
-    const response = await fetch(`/api/conversations/${conversationId}/messages`);
+    const response = await fetch(`${API_SERVICE}/conversations/${conversationId}/messages`);
     const data = await response.json();
     if (response.ok) {
       return data.data;
@@ -50,7 +52,7 @@ const fetchConversationMessages = async (conversationId) => {
 
 const createConversation = async (userId, conversationId, conversationTitle) => {
   try {
-    const response = await fetch('/api/conversations/insert', {
+    const response = await fetch(`${API_SERVICE}/conversations/insert`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -76,7 +78,7 @@ const createConversation = async (userId, conversationId, conversationTitle) => 
 
 const deleteConversation = async (conversationId) => {
   try {
-    const response = await fetch(`/api/conversations/${conversationId}`, {
+    const response = await fetch(`${API_SERVICE}/conversations/${conversationId}`, {
       method: 'DELETE',
     });
     const data = await response.json();
@@ -88,32 +90,6 @@ const deleteConversation = async (conversationId) => {
     }
   } catch (error) {
     console.error('Failed to delete conversation:', error);
-    return null;
-  }
-};
-
-const insertMessage = async (conversationId, sender, text) => {
-  try {
-    const response = await fetch('/api/messages/insert', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        conversation_id: conversationId,
-        sender: sender,
-        text: text,
-      }),
-    });
-    const data = await response.json();
-    if (response.ok) {
-      return data.data;
-    } else {
-      console.error('Error inserting message:', data);
-      return null;
-    }
-  } catch (error) {
-    console.error('Failed to insert message:', error);
     return null;
   }
 };
@@ -135,13 +111,6 @@ const ChatPage = () => {
     console.log("here");
     loadUserConversations();
   }, [userUUID]);
-
-  const handleSendMessage = async (message) => {
-    const newMessage = await insertMessage(currentChatId, "user", message.text);
-    if (newMessage) {
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-    }
-  };
 
   const handleNewChat = async () => {
     const newChatId = uuidv4();
@@ -218,7 +187,12 @@ const ChatPage = () => {
           onDeleteChat={handleDeleteChat}
         />
       )}
-      <Chatbot messages={messages} onSendMessage={handleSendMessage} />
+      <Chatbot
+        messages={messages}
+        currentChatId={currentChatId}
+        userUUID={userUUID}
+        onSendMessage={(message) => setMessages((prev) => [...prev, message])}
+      />
       {showFeedback && <FeedbackForm onClose={handleFeedbackCancel} />}
     </div>
   );
