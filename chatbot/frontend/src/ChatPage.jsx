@@ -4,8 +4,8 @@ import Chatbot from "./Chatbot/Chatbot";
 import ChatHistory from "./ChatHistory/ChatHistory";
 import FeedbackForm from "./FeedbackForm/FeedbackForm";
 import "./ChatPage.css";
+import { mockResponses } from "./mockApi";
 
-// Generate or retrieve userUUID from localStorage
 const getUserUUID = () => {
   let userUUID = localStorage.getItem("userUUID");
   if (!userUUID) {
@@ -15,27 +15,106 @@ const getUserUUID = () => {
   return userUUID;
 };
 
-const sendToBackend = async (userId, chatHistory) => {
+
+const fetchUserConversations = async (userId) => {
   try {
-    const response = await fetch('/api/saveUserData', {
+    const response = await fetch(`/api/users/${userId}/conversations`);
+    const data = await response.json();
+    if (response.ok) {
+      return data.data;
+    } else {
+      console.error('Error fetching user conversations:', data);
+      return [];
+    }
+  } catch (error) {
+    console.error('Failed to fetch user conversations:', error);
+    return [];
+  }
+};
+
+const fetchConversationMessages = async (conversationId) => {
+  try {
+    const response = await fetch(`/api/conversations/${conversationId}/messages`);
+    const data = await response.json();
+    if (response.ok) {
+      return data.data;
+    } else {
+      console.error('Error fetching conversation messages:', data);
+      return [];
+    }
+  } catch (error) {
+    console.error('Failed to fetch conversation messages:', error);
+    return [];
+  }
+};
+
+const createConversation = async (userId, conversationId, conversationTitle) => {
+  try {
+    const response = await fetch('/api/conversations/insert', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        userId,
-        chatHistory,
+        conversation_id: conversationId,
+        user_id: userId,
+        conversation_title: conversationTitle,
       }),
     });
-
     const data = await response.json();
     if (response.ok) {
-      console.log('Data saved successfully:', data);
+      return data.data;
     } else {
-      console.error('Error saving data:', data);
+      console.error('Error creating conversation:', data);
+      return null;
     }
   } catch (error) {
-    console.error('Failed to send data to the backend:', error);
+    console.error('Failed to create conversation:', error);
+    return null;
+  }
+};
+
+const deleteConversation = async (conversationId) => {
+  try {
+    const response = await fetch(`/api/conversations/${conversationId}`, {
+      method: 'DELETE',
+    });
+    const data = await response.json();
+    if (response.ok) {
+      return data.data;
+    } else {
+      console.error('Error deleting conversation:', data);
+      return null;
+    }
+  } catch (error) {
+    console.error('Failed to delete conversation:', error);
+    return null;
+  }
+};
+
+const insertMessage = async (conversationId, sender, text) => {
+  try {
+    const response = await fetch('/api/messages/insert', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        conversation_id: conversationId,
+        sender: sender,
+        text: text,
+      }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      return data.data;
+    } else {
+      console.error('Error inserting message:', data);
+      return null;
+    }
+  } catch (error) {
+    console.error('Failed to insert message:', error);
+    return null;
   }
 };
 
@@ -45,85 +124,102 @@ const ChatPage = () => {
   const [chatHistory, setChatHistory] = useState([]);
   const [currentChatId, setCurrentChatId] = useState(null);
   const [showChatHistory, setShowChatHistory] = useState(true);
-
-  // Function to handle chat history updates
-  const updateChatHistory = (newChatHistory) => {
-    setChatHistory(newChatHistory);
-    // Optionally, you can send the updated chat history to the backend here
-    sendToBackend(userUUID, newChatHistory);
-  };
-
-  const handleSendMessage = (message) => {
-    setMessages((prevMessages) => {
-      const updatedMessages = [...prevMessages, message];
-      if (currentChatId) {
-        const updatedHistory = chatHistory.map(chat =>
-          chat.id === currentChatId ? { ...chat, messages: updatedMessages } : chat
-        );
-        updateChatHistory(updatedHistory);
-      }
-      return updatedMessages;
-    });
-  };
-
-  const handleNewChat = () => {
-    setMessages([]);
-    setCurrentChatId(null);
-  };
-
-  const handleLoadChat = (chatId) => {
-    const selectedChat = chatHistory.find((chat) => chat.id === chatId);
-    if (selectedChat) {
-      setMessages(selectedChat.messages);
-      setCurrentChatId(selectedChat.id);
-    }
-  };
-
-  const handleDeleteChat = (chatId) => {
-    const updatedHistory = chatHistory.filter((chat) => chat.id !== chatId);
-    updateChatHistory(updatedHistory);
-    setMessages([]);
-    setCurrentChatId(null);
-  };
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [idleTimer, setIdleTimer] = useState(null);
 
   useEffect(() => {
-    if (messages.length > 0) {
-      const chatIndex = chatHistory.length;
-      const chatId = currentChatId || `${userUUID}-${chatIndex}`;
-      const existingChat = chatHistory.find(chat => chat.id === chatId);
+    const loadUserConversations = async () => {
+      const conversations = await fetchUserConversations(userUUID);
+      setChatHistory(conversations);
+    };
+    console.log("here");
+    loadUserConversations();
+  }, [userUUID]);
 
-      if (existingChat) {
-        const updatedHistory = chatHistory.map(chat =>
-          chat.id === chatId ? { ...chat, messages } : chat
-        );
-        updateChatHistory(updatedHistory);
-      } else {
-        const newChat = {
-          id: chatId,
-          messages,
-          date: new Date().toISOString(),
-        };
-        const updatedHistory = [newChat, ...chatHistory].slice(0, 10);
-        updateChatHistory(updatedHistory);
-      }
-
-      if (!currentChatId) {
-        setCurrentChatId(chatId);
-      }
+  const handleSendMessage = async (message) => {
+    const newMessage = await insertMessage(currentChatId, "user", message.text);
+    if (newMessage) {
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
     }
-  }, [messages]);
+  };
+
+  const handleNewChat = async () => {
+    const newChatId = uuidv4();
+    const newChat = await createConversation(userUUID, newChatId, "New Chat");
+    if (newChat) {
+      setChatHistory((prevHistory) => [newChat, ...prevHistory]);
+      setMessages([]);
+      setCurrentChatId(newChatId);
+    }
+  };
+
+  const handleLoadChat = async (chatId) => {
+    setCurrentChatId(chatId); 
+    const messages = await fetchConversationMessages(chatId);
+    setMessages(messages);
+  };
+
+  const handleDeleteChat = async (chatId) => {
+    await deleteConversation(chatId);
+    setChatHistory((prevHistory) =>
+      prevHistory.filter((chat) => chat.conversation_id !== chatId)
+    );
+    setMessages([]);
+    setCurrentChatId(null);
+  };
 
   const toggleChatHistory = () => {
-    setShowChatHistory(prev => !prev);
+    setShowChatHistory((prev) => !prev);
   };
+
+  const handleFeedbackCancel = () => {
+    setShowFeedback(false); 
+    resetIdleTimer(); 
+  };
+  
+  const resetIdleTimer = () => {
+    if (idleTimer) {
+      clearTimeout(idleTimer); 
+    }
+    setIdleTimer(
+      setTimeout(() => {
+        setShowFeedback(true); 
+      }, 300000) 
+    );
+  };
+  
+  useEffect(() => {
+    resetIdleTimer();
+    window.addEventListener("mousemove", resetIdleTimer);
+    window.addEventListener("keydown", resetIdleTimer);
+    window.addEventListener("click", resetIdleTimer);
+    window.addEventListener("scroll", resetIdleTimer);
+  
+    return () => {
+      if (idleTimer) clearTimeout(idleTimer); // Cleanup the timer
+      window.removeEventListener("mousemove", resetIdleTimer);
+      window.removeEventListener("keydown", resetIdleTimer);
+      window.removeEventListener("click", resetIdleTimer);
+      window.removeEventListener("scroll", resetIdleTimer);
+    };
+  }, [showFeedback]);
+  
 
   return (
     <div className="chat-page">
-      <button onClick={toggleChatHistory} className="menu-button">☰</button>
+      <button onClick={toggleChatHistory} className="menu-button">
+        ☰
+      </button>
       {showChatHistory && (
-        <ChatHistory chatHistory={chatHistory} onNewChat={handleNewChat} onLoadChat={handleLoadChat} onDeleteChat={handleDeleteChat} />
+        <ChatHistory
+          chatHistory={chatHistory}
+          onNewChat={handleNewChat}
+          onLoadChat={handleLoadChat}
+          onDeleteChat={handleDeleteChat}
+        />
       )}
       <Chatbot messages={messages} onSendMessage={handleSendMessage} />
+      {showFeedback && <FeedbackForm onClose={handleFeedbackCancel} />}
     </div>
   );
 };

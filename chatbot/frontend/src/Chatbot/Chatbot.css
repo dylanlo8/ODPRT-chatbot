@@ -26,63 +26,64 @@
   gap: 10px;
 }
 
-textarea::placeholder {
-  color: white;
-  line-height: 1;
-}
-
 .input-container {
   width: 100%;
   display: flex;
-  align-items: center;
-  position: relative;
+  align-items: center; 
+  position: relative; 
   padding-top: 10px;
+  gap: 10px;
 }
 
-.input-container textarea {
-  flex: 1;
-  padding: 28px 10px 10px 50px;
+.input-container .input-box {
   background-color: #003882;
   color: white;
   border-radius: 5px;
   font-size: 16px;
-  outline: none;
   min-height: 15px;
-  max-height: 500px;
+  max-height: 150px; 
   width: 100%;
-  resize: none;
-  box-sizing: border-box;
-  line-height: 1;
-  align-items: center;
+  overflow-y: auto; 
+  padding: 10px 60px 10px 50px; 
+  box-sizing: border-box; 
+  line-height: 1.5;
 }
 
-.input-container input {
-  padding: 40px;
+/* Placeholder style */
+.input-container .input-box:empty:before {
+  content: attr(aria-placeholder);
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 50px; 
+  transform: translateY(-50%);
+  font-size: 16px;
+  pointer-events: none; 
 }
 
 .link-icon {
   position: absolute;
-  padding-top: 10px;
   left: 10px;
-  top: 50%;
+  top: 60%;
   transform: translateY(-50%);
   font-size: 20px;
   color: white;
   cursor: pointer;
   transition: color 0.2s ease-in-out;
+  z-index: 1;  
 }
 
 .send-icon {
   position: absolute;
-  right: 25px;
-  top: 50%;
+  right: 20px;
+  top: 60%;
   transform: translateY(-50%);
   font-size: 20px;
   color: white;
   cursor: pointer;
-  padding-top: 10px;
 }
 
+/* Chat placeholder */
 .placeholder {
   color: #003882;
 }
@@ -103,11 +104,10 @@ textarea::placeholder {
 
 .delete-icon {
   cursor: pointer;
-  color: #1B3753; /* Red color for the delete icon */
+  color: #1B3753;
   margin-left: 10px;
   transition: color 0.2s ease-in-out;
 }
-
 
 .attached-files {
   display: flex;
@@ -167,8 +167,8 @@ textarea::placeholder {
 .attached-files-message {
   flex-direction: column;
   border: 2px solid #003882;
-  margin-bottom: 10px;;
-  border-radius: 10px;;
+  margin-bottom: 10px;
+  border-radius: 10px;
   padding: 10px;
 }
 
