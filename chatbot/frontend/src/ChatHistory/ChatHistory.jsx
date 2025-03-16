@@ -1,12 +1,12 @@
 import React from "react";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Make sure to import FontAwesomeIcon
-import { faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import "./ChatHistory.css";
 
 const ChatHistory = ({ chatHistory, onNewChat, onLoadChat, onDeleteChat }) => {
-  // Group chats by date
+  // Group chats by created_at date
   const groupedChats = chatHistory.reduce((acc, chat) => {
-    const chatDate = new Date(chat.date).toDateString();
+    const chatDate = new Date(chat.created_at).toDateString();
     if (!acc[chatDate]) {
       acc[chatDate] = [];
     }
@@ -19,7 +19,7 @@ const ChatHistory = ({ chatHistory, onNewChat, onLoadChat, onDeleteChat }) => {
       {/* Header Section */}
       <div className="chat-header">
         <h2 className="chat-history-title">Chat History</h2>
-        <FontAwesomeIcon className="new-chat-btn" icon={faPlus} onClick={onNewChat}/>
+        <FontAwesomeIcon className="new-chat-btn" icon={faPlus} onClick={onNewChat} />
       </div>
 
       {/* Chat List */}
@@ -30,20 +30,27 @@ const ChatHistory = ({ chatHistory, onNewChat, onLoadChat, onDeleteChat }) => {
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
 
-            let formattedDate = date === today
-              ? "Today"
-              : date === yesterday.toDateString()
-              ? "Yesterday"
-              : new Date(date).toLocaleDateString();
+            let formattedDate =
+              date === today
+                ? "Today"
+                : date === yesterday.toDateString()
+                ? "Yesterday"
+                : new Date(date).toLocaleDateString();
 
             return (
               <li key={index}>
                 <div className="chat-date">{formattedDate}</div>
                 <ul className="chat-group">
                   {chats.map((chat) => (
-                    <li key={chat.id} className="chat-item">
-                      <div onClick={() => onLoadChat(chat.id)}>{chat.id}</div>
-                      <FontAwesomeIcon className="delete-btn" icon={faTrash} onClick={() => onDeleteChat(chat.id)}  />
+                    <li key={chat.conversation_id} className="chat-item">
+                      <div onClick={() => onLoadChat(chat.conversation_id)}>
+                        {chat.conversation_title}
+                      </div>
+                      <FontAwesomeIcon
+                        className="delete-btn"
+                        icon={faTrash}
+                        onClick={() => onDeleteChat(chat.conversation_id)}
+                      />
                     </li>
                   ))}
                 </ul>
