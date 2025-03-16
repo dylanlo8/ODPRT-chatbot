@@ -155,6 +155,10 @@ const ChatPage = () => {
       }, 300000) 
     );
   };
+
+  const handleNewConversationCreated = (conversationId) => {
+    setCurrentChatId(conversationId);
+  };
   
   useEffect(() => {
     resetIdleTimer();
@@ -191,6 +195,7 @@ const ChatPage = () => {
         currentChatId={currentChatId}
         userUUID={userUUID}
         onSendMessage={(message) => setMessages((prev) => [...prev, message])}
+        onNewConversationCreated={handleNewConversationCreated}
       />
       {showFeedback && <FeedbackForm onClose={handleFeedbackCancel} />}
     </div>
