@@ -49,32 +49,6 @@ const fetchConversationMessages = async (conversationId) => {
   }
 };
 
-const createConversation = async (userId, conversationId, conversationTitle) => {
-  try {
-    const response = await fetch(`${API_SERVICE}/conversations/insert`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        conversation_id: conversationId,
-        user_id: userId,
-        conversation_title: conversationTitle,
-      }),
-    });
-    const data = await response.json();
-    if (response.ok) {
-      return data.data;
-    } else {
-      console.error('Error creating conversation:', data);
-      return null;
-    }
-  } catch (error) {
-    console.error('Failed to create conversation:', error);
-    return null;
-  }
-};
-
 const deleteConversation = async (conversationId) => {
   try {
     const response = await fetch(`${API_SERVICE}/conversations/${conversationId}`, {
@@ -107,18 +81,16 @@ const ChatPage = () => {
       const conversations = await fetchUserConversations(userUUID);
       setChatHistory(conversations);
     };
-    console.log("here");
     loadUserConversations();
   }, [userUUID]);
 
+  useEffect(() => {
+    console.log("chatID ", currentChatId)
+  }, [currentChatId])
+
   const handleNewChat = async () => {
-    const newChatId = uuidv4();
-    const newChat = await createConversation(userUUID, newChatId, "New Chat");
-    if (newChat) {
-      setChatHistory((prevHistory) => [newChat, ...prevHistory]);
-      setMessages([]);
-      setCurrentChatId(newChatId);
-    }
+    setCurrentChatId(null); 
+    setMessages([]); 
   };
 
   const handleLoadChat = async (chatId) => {
@@ -156,10 +128,12 @@ const ChatPage = () => {
     );
   };
 
-  const handleNewConversationCreated = (conversationId) => {
-    setCurrentChatId(conversationId);
+  const handleNewConversationCreated = (newChat) => {
+    console.log("creating new chat ", newChat);
+    setCurrentChatId(newChat.conversation_id); 
+    setChatHistory((prev) => [newChat, ...prev]); 
+    setMessages([]); 
   };
-  
   useEffect(() => {
     resetIdleTimer();
     window.addEventListener("mousemove", resetIdleTimer);
