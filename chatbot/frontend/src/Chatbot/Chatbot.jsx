@@ -110,7 +110,7 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConver
         const newConversation = await createConversation(userUUID, conversationId, text);
         if (newConversation) {
           // Notify ChatPage of the new conversation
-          onNewConversationCreated({ conversation_id: conversationId, conversation_title: text });
+          onNewConversationCreated({ conversation_id: conversationId, conversation_title: text, updated_at: newConversation[0].updated_at });
         }
       }
       console.log(conversationId)
