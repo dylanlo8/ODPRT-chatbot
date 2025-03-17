@@ -4,7 +4,6 @@ import Chatbot from "./Chatbot/Chatbot";
 import ChatHistory from "./ChatHistory/ChatHistory";
 import FeedbackForm from "./FeedbackForm/FeedbackForm";
 import "./ChatPage.css";
-import { mockResponses } from "./mockApi";
 
 const API_SERVICE = "http://localhost:8000";
 

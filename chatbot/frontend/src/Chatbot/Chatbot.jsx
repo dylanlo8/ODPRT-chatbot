@@ -31,64 +31,76 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConver
   const handleSendMessage = async () => {
     console.log('Sending message:', inputText);
     if (inputText.trim() === "" && attachedFiles.length === 0) return;
-  
-    // Create a new message object for the human message
+
     const humanMessage = {
-      text: inputText,
-      sender: "user",
-      files: attachedFiles.map((file) => file.name),
+        text: inputText,
+        sender: "user",
+        files: attachedFiles.map((file) => file.name),
     };
-  
-    // Insert the user's message into the database
-    const insertedMessage = await insertMessage(currentChatId, humanMessage.sender, humanMessage.text);
-    if (insertedMessage) {
-      onSendMessage(insertedMessage);
+
+    let conversationId = currentChatId;
+
+    // If no conversation exists, create one and wait for ChatPage to update state
+    if (!conversationId) {
+        conversationId = uuidv4();
+        const newConversation = await createConversation(userUUID, conversationId, inputText);
+        if (newConversation) {
+            onNewConversationCreated({ conversation_id: conversationId, conversation_title: inputText });
+            await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for state update
+        }
     }
-  
+
+    console.log("Using conversation ID:", conversationId);
+
+    // Insert the user message into the database
+    const insertedMessage = await insertMessage(conversationId, humanMessage.sender, humanMessage.text);
+    if (insertedMessage) {
+        onSendMessage(insertedMessage);
+    }
+
     setInputText("");
     setAttachedFiles([]);
     setLoading(true);
-  
+
     try {
-      const chatHistoryString = formatChatHistory([...messages, humanMessage]);
-  
-      const response = await fetch(QUERY_SERVICE, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_query: inputText,
-          chat_history: chatHistoryString,
-          uploaded_content: uploadedContent,
-        }),
-      });
-  
-      const data = await response.json();
-      const botMessage = {
-        sender: 'bot',
-        text: data.answer,
-      };
-  
-      // Insert the bot's message into the same conversation
-      const insertedBotMessage = await insertMessage(currentChatId, botMessage.sender, botMessage.text);
-      if (insertedBotMessage) {
-        onSendMessage(insertedBotMessage);
-      }
+        const chatHistoryString = formatChatHistory([...messages, humanMessage]);
+
+        const response = await fetch(QUERY_SERVICE, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_query: inputText,
+                chat_history: chatHistoryString,
+                uploaded_content: uploadedContent,
+            }),
+        });
+
+        const data = await response.json();
+        const botMessage = {
+            sender: 'bot',
+            text: data.answer,
+        };
+
+        const insertedBotMessage = await insertMessage(conversationId, botMessage.sender, botMessage.text);
+        if (insertedBotMessage) {
+            onSendMessage(insertedBotMessage);
+        }
     } catch (error) {
-      console.error('Error:', error);
-      const errorMessage = {
-        sender: 'bot',
-        text: "Something went wrong",
-      };
-      const insertedErrorMessage = await insertMessage(currentChatId, errorMessage.sender, errorMessage.text);
-      if (insertedErrorMessage) {
-        onSendMessage(insertedErrorMessage);
-      }
+        console.error('Error:', error);
+        const errorMessage = {
+            sender: 'bot',
+            text: "Something went wrong",
+        };
+        const insertedErrorMessage = await insertMessage(conversationId, errorMessage.sender, errorMessage.text);
+        if (insertedErrorMessage) {
+            onSendMessage(insertedErrorMessage);
+        }
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   const insertMessage = async (conversationId, sender, text) => {
     try {
