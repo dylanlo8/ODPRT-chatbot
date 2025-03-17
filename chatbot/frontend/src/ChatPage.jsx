@@ -84,8 +84,8 @@ const ChatPage = () => {
   }, [userUUID]);
 
   useEffect(() => {
-    console.log("chatID ", currentChatId)
-  }, [currentChatId])
+    console.log("messages ", messages)
+  }, [messages])
 
   const handleNewChat = async () => {
     setCurrentChatId(null); 
@@ -96,6 +96,14 @@ const ChatPage = () => {
     setCurrentChatId(chatId); 
     const messages = await fetchConversationMessages(chatId);
     setMessages(messages);
+  };
+
+  const handleUpdateMessageFeedback = (messageId, feedback) => {
+    setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+            msg.message_id === messageId ? { ...msg, is_useful : feedback } : msg
+        )
+    );
   };
 
   const handleDeleteChat = async (chatId) => {
@@ -126,17 +134,24 @@ const ChatPage = () => {
       }, 300000) 
     );
   };
+  useEffect(() => {
+    console.log("Updated chatHistory", chatHistory);
+  }, [chatHistory]);
 
   const handleNewConversationCreated = (newChat) => {
     console.log("creating new chat ", newChat);
-    setCurrentChatId(newChat.conversation_id); 
+    setCurrentChatId(newChat.conversation_id);
+    console.log("Before", chatHistory)
     setChatHistory((prev) => [
       {
         ...newChat, 
-        updated_at: newChat.updated_at 
       },
       ...prev,
-    ]);    setMessages([]); 
+    ]);    
+
+    setMessages([]); 
+    console.log("After", chatHistory)
+
   };
   
   useEffect(() => {
@@ -175,8 +190,9 @@ const ChatPage = () => {
         userUUID={userUUID}
         onSendMessage={(message) => setMessages((prev) => [...prev, message])}
         onNewConversationCreated={handleNewConversationCreated}
+        onUpdateMessageFeedback={handleUpdateMessageFeedback}
       />
-      {showFeedback && <FeedbackForm onClose={handleFeedbackCancel} />}
+      {showFeedback && <FeedbackForm conversationId = {currentChatId} onClose={handleFeedbackCancel} />}
     </div>
   );
 };
