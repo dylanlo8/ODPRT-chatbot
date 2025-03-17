@@ -31,30 +31,27 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConver
   const handleSendMessage = async () => {
     console.log('Sending message:', inputText);
     if (inputText.trim() === "" && attachedFiles.length === 0) return;
-
+  
     // Create a new message object for the human message
     const humanMessage = {
       text: inputText,
       sender: "user",
       files: attachedFiles.map((file) => file.name),
     };
-
+  
+    // Insert the user's message into the database
     const insertedMessage = await insertMessage(currentChatId, humanMessage.sender, humanMessage.text);
     if (insertedMessage) {
       onSendMessage(insertedMessage);
     }
-
+  
     setInputText("");
-      const inputBox = document.querySelector(".input-box");
-      if (inputBox) {
-        inputBox.textContent = ""; // Clear the contentEditable div
-    }
     setAttachedFiles([]);
     setLoading(true);
-
+  
     try {
       const chatHistoryString = formatChatHistory([...messages, humanMessage]);
-
+  
       const response = await fetch(QUERY_SERVICE, {
         method: 'POST',
         headers: {
@@ -66,17 +63,16 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConver
           uploaded_content: uploadedContent,
         }),
       });
-
+  
       const data = await response.json();
       const botMessage = {
         sender: 'bot',
         text: data.answer,
       };
-
-      // Insert the bot message into the database
+  
+      // Insert the bot's message into the same conversation
       const insertedBotMessage = await insertMessage(currentChatId, botMessage.sender, botMessage.text);
       if (insertedBotMessage) {
-        // Notify ChatPage of the new message
         onSendMessage(insertedBotMessage);
       }
     } catch (error) {
@@ -96,17 +92,16 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConver
 
   const insertMessage = async (conversationId, sender, text) => {
     try {
-      // Create new conversation if conversationId is null
-      if (!conversationId) {    
-        // Insert conversation into the database
+      // Create new conversation only if conversationId is null
+      if (!conversationId) {
         conversationId = uuidv4();
-        const newConversation = createConversation(userUUID, conversationId, text); // Empty title for now, later can update title
+        const newConversation = await createConversation(userUUID, conversationId, text);
         if (newConversation) {
-          onNewConversationCreated(conversationId);
-        }  
+          // Notify ChatPage of the new conversation
+          onNewConversationCreated({ conversation_id: conversationId, conversation_title: text });
+        }
       }
-
-
+      console.log(conversationId)
       // Insert message into the database
       const response = await fetch(`${API_SERVICE}/messages/insert`, {
         method: 'POST',
