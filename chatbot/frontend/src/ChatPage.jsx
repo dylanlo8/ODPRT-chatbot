@@ -130,9 +130,15 @@ const ChatPage = () => {
   const handleNewConversationCreated = (newChat) => {
     console.log("creating new chat ", newChat);
     setCurrentChatId(newChat.conversation_id); 
-    setChatHistory((prev) => [newChat, ...prev]); 
-    setMessages([]); 
+    setChatHistory((prev) => [
+      {
+        ...newChat, 
+        updated_at: newChat.updated_at 
+      },
+      ...prev,
+    ]);    setMessages([]); 
   };
+  
   useEffect(() => {
     resetIdleTimer();
     window.addEventListener("mousemove", resetIdleTimer);
