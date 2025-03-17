@@ -28,8 +28,8 @@ class ConversationContent(BaseModel):
     feedback: Optional[str] = None
 
 class Feedback(BaseModel):
-    rating: int
-    text: str
+    rating: Optional[int] = None
+    text: Optional[str] = None
 
 ################################
 # FastAPI Routers

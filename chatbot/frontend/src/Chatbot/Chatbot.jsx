@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faLink, faTimesCircle, faThumbsUp, faThumbsDown } from '@fortawesome/free-solid-svg-icons';
 import ReactMarkdown from 'react-markdown';
@@ -7,7 +7,7 @@ import "./Chatbot.css";
 
 const API_SERVICE = "http://localhost:8000";
 
-const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConversationCreated }) => {  const QUERY_SERVICE = `${API_SERVICE}/chat/query/`;
+const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConversationCreated, onUpdateMessageFeedback}) => {  const QUERY_SERVICE = `${API_SERVICE}/chat/query/`;
   const DOCUMENT_PARSER_SERVICE = `${API_SERVICE}/document-parser/process-upload/`;
   const [inputText, setInputText] = useState("");
   const [attachedFiles, setAttachedFiles] = useState([]); 
@@ -44,8 +44,9 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConver
     if (!conversationId) {
         conversationId = uuidv4();
         const newConversation = await createConversation(userUUID, conversationId, inputText);
+
         if (newConversation) {
-            onNewConversationCreated({ conversation_id: conversationId, conversation_title: inputText });
+            onNewConversationCreated(newConversation[0]);
             await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for state update
         }
     }
@@ -104,16 +105,6 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConver
 
   const insertMessage = async (conversationId, sender, text) => {
     try {
-      // Create new conversation only if conversationId is null
-      if (!conversationId) {
-        conversationId = uuidv4();
-        const newConversation = await createConversation(userUUID, conversationId, text);
-        if (newConversation) {
-          // Notify ChatPage of the new conversation
-          onNewConversationCreated({ conversation_id: conversationId, conversation_title: text, updated_at: newConversation[0].updated_at });
-        }
-      }
-      console.log(conversationId)
       // Insert message into the database
       const response = await fetch(`${API_SERVICE}/messages/insert`, {
         method: 'POST',
@@ -208,32 +199,23 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConver
   const handleFeedback = async (message, feedback) => {
     console.log('Feedback:', feedback, "for message:", message.text);
     
-    const updatedMessages = messages.map((msg) => 
-      msg.text === message.text ? { ...msg, feedback } : msg
-    );
-    
-    onSendMessage(updatedMessages);
-  
+    onUpdateMessageFeedback(message.message_id, feedback);
+
     try {
-      const response = await fetch(FEEDBACK_SERVICE, {
-        method: 'POST',
+      const response = await fetch(`${API_SERVICE}/messages/${message.message_id}/useful?is_useful=${feedback}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: message.text,
-          is_useful: feedback,
-        }),
+        }
       });
   
       if (!response.ok) {
         throw new Error('Failed to send feedback');
       }
-  
       console.log('Feedback sent successfully');
     } catch (error) {
       console.error('Error sending feedback:', error);
-    }
+    }     
   };
 
   return (
@@ -271,14 +253,14 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConver
                 {msg.sender === 'bot' && (
                   <div className="feedback-buttons">
                     <button
-                      className={`feedback-button ${msg.feedback === true ? 'liked' : ''}`} 
+                      className={`feedback-button ${msg.is_useful === true ? 'liked' : ''}`} 
                       onClick={() => handleFeedback(msg, true)}
                       title="Like"
                     >
                       <FontAwesomeIcon icon={faThumbsUp} />
                     </button>
                     <button
-                      className={`feedback-button ${msg.feedback === false ? 'disliked' : ''}`} 
+                      className={`feedback-button ${msg.is_useful === false ? 'disliked' : ''}`} 
                       onClick={() => handleFeedback(msg, false)}
                       title="Dislike"
                     >

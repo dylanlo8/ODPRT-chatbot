@@ -3,6 +3,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSmile, faFrown, faMeh, faGrinStars, faAngry } from '@fortawesome/free-solid-svg-icons';
 import "./FeedbackForm.css";
 
+const API_SERVICE = "http://localhost:8000";
+
 const FeedbackForm = ({ conversationId, onClose }) => {
   const [feedback, setFeedback] = useState("");
   const [selectedEmoji, setSelectedEmoji] = useState(null);
@@ -26,15 +28,19 @@ const FeedbackForm = ({ conversationId, onClose }) => {
     console.log(`Feedback Submitted: ${feedback}`);
     console.log(`Selected Emoji: ${selectedEmoji !== null ? emojis[selectedEmoji].label : "None"}`);
     
-    const feedbackData = {
-      conversation_id: conversationId, 
-      rating: selectedEmoji !== null ? emojis[selectedEmoji].label : null,
-      feedback: feedback
-    };
+    const feedbackData = {};
+
+    if (selectedEmoji !== null) {
+      feedbackData.rating = emojis[selectedEmoji].label;
+    }
+  
+    if (feedback !== null) {
+      feedbackData.text = feedback;
+    }
 
     try {
-      const response = await fetch("/api/feedback/submit", {
-        method: "POST",
+      const response = await fetch(`${API_SERVICE}/conversations/${conversationId}/feedback`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
