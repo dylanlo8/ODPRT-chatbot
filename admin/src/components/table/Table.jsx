@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { Box, IconButton, Menu, MenuItem, ListItemIcon, Typography, Dialog } from "@mui/material";
+import { useState, useEffect } from "react";
+import { Box, IconButton, Menu, MenuItem, ListItemIcon, Typography, Dialog, CircularProgress } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+import { fetchFiles, deleteFile } from "../../api/FileUploadApi";
 import { tokens } from "../../theme";
-import { mockUploadedFiles } from "../../data/mockData";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -11,9 +11,25 @@ import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
 
 const Table = () => {
   const colors = tokens();
+  const [files, setFiles] = useState([]);
+  const [loading, setLoading ] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [previewFile, setPreviewFile] = useState(null); 
+
+  useEffect(() => {
+    const loadFiles = async () => {
+      try {
+        const data = await fetchFiles();
+        setFiles(data);
+      } catch (error) {
+        console.error("Error fetching files", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadFiles();
+  }, []);
 
   const handleMenuOpen = (event, rowId) => {
     setAnchorEl(event.currentTarget);
@@ -25,26 +41,32 @@ const Table = () => {
     setSelectedRow(null);
   };
 
-  const handleActionClick = (action) => {
-    const selectedFile = mockUploadedFiles.find((file) => file.id === selectedRow);
+  const handleActionClick = async (action) => {
+    const selectedFile = files.find((file) => file.id === selectedRow);
     if (!selectedFile) return;
 
     if (action === "Preview") {
-      const filePath = `/files/${selectedFile.file_name}`; 
-      setPreviewFile([{ uri: filePath }]); 
+      setPreviewFile([{ uri: selectedFile.file_url }]);
     }
 
     if (action === "Download") {
-      const filePath = `/files/${selectedFile.file_name}`;
       const link = document.createElement("a");
-      link.href = filePath;
-      link.download = selectedFile.file_name; 
+      link.href = selectedFile.file_url;
+      link.download = selectedFile.file_name;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
 
-    console.log(`Performing ${action} on row ${selectedRow}`);
+    if (action === "Delete") {
+      try {
+        await deleteFile([selectedFile.file_name]);
+        setFiles(files.filter((file) => file.file_name !== selectedFile.file_name));
+      } catch (error) {
+        console.error("Delete failed:", error);
+      }
+    }
+
     handleMenuClose();
   };
 
@@ -110,12 +132,15 @@ const Table = () => {
         "& .MuiCheckbox-root": { color: `${colors.white} !important` },
         "& .MuiDataGrid-toolbarContainer .MuiButton-text": { color: `${colors.white} !important` },
       }}>
+        {loading ? (
+          <CircularProgress />
+        ) : (
         <DataGrid
-          rows={mockUploadedFiles}
-          columns={columns}
-          components={{ Toolbar: GridToolbar }}
-          pageSizeOptions={[10, 25, 100]}
-        />
+        rows={files}
+        columns={columns}
+        components={{ Toolbar: GridToolbar }}
+        pageSizeOptions={[10, 25, 100]}/>
+        ) }
       </Box>
 
       <Dialog open={Boolean(previewFile)} onClose={handleClosePreview} maxWidth="lg" fullWidth>
