@@ -15,7 +15,7 @@ QUERIES = [
 GROUND_TRUTH = [
     """For incoming data transfer (e.g. NUS is receiving data from collaborator), please contact Office of Legal Affairs (OLA) at olasec@nus.edu.sg.""",
     """Upon finalization of research agreement and prior to signing, the assigned IEP case officer will seek NUS management approval in accordance with NUS Policy of Approving and Signing Authority (NUS PASA).""",
-    """In-kind contributions – Existing resources, which may also include external grant awarded to NUS for the research project but not transferred to collaborator.
+    """In-kind contributions - Existing resources, which may also include external grant awarded to NUS for the research project but not transferred to collaborator.
         Cash contributions - Cash funding to be provided to the research project or received from collaborator.
         """,
     """It is preferred for the RCA to be put in place after the grant is awarded. 
@@ -31,7 +31,7 @@ GROUND_TRUTH = [
         """,
     """The Office of the Deputy President (Research & Technology) issues a monthly newsletter that lists funding opportunities available to NUS researchers.
 
-Researchers may visit NUS’ grant call portal, InfoReady, to view details of open grant calls.
+Researchers may visit NUS' grant call portal, InfoReady, to view details of open grant calls.
 
 NUS also offers internal programmes such as Humanities and Social Science Fellowships and Start-Up Grants to help new staff kick-off and build their research base at NUS.
 
@@ -40,9 +40,9 @@ Since many grantors strongly discourage researchers from submitting a single pro
 For help, please contact the officer in charge of the programme.
 """,
     """Research funding awarded to NUS staff and hosted by NUS may be conveyed:
-•	Through online portals and grant management systems (e.g. NRF’s IGMS, A*STAR’s iGrants, NIE ROMS, etc.)
-•	Via email in softcopy – Letter of Awards, Funding Agreements
-The Grant Award Letter or Funding Agreement details the Host Institution and PI/Co-PI’s responsibilities, project milestones/deliverables/key performance indicators, reporting (research performance and financial) requirements and amount of funding awarded. PIs must understand and accept the terms and conditions specified in the Award Letter/Funding Agreement as they are responsible for the overall project and management of the grant.
+•	Through online portals and grant management systems (e.g. NRF's IGMS, A*STAR's iGrants, NIE ROMS, etc.)
+•	Via email in softcopy - Letter of Awards, Funding Agreements
+The Grant Award Letter or Funding Agreement details the Host Institution and PI/Co-PI's responsibilities, project milestones/deliverables/key performance indicators, reporting (research performance and financial) requirements and amount of funding awarded. PIs must understand and accept the terms and conditions specified in the Award Letter/Funding Agreement as they are responsible for the overall project and management of the grant.
 
 ODPRT will guide the PI on how to go about accepting the grant. Some programmes may require the PI to scrub the approved budget before the grantor releases the formal Letter of Award.
 
