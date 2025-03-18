@@ -28,3 +28,6 @@ FlagEmbedding/
 chatbot/backend/services/Visualized_base_en_v1.5.pth
 
 emails/
+
+.deepeval
+.deepeval_telemetry.txt

@@ -56,7 +56,7 @@ class ResponseGenerator:
         Returns:
             answer: response to user query
         """
-        context = self.vector_db.hybrid_search(query=user_query)
+        context, _ = self.vector_db.hybrid_search(query=user_query)
         response = answer_chain.invoke(
             {
                 "user_query": user_query,
