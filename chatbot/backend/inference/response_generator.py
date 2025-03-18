@@ -56,7 +56,7 @@ class ResponseGenerator:
         Returns:
             answer: response to user query
         """
-        return answer_chain.invoke(
+        response = answer_chain.invoke(
             {
                 "user_query": user_query,
                 "uploaded_content": uploaded_content,
@@ -64,6 +64,7 @@ class ResponseGenerator:
                 "chat_history": chat_history,
             }
         )
+        return response
 
     def query_workflow(
         self,
