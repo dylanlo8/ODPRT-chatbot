@@ -45,7 +45,7 @@ const Uploader = () => {
                     onChange={handleFileChange}
                 />
                 {uploading ? (
-                    <CircularProgress size={50} sx={{ color: colors.indigo[500] }} /> // Show loading spinner
+                    <CircularProgress size={50} sx={{ color: colors.indigo[500] }} /> 
                 ) : (
                     <CloudUploadIcon sx={{ fontSize: 50, color: colors.indigo[500] }} />
                 )}
