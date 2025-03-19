@@ -108,4 +108,18 @@ class VectorDB:
 
             self.collection.insert(batch)  # Insert batch into collection
 
+    def delete_data(self, field: str, match_results: list[str]):
+        """
+        Delete entries from Milvus where 'field' matches any value in 'match_results'.
+        """
+
+        # Convert list to Milvus-compatible expression
+        match_list = ", ".join(f"'{item}'" for item in match_results)
+        delete_expr = f"{field} in [{match_list}]"  
+
+        # Execute delete operation
+        delete_result = self.collection.delete(delete_expr)
+        
+        return delete_result
+
 vector_db = VectorDB(collection_name="odprt_index_test")

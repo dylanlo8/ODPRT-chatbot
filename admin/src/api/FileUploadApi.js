@@ -6,9 +6,7 @@ const API_BASE_URL = "http://0.0.0.0:8000";
 export const uploadFile = async (files) => {
   try {    
     const formData = new FormData();
-
-    console.log(formData)
-
+    
     // Construct Payload for File Upload
     formData.append("files", files);
     
@@ -21,6 +19,7 @@ export const uploadFile = async (files) => {
       }
     );
 
+    // Upload File into Bucket
     const bucketResponse = await axios.post(
       `${API_BASE_URL}/buckets/upload/`,
       formData,
@@ -48,11 +47,20 @@ export const fetchFiles = async () => {
 
 export const deleteFile = async (fileNames) => {
   try {
-    const response = await axios.delete(`${API_BASE_URL}/buckets/delete`, {
-      data: { file_names: fileNames }, 
+    // Delete file from Bucket
+    const bucketResponse = await axios.delete(`${API_BASE_URL}/buckets/delete`, {
+      data: { 
+        file_names: fileNames 
+      }, 
     });
 
-    return response.data; 
+    // Delete file from VectorDB
+    // Specify field as doc_source
+    const vectorResponse = await axios.delete(`${API_BASE_URL}/vector-db/delete-data/?field=doc_source`, {
+      data: fileNames
+    });
+
+    return { bucket_response : bucketResponse.data, vector_response : vectorResponse.data }
   } catch (error) {
     console.error("Error deleting file:", error);
     throw error;
