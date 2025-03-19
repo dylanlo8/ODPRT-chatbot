@@ -21,7 +21,16 @@ const Table = () => {
     const loadFiles = async () => {
       try {
         const data = await fetchFiles();
-        setFiles(data);
+        
+        // Modify the data as needed
+        const modifiedData = data.map(file => ({
+          id : file.id,
+          file_name : file.name,
+          file_size: `${(file.metadata.size / 1024).toFixed(2)} KB`, // Example modification: convert file size to KB
+          upload_date: new Date(file.created_at).toLocaleString() // Example modification: format upload date
+        }));
+
+        setFiles(modifiedData);
       } catch (error) {
         console.error("Error fetching files", error);
       } finally {

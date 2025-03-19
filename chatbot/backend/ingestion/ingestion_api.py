@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from chatbot.backend.ingestion.ingestion_service import IngestionService
 from chatbot.backend.document_parser.document_parser import DocumentParser
 import shutil
+import os
 
 ingestion_router = APIRouter(prefix="/ingestion")
 ingestion_service = IngestionService()
@@ -15,49 +16,55 @@ class TextIngestionRequest(BaseModel):
     
 @ingestion_router.post("/ingest-files/")
 async def ingest_files(files: list[UploadFile] = File(...)):
-    image_paths = []
-    text_chunks = []
-    doc_source = "uploaded_files"
-    doc_type = "Documents"
+    temp_file_paths = []
 
     for file in files:
+        # Preprocessing and storing in Buckets stage
+        # Images
         if file.content_type.startswith('image/'):
             try:
                 # Save the uploaded image file to a temporary location
                 temp_file_path = f"/tmp/{file.filename}"
                 with open(temp_file_path, "wb") as buffer:
                     shutil.copyfileobj(file.file, buffer)
-                image_paths.append(temp_file_path)
+                
+                # Ingest the image
+                ingestion_service.ingest_images([temp_file_path])
+
+                # Remove temp_file traces at end of ingestion
+                temp_file_paths.append(temp_file_path)
             except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Failed to save image file {file.filename}: {str(e)}")
+                raise HTTPException(status_code=500, detail=f"Failed to save or ingest image file {file.filename}: {str(e)}")
             
         # PDF or DOCX Files
         elif file.content_type in ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']:
+            doc_source = file.filename
+            doc_type = "Word Documents / PDF"
+            
             try:
                 # Save the uploaded document file to a temporary location
                 temp_file_path = f"/tmp/{file.filename}"
                 with open(temp_file_path, "wb") as buffer:
                     shutil.copyfileobj(file.file, buffer)
+
                 # Extract text from the document
                 extracted_text = document_parser.process_user_uploads(temp_file_path)
-                text_chunks.extend(extracted_text)
+
+                # Ingest the text documents
+                ingestion_service.ingest_texts(extracted_text, doc_source, doc_type)
+
+                # Remove temp_file traces at end of ingestion
+                temp_file_paths.append(temp_file_path)
             except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Failed to save document file {file.filename}: {str(e)}")
+                raise HTTPException(status_code=500, detail=f"Failed to save or ingest document file {file.filename}: {str(e)}")
         else:
             raise HTTPException(status_code=400, detail=f"Invalid file type for {file.filename}. Only image, PDF, and DOCX files are allowed.")
     
-    # Ingest the images
-    if image_paths:
+    # Remove temporary files
+    for temp_file_path in temp_file_paths:
         try:
-            ingestion_service.ingest_images(image_paths)
+            os.remove(temp_file_path)
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to ingest images: {str(e)}")
-    
-    # Ingest the text documents
-    if text_chunks:
-        try:
-            ingestion_service.ingest_texts(text_chunks, doc_source, doc_type)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to ingest text documents: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to remove temporary file {temp_file_path}: {str(e)}")
     
     return {"message": "Files ingested successfully"}
