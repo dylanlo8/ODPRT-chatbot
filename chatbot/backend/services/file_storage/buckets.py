@@ -1,7 +1,9 @@
 import os
+import io
 import mimetypes
 from supabase import create_client, Client
 from dotenv import load_dotenv
+
 
 load_dotenv()
 url: str = os.environ.get("SUPABASE_URL")
@@ -71,3 +73,12 @@ def delete_file(file_names: list[str]) -> dict:
         return response
     except Exception as exception:
         return exception
+    
+def download_file(file_path):
+    # Download file from Supabase Storage
+    try: 
+        response = supabase.storage.from_(BUCKET_NAME).download(file_path)
+        return response
+    except Exception as exception:
+        return exception
+    

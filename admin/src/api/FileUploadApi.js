@@ -6,7 +6,7 @@ const API_BASE_URL = "http://0.0.0.0:8000";
 export const uploadFile = async (files) => {
   try {    
     const formData = new FormData();
-    
+
     // Construct Payload for File Upload
     formData.append("files", files);
     
@@ -63,6 +63,19 @@ export const deleteFile = async (fileNames) => {
     return { bucket_response : bucketResponse.data, vector_response : vectorResponse.data }
   } catch (error) {
     console.error("Error deleting file:", error);
+    throw error;
+  }
+};
+
+export const downloadFile = async (filePath) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/buckets/download-file`, {
+      params: { file_path: filePath },
+      responseType: 'blob', // Important to handle binary data
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error downloading file:", error);
     throw error;
   }
 };

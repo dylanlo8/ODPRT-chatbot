@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Box, IconButton, Menu, MenuItem, ListItemIcon, Typography, Dialog, CircularProgress } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import { fetchFiles, deleteFile } from "../../api/FileUploadApi";
+import { fetchFiles, deleteFile, downloadFile } from "../../api/FileUploadApi";
 import { tokens } from "../../theme";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -59,12 +59,18 @@ const Table = () => {
     }
 
     if (action === "Download") {
-      const link = document.createElement("a");
-      link.href = selectedFile.file_url;
-      link.download = selectedFile.file_name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      try {
+        const fileData = await downloadFile(selectedFile.file_name);
+        const url = window.URL.createObjectURL(new Blob([fileData]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", selectedFile.file_name);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error("Error downloading file:", error);
+      }
     }
 
     if (action === "Delete") {
