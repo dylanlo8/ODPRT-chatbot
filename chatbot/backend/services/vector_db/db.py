@@ -122,4 +122,4 @@ class VectorDB:
         
         return delete_result
 
-vector_db = VectorDB(collection_name="odprt_index_test")
+vector_db = VectorDB(collection_name="odprt_index")
