@@ -1,7 +1,9 @@
 import os
+import io
 import mimetypes
 from supabase import create_client, Client
 from dotenv import load_dotenv
+
 
 load_dotenv()
 url: str = os.environ.get("SUPABASE_URL")
@@ -38,6 +40,30 @@ def upload_file(source_file_path: str, destination_file_path: str) -> dict:
     except Exception as exception:
         return exception
     
+def fetch_files(
+        folder: str = "", 
+        limit: int = 100, 
+        offset: int = 0, 
+        sort_by: dict = {"column": "name", "order": "desc"}
+    ) -> dict:
+
+    """
+    Fetches a list of files from the specified folder in the bucket
+    """
+    try:
+        response = supabase.storage.from_(BUCKET_NAME).list(  # Await here
+            folder,
+            {
+                "limit": limit,
+                "offset": offset,
+                "sortBy": sort_by,
+            }
+        )
+        return response
+    except Exception as exception:
+        return exception
+
+    
 def delete_file(file_names: list[str]) -> dict:
     """
     Bulk deletes files from the bucket
@@ -48,9 +74,11 @@ def delete_file(file_names: list[str]) -> dict:
     except Exception as exception:
         return exception
     
-# SAMPLE EXECUTION
-# response = upload_file("email.msg", "email.msg")
-# print(response)
-
-# response = delete_file(["email.msg"])
-# print(response)
+def download_file(file_path):
+    # Download file from Supabase Storage
+    try: 
+        response = supabase.storage.from_(BUCKET_NAME).download(file_path)
+        return response
+    except Exception as exception:
+        return exception
+    
