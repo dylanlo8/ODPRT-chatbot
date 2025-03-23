@@ -1,33 +1,29 @@
 import { useState, useEffect } from "react";
-import { Box, IconButton, Menu, MenuItem, ListItemIcon, Typography, Dialog, CircularProgress } from "@mui/material";
+import { Box, IconButton, Menu, MenuItem, ListItemIcon, Typography, CircularProgress, Snackbar, Alert } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { fetchFiles, deleteFile, downloadFile } from "../../api/FileUploadApi";
 import { tokens } from "../../theme";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteIcon from '@mui/icons-material/Delete';
-import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
 
-const Table = () => {
+const Table = ({ files, setFiles }) => {
   const colors = tokens();
-  const [files, setFiles] = useState([]);
   const [loading, setLoading ] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
-  const [previewFile, setPreviewFile] = useState(null); 
+  const [notification, setNotification] = useState({ message: "", type: "" });
 
   useEffect(() => {
     const loadFiles = async () => {
       try {
         const data = await fetchFiles();
         
-        // Modify the data as needed
         const modifiedData = data.map(file => ({
           id : file.id,
           file_name : file.name,
-          file_size: `${(file.metadata.size / 1024).toFixed(2)} KB`, // Example modification: convert file size to KB
-          upload_date: new Date(file.created_at).toLocaleString() // Example modification: format upload date
+          file_size: `${(file.metadata.size / 1024).toFixed(2)} KB`, 
+          upload_date: new Date(file.created_at).toLocaleString() 
         }));
 
         setFiles(modifiedData);
@@ -38,7 +34,7 @@ const Table = () => {
       }
     };
     loadFiles();
-  }, []);
+  }, [ setFiles ]);
 
   const handleMenuOpen = (event, rowId) => {
     setAnchorEl(event.currentTarget);
@@ -53,10 +49,6 @@ const Table = () => {
   const handleActionClick = async (action) => {
     const selectedFile = files.find((file) => file.id === selectedRow);
     if (!selectedFile) return;
-
-    if (action === "Preview") {
-      setPreviewFile([{ uri: selectedFile.file_url }]);
-    }
 
     if (action === "Download") {
       try {
@@ -77,16 +69,14 @@ const Table = () => {
       try {
         await deleteFile([selectedFile.file_name]);
         setFiles(files.filter((file) => file.file_name !== selectedFile.file_name));
+        setNotification({ message: "File successfully deleted!", type: "success" });
       } catch (error) {
         console.error("Delete failed:", error);
+        setNotification({ message: "Delete failed. Please try again.", type: "error" });
       }
     }
 
     handleMenuClose();
-  };
-
-  const handleClosePreview = () => {
-    setPreviewFile(null); 
   };
 
   const columns = [
@@ -108,12 +98,6 @@ const Table = () => {
             onClose={handleMenuClose}
             PaperProps={{ elevation: 3, sx: { minWidth: 150, borderRadius: "8px", p: 1 } }}
           >
-            <MenuItem onClick={() => handleActionClick("Preview")}>
-              <ListItemIcon>
-                <VisibilityIcon fontSize="small" />
-              </ListItemIcon>
-              <Typography variant="inherit">Preview</Typography>
-            </MenuItem>
             <MenuItem onClick={() => handleActionClick("Download")}>
               <ListItemIcon>
                 <DownloadIcon fontSize="small" />
@@ -158,18 +142,17 @@ const Table = () => {
         ) }
       </Box>
 
-      <Dialog open={Boolean(previewFile)} onClose={handleClosePreview} maxWidth="lg" fullWidth>
-        <Box p={2}>
-          <Typography variant="h6">File Preview</Typography>
-          {previewFile && (
-            <DocViewer
-              documents={previewFile}
-              pluginRenderers={DocViewerRenderers}
-              style={{ height: "600px", marginTop: "10px" }}
-            />
-          )}
-        </Box>
-      </Dialog>
+      {/* NOTIFICATION SNACKBAR */}
+      <Snackbar
+          open={Boolean(notification.message)}
+          autoHideDuration={3000}
+          onClose={() => setNotification({ message: "", type: "" })}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+          <Alert onClose={() => setNotification({ message: "", type: "" })} severity={notification.type} sx={{ width: "100%" }}>
+              {notification.message}
+          </Alert>
+      </Snackbar>
     </Box>
   );
 };
