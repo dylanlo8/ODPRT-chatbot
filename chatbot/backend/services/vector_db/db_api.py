@@ -44,3 +44,11 @@ async def drop_collection(drop_collection: DropCollection):
         return {"message": f"Collection '{drop_collection.collection_name}' dropped successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@vector_db_router.delete("/delete-data/")
+async def delete_data(field: str, match_results: list[str]):
+    try:
+        vector_db.delete_data(field, match_results)
+        return {"message": f"Data files matching '{field}' in {match_results} deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -1,4 +1,3 @@
-import ast
 from typing import List, Tuple
 
 from chatbot.backend.chains.query_chains import (
@@ -7,6 +6,7 @@ from chatbot.backend.chains.query_chains import (
     generate_email_chain,
 )
 from chatbot.backend.services.logger import logger
+from chatbot.backend.services.vector_db.db import vector_db
 
 
 class ResponseGenerator:
@@ -14,6 +14,7 @@ class ResponseGenerator:
 
     def __init__(self):
         self.unrelated_response = "I am sorry, but I am unable to provide a response to your query at the moment."
+        self.vector_db = vector_db
         self.logger = logger
 
     def _router(
@@ -47,7 +48,6 @@ class ResponseGenerator:
         self,
         user_query: str,
         uploaded_content: str = "",
-        context: str = "",
         chat_history: str = "",
     ) -> str:
         """
@@ -56,6 +56,7 @@ class ResponseGenerator:
         Returns:
             answer: response to user query
         """
+        context, _ = self.vector_db.hybrid_search(query=user_query)
         response = answer_chain.invoke(
             {
                 "user_query": user_query,
@@ -70,7 +71,6 @@ class ResponseGenerator:
         self,
         user_query: str,
         uploaded_content: str = "",
-        context: str = "",
         chat_history: str = "",
     ) -> str:
         """
@@ -97,7 +97,6 @@ class ResponseGenerator:
         return self._generate_answer(
             user_query=user_query,
             uploaded_content=uploaded_content,
-            context=context,
             chat_history=chat_history,
         )
 
