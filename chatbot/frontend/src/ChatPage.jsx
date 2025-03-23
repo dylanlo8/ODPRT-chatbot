@@ -157,6 +157,36 @@ const ChatPage = () => {
     console.log("After", chatHistory)
 
   };
+
+  const sendEmail = async (conversationId) => {
+    try {
+      const response = await fetch(`${API_SERVICE}/conversations/${conversationId}/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to send email");
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error sending email:", error);
+    }
+  };
+  
+  const handleExportChat = async (chatId) => {
+    const emailData = await sendEmail(chatId);
+    if (emailData) {
+      if (emailData.emailUrl) {
+        window.open(emailData.emailUrl, "_blank");
+      } else {
+        alert("Email sent successfully!");
+      }
+    }
+  };
+  
   
   useEffect(() => {
     resetIdleTimer();
@@ -195,6 +225,7 @@ const ChatPage = () => {
         onSendMessage={(message) => setMessages((prev) => [...prev, message])}
         onNewConversationCreated={handleNewConversationCreated}
         onUpdateMessageFeedback={handleUpdateMessageFeedback}
+        onExportChat={handleExportChat}
       />
       {showFeedback && <FeedbackForm conversationId = {currentChatId} onClose={handleFeedbackCancel} />}
     </div>

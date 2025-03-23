@@ -23,6 +23,14 @@
     flex-grow: 1; /* Pushes content evenly */
   } 
   
+  .chat-title {
+    white-space: nowrap;  
+    overflow: hidden;     
+    text-overflow: ellipsis; 
+    max-width: 100%;     
+    display: block; 
+  }
+  
   .new-chat-btn {
     font-size: 20px;
     background: none;
@@ -73,6 +81,15 @@
     opacity: 0;
     transition: opacity 0.3s ease;
     color:red;
+  }
+
+  .email-btn {
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
   
   .chat-item:hover .delete-btn {

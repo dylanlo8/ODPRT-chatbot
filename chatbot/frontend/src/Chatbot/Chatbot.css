@@ -56,6 +56,7 @@
   position: absolute;
   top: 50%;
   left: 50px; 
+  margin-top: 5px;
   transform: translateY(-50%);
   font-size: 16px;
   pointer-events: none; 
@@ -111,9 +112,11 @@
 
 .attached-files {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: flex-start; 
   gap: 10px; 
   margin-top: 10px; 
+  flex-wrap: wrap; 
 }
 
 .file-item {
@@ -123,6 +126,8 @@
   background-color: #f1f1f1;
   padding: 4px 8px;
   border-radius: 4px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .attached-files-message ul {
