@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { Box, TextField } from "@mui/material";
 import { tokens } from "../theme";
-import { mockUserQueriesData, mockUserExperienceData, mockUsersData, mockInterventionData, mockCommonQueriesData, mockUnresolvedQueriesData } from "../data/mockData";
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import { mockUserQueriesData, mockUserExperienceData, mockInterventionData, mockCommonQueriesData, mockUnresolvedQueriesData } from "../data/mockData";
 import Header from "../components/Header";
 import BarBox from "../components/bar/BarBox";
 import LineBox from "../components/line/LineBox";
@@ -67,16 +65,16 @@ const Dashboard = () => {
       >
         {/* ROW 1 */}
         <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <StatBox title="Conversations" figure="XX" percentage="x.x%" isIncreasing={true} arrow={<ArrowUpwardIcon sx={{ color: colors.green[500], fontSize: "20px" }} />} />
+          <StatBox title="Conversations" figure="XX" />
         </Box>
 
         <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <StatBox title="Avg No. of Messages Per Conversation" figure="XX" percentage="x.x%" isIncreasing={false} arrow={<ArrowDownwardIcon sx={{ color: colors.red[500], fontSize: "20px" }} />} />
+          <StatBox title="Avg No. of Messages per Conversation" figure="XX" />
         </Box>
 
-        <Box gridColumn="span 3" gridRow="span 2" backgroundColor={colors.white} display="flex" flexDirection="column" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <PieBox title="Users" figure="XX" data={filterDataByDate(mockUsersData)} />
-        </Box>
+        <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
+          <StatBox title="Total Users" figure="XX" />
+        </Box>       
 
         <Box gridColumn="span 3" gridRow="span 2" backgroundColor={colors.white} display="flex" flexDirection="column" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
           <PieBox title="Intervention" figure="XX" data={filterDataByDate(mockInterventionData)} />
@@ -84,12 +82,16 @@ const Dashboard = () => {
 
         {/* ROW 2 */}
         <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <StatBox title="Turnaround Time" figure="XX" percentage="x.x%" isIncreasing={false} arrow={<ArrowDownwardIcon sx={{ color: colors.red[500], fontSize: "20px" }} />} />
+          <StatBox title="Avg Time Spent per Conversation" figure="XX"/>
         </Box>
 
         <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <StatBox title="Resolved Conversations" figure="XX" percentage="x.x%" isIncreasing={true} arrow={<ArrowUpwardIcon sx={{ color: colors.green[500], fontSize: "20px" }} />} />
+          <StatBox title="Avg Rating per Conversation" figure="XX"/>
         </Box>
+
+        <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
+          <StatBox title="New Users" figure="XX" />
+        </Box> 
 
         {/* ROW 3 */}
         <Box gridColumn="span 6" gridRow="span 2" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
@@ -97,7 +99,7 @@ const Dashboard = () => {
         </Box>
 
         <Box gridColumn="span 6" gridRow="span 2" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <LineBox title="User Queries Over Time" data={filterDataByDate(mockUserQueriesData)} />
+          <LineBox title="User Queries Over Time" data={filterDataByDate(mockUserQueriesData)} showLegend={false}/>
         </Box>
 
         {/* ROW 4 */}
@@ -106,7 +108,7 @@ const Dashboard = () => {
         </Box>
 
         <Box gridColumn="span 6" gridRow="span 2" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <LineBox title="User Experience Over Time" data={filterDataByDate(mockUserExperienceData)} />
+          <LineBox title="User Experience Over Time" data={filterDataByDate(mockUserExperienceData)} showLegend={true}/>
         </Box>
       </Box>
     </Box>

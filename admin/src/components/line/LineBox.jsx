@@ -3,7 +3,7 @@ import { tokens } from "../../theme";
 
 import LineChart from "./LineChart";
 
-const BarBox = ({ title, data }) => {
+const BarBox = ({ title, data, showLegend}) => {
   const colors = tokens();
 
   return (
@@ -25,7 +25,8 @@ const BarBox = ({ title, data }) => {
         {/* LINE CHART */}
         <Box height="190px" >
             <LineChart 
-            data={data} />
+            data={data} 
+            showLegend={showLegend}/>
         </Box>
 
     </Box>
