@@ -49,11 +49,13 @@ const ChatHistory = ({ chatHistory, onNewChat, onLoadChat, onDeleteChat, onExpor
                       <FontAwesomeIcon 
                         className = "email-btn"
                         icon = {faFileExport}
-                        onclick = {() => onExportChat(chat.conversation_id)}
+                        title="Email Correspondent"
+                        onClick = {() => onExportChat(chat.conversation_id)}
                       />
                       <FontAwesomeIcon
                         className="delete-btn"
                         icon={faTrash}
+                        title="Delete Chat"
                         onClick={() => onDeleteChat(chat.conversation_id)}
                       />
                     </li>
