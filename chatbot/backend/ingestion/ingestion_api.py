@@ -1,9 +1,14 @@
+import logging
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from pydantic import BaseModel
 from chatbot.backend.ingestion.ingestion_service import IngestionService
 from chatbot.backend.document_parser.document_parser import DocumentParser
 import shutil
 import os
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 ingestion_router = APIRouter(prefix="/ingestion")
 ingestion_service = IngestionService()
@@ -19,52 +24,37 @@ async def ingest_files(files: list[UploadFile] = File(...)):
     temp_file_paths = []
 
     for file in files:
-        # Preprocessing and storing in Buckets stage
-        # Images
-        if file.content_type.startswith('image/'):
-            try:
-                # Save the uploaded image file to a temporary location
+        logger.info(f"Processing file: {file.filename} with content type: {file.content_type}")
+        try:
+            # Images
+            if file.content_type.startswith('image/'):
                 temp_file_path = f"/tmp/{file.filename}"
                 with open(temp_file_path, "wb") as buffer:
                     shutil.copyfileobj(file.file, buffer)
-                
-                # Ingest the image
+                logger.info(f"Saved image file to {temp_file_path}")
                 ingestion_service.ingest_images([temp_file_path])
-
-                # Remove temp_file traces at end of ingestion
                 temp_file_paths.append(temp_file_path)
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Failed to save or ingest image file {file.filename}: {str(e)}")
-            
-        # PDF or DOCX Files
-        elif file.content_type in ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']:
-            doc_source = file.filename
-            doc_type = "Word Documents / PDF"
-            
-            try:
-                # Save the uploaded document file to a temporary location
+            # PDF or DOCX Files
+            elif file.content_type in ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']:
                 temp_file_path = f"/tmp/{file.filename}"
                 with open(temp_file_path, "wb") as buffer:
                     shutil.copyfileobj(file.file, buffer)
-
-                # Extract text from the document
+                logger.info(f"Saved document file to {temp_file_path}")
                 extracted_text = document_parser.process_user_uploads(temp_file_path)
-
-                # Ingest the text documents
-                ingestion_service.ingest_texts(extracted_text, doc_source, doc_type)
-
-                # Remove temp_file traces at end of ingestion
+                ingestion_service.ingest_texts(extracted_text, file.filename, "Word Documents / PDF")
                 temp_file_paths.append(temp_file_path)
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Failed to save or ingest document file {file.filename}: {str(e)}")
-        else:
-            raise HTTPException(status_code=400, detail=f"Invalid file type for {file.filename}. Only image, PDF, and DOCX files are allowed.")
+            else:
+                raise HTTPException(status_code=400, detail=f"Invalid file type for {file.filename}.")
+        except Exception as e:
+            logger.error(f"Error processing file {file.filename}: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Failed to process file {file.filename}: {str(e)}")
     
-    # Remove temporary files
     for temp_file_path in temp_file_paths:
         try:
             os.remove(temp_file_path)
+            logger.info(f"Removed temporary file {temp_file_path}")
         except Exception as e:
+            logger.error(f"Failed to remove temporary file {temp_file_path}: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Failed to remove temporary file {temp_file_path}: {str(e)}")
     
     return {"message": "Files ingested successfully"}
