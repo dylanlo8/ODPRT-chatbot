@@ -1,12 +1,14 @@
 create_table_sql_query = """
 CREATE TABLE conversations (
     conversation_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    session_id UUID NOT NULL,
+    user_id UUID NOT NULL,
     conversation_title TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     rating INTEGER CHECK (rating BETWEEN 1 AND 5),
-    feedback TEXT
+    feedback TEXT,
+    intervention_required BOOLEAN DEFAULT FALSE,
+    topic TEXT
 );
 
 CREATE TABLE messages (

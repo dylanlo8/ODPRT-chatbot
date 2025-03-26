@@ -1,0 +1,18 @@
+User Queries Over Time
+
+
+No. of Conversations that requires Intervention
+
+
+User Experience Over Time
+Number of TRUE in is_useful
+Number of FALSE in is_useful
+
+Top 10 Most Common Topics
+Map each conversation to a Topic and count them
+
+
+Top 10 Most Common Unresolved Topics
+Topics that requires intervention
+
+
