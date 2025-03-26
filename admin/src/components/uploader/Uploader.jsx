@@ -24,16 +24,15 @@ const Uploader = ({ onFileUploaded }) => {
 
         try {
             const response = await uploadFile(selectedFile);
+            // const newFile = {
+            //     id: response.id,
+            //     file_name: response.name,
+            //     file_size: `${(response.metadata.size / 1024).toFixed(2)} KB`,
+            //     upload_date: new Date(response.created_at).toLocaleString(),
+            //     file_url: response.file_url 
+            // };
 
-            const newFile = {
-                id: response.id,
-                file_name: response.name,
-                file_size: `${(response.metadata.size / 1024).toFixed(2)} KB`,
-                upload_date: new Date(response.created_at).toLocaleString(),
-                file_url: response.file_url 
-            };
-
-            onFileUploaded?.(newFile); 
+            // onFileUploaded?.(newFile); 
             setNotification({ message: "File successfully uploaded!", type: "success" });
             console.log("Uploaded file:", response); 
         } catch (error) {
