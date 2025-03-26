@@ -22,30 +22,83 @@ const Dashboard = () => {
     userQueries: [],
     unresolvedQueries: [],
     userExperience: [], 
-  })
+  });
+  const [result, setResult] = useState(null);
 
 const fetchData = async (range) => {
   try {
-    const [
-      interventionRes,
-      commonRes,
-      userRes,
-      unresolvedRes,
-      experienceRes,
-    ] = await Promise.all([
-      axios.get("/api/intervention", { params: range }),
-      axios.get("/api/common-queries", { params: range }), 
-      axios.get("/api/user-queries", { params: range }),
-      axios.get("/api/unresolved-queries", { params: range }),
-      axios.get("/api/user-experience", { params: range }),
-    ]);
+    const BASE_URL = "http://localhost:8000";
+      
+    const response = await axios.post(`${BASE_URL}/dashboard/fetch`, {
+      start_date: String(range.from),
+      end_date: String(range.to),
+    });
+
+    const result = response.data;
+    setResult(result); // Store raw results
+    
+    // Format intervention data for PieBox
+    const interventionData = [
+      {
+        id: "intervention required",
+        label: "Intervention Required",
+        value: result.intervention_count,
+        color: tokens().indigo[500],
+      },
+      {
+        id: "no intervention",
+        label: "No Intervention",
+        value: result.total_conversations - result.intervention_count,
+        color: tokens().gray[500],
+      }
+    ];
+
+    // Format common queries data for BarBox
+    const commonQueriesData = result.top_topics.map(item => ({
+      query: item.topic,
+      resolved: item.frequency - (result.top_unresolved_topics.find(t => t.topic === item.topic)?.unresolved_count || 0),
+      resolvedColor: tokens().gray[500],
+      unresolved: result.top_unresolved_topics.find(t => t.topic === item.topic)?.unresolved_count || 0,
+      unresolvedColor: tokens().indigo[500],
+    }));
+
+    // Format unresolved queries data for BarBox
+    const unresolvedQueriesData = result.top_unresolved_topics.map(item => ({
+      query: item.topic,
+      unresolved: item.unresolved_count,
+      unresolvedColor: tokens().indigo[500],
+    }));
+
+    // Format user queries over time data for LineBox
+    const userQueriesData = [
+      {
+        id: "queries",
+        color: tokens().indigo[500],
+        data: result.user_queries_over_time.map(item => ({
+          x: new Date(item.date).toLocaleDateString(),
+          y: item.total,
+        })),
+      }
+    ];
+
+    // Format user experience over time data for LineBox
+    const userExperienceData = [
+      {
+        id: "ratings",
+        color: tokens().indigo[500],
+        data: result.user_experience_over_time.map(item => ({
+          x: new Date(item.date).toLocaleDateString(),
+          y: item.avg_rating,
+        })),
+      }
+    ];
 
     setData({
-      intervention: interventionRes.data,
-      commonQueries: commonRes.data,
-      userQueries: userRes.data,
-      unresolvedQueries: unresolvedRes.data,
-      userExperience: experienceRes.data,
+      intervention: interventionData,
+      commonQueries: commonQueriesData,
+      userQueries: userQueriesData,
+      unresolvedQueries: unresolvedQueriesData,
+      userExperience: userExperienceData,
     });
   } catch (err) {
     console.error("Error fetching data:", err);
@@ -83,32 +136,32 @@ const fetchData = async (range) => {
       >
         {/* ROW 1 */}
         <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <StatBox title="Conversations Created" figure="XX" />
+          <StatBox title="Conversations Created" figure={result?.total_conversations || "XX"} />
         </Box>
 
         <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <StatBox title="Avg No. of Messages per Conversation" figure="XX" />
+          <StatBox title="Avg No. of Messages per Conversation" figure={result?.avg_messages_per_conversation || "XX"} />
         </Box>
 
         <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <StatBox title="Total Users" figure="XX" />
+          <StatBox title="Total Users" figure={result?.total_users || "XX"} />
         </Box>       
 
         <Box gridColumn="span 3" gridRow="span 2" backgroundColor={colors.white} display="flex" flexDirection="column" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <PieBox title="Interventions" figure="XX" data={data.intervention} />
+          <PieBox title="Interventions" figure={result?.intervention_count || "XX"} data={data.intervention} />
         </Box>
 
         {/* ROW 2 */}
         <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <StatBox title="Avg Time Spent per Conversation" figure="XX"/>
+          <StatBox title="Avg Time Spent per Conversation" figure={result?.avg_time_spent_per_conversation_seconds ? `${Math.floor(result.avg_time_spent_per_conversation_seconds / 60)}m ${Math.floor(result.avg_time_spent_per_conversation_seconds % 60)}s` : "XX"}/>
         </Box>
 
         <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <StatBox title="Avg Rating per Conversation" figure="XX"/>
+          <StatBox title="Avg Rating per Conversation" figure={result?.avg_rating || "XX"}/>
         </Box>
 
         <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <StatBox title="New Users" figure="XX" />
+          <StatBox title="New Users" figure={result?.new_users_since_start || "XX"} />
         </Box> 
 
         {/* ROW 3 */}

@@ -7,6 +7,7 @@ from chatbot.backend.services.chat_history.sql_db import (
     delete_conversation,
     get_messages,
     update_conversation_rating,
+    fetch_dashboard_statistics
 )
 
 # ==========================
@@ -22,12 +23,17 @@ class Feedback(BaseModel):
     rating: int  # conversation_id is now passed in the URL
     text: str
 
+class DateRange(BaseModel):
+    start_date: str
+    end_date: str
+
 ################################
 # FastAPI Routers
 ################################
 messages_router = APIRouter(prefix="/messages", tags=["Messages"])
 conversations_router = APIRouter(prefix="/conversations", tags=["Conversations"])
 users_router = APIRouter(prefix="/users", tags=["Users"])
+dashboard_router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 ################################
 # Users Routes
@@ -68,33 +74,14 @@ def insert_messages_route(message: Message):
     response = insert_message([message.content])
     return response
 
-"""
-# Sample payload for conversations table
-conversation_payload = {
-    "conversation_id": "123e4567-e89b-12d3-a456-426614174000", # DEFAULT
-    "session_id": "123e4567-e89b-12d3-a456-426614174001", # NEED TO INPUT
-    "conversation_title": "Sample Conversation", # NEED TO INPUT
-    "created_at": "2025-03-11T10:00:00Z", # DEFAULT
-    "updated_at": "2025-03-11T10:00:00Z", # DEFAULT
-    "rating": 4,
-    "feedback": "This was a helpful conversation."
-}
 
-# Sample payload for messages table
-message_payload = {
-    "message_id": "123e4567-e89b-12d3-a456-426614174002",
-    "conversation_id": "123e4567-e89b-12d3-a456-426614174000",
-    "sender": "user",
-    "text": "Hello, how can I help you?",
-    "is_useful": True,
-    "created_at": "2025-03-11T10:01:00Z"
-}
-
-# Insert sample data into conversations table
-response_conversation = supabase.table("conversations").insert([conversation_payload]).execute()
-print(response_conversation)
-
-# Insert sample data into messages table
-response_message = supabase.table("messages").insert([message_payload]).execute()
-print(response_message)
-"""
+################################
+# Dashboard Routes
+################################
+@dashboard_router.post("/fetch")
+def fetch_dashboard_statistics_route(date_range: DateRange):
+    response = fetch_dashboard_statistics(
+        start_date=date_range.start_date, 
+        end_date=date_range.end_date
+    )
+    return response
