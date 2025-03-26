@@ -8,6 +8,7 @@ from chatbot.backend.services.chat_history.sql_db import (
     delete_conversation,
     get_messages,
     update_conversation_rating,
+    fetch_dashboard_statistics
     update_conversation_title,
     update_message_useful
 )
@@ -28,8 +29,12 @@ class ConversationContent(BaseModel):
     feedback: Optional[str] = None
 
 class Feedback(BaseModel):
-    rating: Optional[int] = None
-    text: Optional[str] = None
+    rating: int  # conversation_id is now passed in the URL
+    text: str
+
+class DateRange(BaseModel):
+    start_date: str
+    end_date: str
 
 ################################
 # FastAPI Routers
@@ -37,6 +42,7 @@ class Feedback(BaseModel):
 messages_router = APIRouter(prefix="/messages", tags=["Messages"])
 conversations_router = APIRouter(prefix="/conversations", tags=["Conversations"])
 users_router = APIRouter(prefix="/users", tags=["Users"])
+dashboard_router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 ################################
 # Users Routes
@@ -82,6 +88,17 @@ def insert_messages_route(message: MessageContent):
     response = insert_message(message.model_dump())
     return response
 
+
+################################
+# Dashboard Routes
+################################
+@dashboard_router.post("/fetch")
+def fetch_dashboard_statistics_route(date_range: DateRange):
+    response = fetch_dashboard_statistics(
+        start_date=date_range.start_date, 
+        end_date=date_range.end_date
+    )
+    return response
 @messages_router.put("/{message_id}/useful")
 def update_message_useful_route(message_id: str, is_useful: bool):
     response = update_message_useful(message_id, is_useful)
