@@ -1,5 +1,6 @@
 import os
 from supabase import create_client, Client
+from datetime import datetime
 
 url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_KEY")
@@ -172,3 +173,37 @@ def update_conversation_timing(conversation_id: str) -> dict:
         return response
     except Exception as exception:
         return exception
+    
+def fetch_dashboard_statistics(
+    start_date: str = "01-01-2024",  # dd-mm-yyyy
+    end_date: str = "31-12-2025"
+) -> dict:
+    """
+    Calls the Supabase RPC function to fetch dashboard statistics as a JSON object.
+
+    Parameters:
+        start_date (str): Start date in 'dd-mm-yyyy' format.
+        end_date (str): End date in 'dd-mm-yyyy' format.
+
+    Returns:
+        dict: JSON result from fetch_conversation_stats_json() SQL function.
+    """
+    try:
+        # Parse using dd-mm-yyyy format
+        start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+        end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+
+        # Format into proper timestamp strings
+        start_timestamp = start_dt.strftime("%Y-%m-%d 00:00:00")
+        end_timestamp = end_dt.strftime("%Y-%m-%d 23:59:59")
+
+        # Call Supabase RPC function
+        response = supabase.rpc("fetch_conversation_stats_json", {
+            "start_date": start_timestamp,
+            "end_date": end_timestamp
+        }).execute()
+
+        return response.data if hasattr(response, "data") else response
+    except Exception as e:
+        print("Error fetching dashboard statistics:", e)
+        return {"error": str(e)}

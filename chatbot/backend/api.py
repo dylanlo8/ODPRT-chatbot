@@ -5,6 +5,7 @@ from chatbot.backend.services.chat_history.sql_db_api import (
     messages_router,
     conversations_router,
     users_router,
+    dashboard_router
 )
 from chatbot.backend.services.vector_db.db_api import vector_db_router
 from chatbot.backend.inference.inference_api import chat_router
@@ -17,7 +18,7 @@ from chatbot.backend.topicmodel.topic_model_api import simple_tm_router
 # ==========================
 app = FastAPI()
 
-app.add_middleware(  # {{ edit_2 }}
+app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Adjust this as needed for your use case
     allow_credentials=True,
@@ -32,6 +33,9 @@ app.include_router(buckets_router)
 app.include_router(messages_router)
 app.include_router(conversations_router)
 app.include_router(users_router)
+
+# Dashboard Analytics
+app.include_router(dashboard_router)
 
 # Chat
 app.include_router(chat_router)
