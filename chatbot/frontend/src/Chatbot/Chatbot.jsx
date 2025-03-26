@@ -63,6 +63,11 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConver
     setAttachedFiles([]);
     setLoading(true);
 
+    const inputBox = document.querySelector(".input-box");
+    if (inputBox) {
+      inputBox.textContent = ""; 
+    }
+
     try {
         const chatHistoryString = formatChatHistory([...messages, humanMessage]);
 

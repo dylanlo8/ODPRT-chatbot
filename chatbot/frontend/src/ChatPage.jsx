@@ -16,6 +16,7 @@ const getUserUUID = () => {
   return userUUID;
 };
 
+/*
 const fetchUserConversations = async (userId) => {
   try {
     const response = await fetch(`${API_SERVICE}/users/${userId}/conversations`);
@@ -31,6 +32,7 @@ const fetchUserConversations = async (userId) => {
     return [];
   }
 };
+*/
 
 const fetchConversationMessages = async (conversationId) => {
   try {
@@ -77,7 +79,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     const loadUserConversations = async () => {
-      const conversations = await fetchUserConversations(userUUID);
+    const conversations = await fetchUserConversations(userUUID);
       setChatHistory(conversations);
     };
     loadUserConversations();
@@ -157,6 +159,39 @@ const ChatPage = () => {
     console.log("After", chatHistory)
 
   };
+
+  const sendEmail = async (conversationId) => {
+    try {
+      const response = await fetch(`${API_SERVICE}/conversations/${conversationId}/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to send email");
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error sending email:", error);
+    }
+  };
+  
+  const handleExportChat = async (chatId) => {
+    const emailData = await sendEmail(chatId);
+    if (emailData) {
+      const subject = encodeURIComponent(emailData.subject);
+      const body = encodeURIComponent(emailData.body);
+      const recipients = emailData.recipients.join(",");
+  
+      const mailtoLink = `mailto:${recipients}?subject=${subject}&body=${body}`;
+      window.location.href = mailtoLink; 
+  };
+};
+  
+  
+  
   
   useEffect(() => {
     resetIdleTimer();
@@ -186,6 +221,7 @@ const ChatPage = () => {
           onNewChat={handleNewChat}
           onLoadChat={handleLoadChat}
           onDeleteChat={handleDeleteChat}
+          onExportChat={handleExportChat}
         />
       )}
       <Chatbot

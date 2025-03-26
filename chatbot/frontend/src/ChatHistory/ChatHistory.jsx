@@ -1,9 +1,9 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faFileExport, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import "./ChatHistory.css";
 
-const ChatHistory = ({ chatHistory, onNewChat, onLoadChat, onDeleteChat }) => {
+const ChatHistory = ({ chatHistory, onNewChat, onLoadChat, onDeleteChat, onExportChat }) => {
   // Group chats by created_at date
   const groupedChats = chatHistory.reduce((acc, chat) => {
     const chatDate = new Date(chat.created_at).toDateString();
@@ -43,12 +43,19 @@ const ChatHistory = ({ chatHistory, onNewChat, onLoadChat, onDeleteChat }) => {
                 <ul className="chat-group">
                   {chats.map((chat) => (
                     <li key={chat.conversation_id} className="chat-item">
-                      <div onClick={() => onLoadChat(chat.conversation_id)}>
+                      <div className = "chat-title" onClick={() => onLoadChat(chat.conversation_id)}>
                         {chat.conversation_title}
                       </div>
+                      <FontAwesomeIcon 
+                        className = "email-btn"
+                        icon = {faFileExport}
+                        title="Email Correspondent"
+                        onClick = {() => onExportChat(chat.conversation_id)}
+                      />
                       <FontAwesomeIcon
                         className="delete-btn"
                         icon={faTrash}
+                        title="Delete Chat"
                         onClick={() => onDeleteChat(chat.conversation_id)}
                       />
                     </li>
