@@ -6,7 +6,9 @@ CREATE TABLE conversations (
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     rating INTEGER CHECK (rating BETWEEN 1 AND 5),
-    feedback TEXT
+    feedback TEXT,
+    intervention_required BOOLEAN DEFAULT FALSE,
+    topic TEXT
 );
 
 CREATE TABLE messages (

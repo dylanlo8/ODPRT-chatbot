@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Box } from "@mui/material";
 import { tokens } from "../theme";
 import Header from "../components/Header";
@@ -6,6 +7,12 @@ import TableBox from "../components/table/TableBox";
 
 const FileUpload = () => {
     const colors = tokens();
+
+    const [files, setFiles] = useState([]);
+    
+    const addFile = (newFile) => {
+        setFiles((prev) => [newFile, ...prev]);
+    };
   
     return (
       <Box mt="30px" mx="30px">
@@ -29,7 +36,7 @@ const FileUpload = () => {
             borderRadius="12px"
             border={`2px solid ${colors.gray[200]}`}
             >
-                <UploaderBox></UploaderBox>
+                <UploaderBox onFileUploaded={addFile}/>
             </Box>
             
             {/* ROW 2 TABLE OF FILES */}
@@ -42,7 +49,7 @@ const FileUpload = () => {
             borderRadius="12px"
             border={`2px solid ${colors.gray[200]}`}
             >
-                <TableBox></TableBox>
+                <TableBox files={files} setFiles={setFiles}/>
             </Box>
         </Box>
     </Box>

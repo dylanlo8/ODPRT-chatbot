@@ -1,7 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import { tokens } from "../theme";
 
-const StatBox = ({ title, figure, arrow, percentage, isIncreasing}) => {
+const StatBox = ({ title, figure }) => {
   const colors = tokens();
 
   return (
@@ -21,7 +21,7 @@ const StatBox = ({ title, figure, arrow, percentage, isIncreasing}) => {
 
       {/* FIGURE */}
       <Box display="flex" justifyContent="space-between" mt="2px">
-        <Box my="5px">
+        <Box my="15px">
           <Typography variant="h3" 
           fontWeight="bold"
           sx={{ color: colors.text }}>
@@ -29,18 +29,6 @@ const StatBox = ({ title, figure, arrow, percentage, isIncreasing}) => {
           </Typography>
         </Box>
       </Box>
-
-      {/* PERCENTAGE */}
-      <Box display="flex" justifyContent="centre" mt="2px">
-      {arrow}
-        <Typography
-            variant="h6"
-            sx={{ color: isIncreasing ? colors.green[500] : colors.red[500] }}
-          >
-          {percentage}
-        </Typography>
-      </Box>
-
 
     </Box>
   );

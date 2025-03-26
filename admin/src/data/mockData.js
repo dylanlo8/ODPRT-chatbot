@@ -126,21 +126,6 @@ import { format, addDays } from "date-fns";
       unresolvedColor: tokens().indigo[500],
     },
   ];
-  
-  export const mockUsersData = [
-    {
-      id: "new",
-      label: "new",
-      value: 38,
-      color: tokens().gray[500],
-    },
-    {
-      id: "returning",
-      label: "returning",
-      value: 62,
-      color: tokens().indigo[500],
-    },
-  ];
 
   export const mockInterventionData = [
     {
@@ -170,8 +155,16 @@ import { format, addDays } from "date-fns";
 
   export const mockUserExperienceData = [
     {
-      id: "userexperience",
+      id: "thumbs up",
       color: tokens().indigo[500],
+      data: Array.from({ length: 7 }, (_, i) => ({
+        x: format(addDays(new Date(2025, 0, 1), i), "dd/MM/yyyy"), 
+        y: Math.floor(Math.random() * 300), 
+      })),
+    },
+    {
+      id: "thumbs down",
+      color: tokens().gray[500],
       data: Array.from({ length: 7 }, (_, i) => ({
         x: format(addDays(new Date(2025, 0, 1), i), "dd/MM/yyyy"), 
         y: Math.floor(Math.random() * 300), 

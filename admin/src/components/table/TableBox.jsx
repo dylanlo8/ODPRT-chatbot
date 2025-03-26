@@ -1,9 +1,11 @@
 import { Box, Typography } from "@mui/material";
 import { tokens } from "../../theme";
+import { useState } from "react";
 
 import Table from "./Table";
 
 const TableBox = () => {
+  const [files, setFiles] = useState([]);
   const colors = tokens();
 
   return (
@@ -24,7 +26,7 @@ const TableBox = () => {
 
         {/* TABLE */}
         <Box height="50vh">
-            <Table/>
+            <Table files={files} setFiles={setFiles} />
         </Box>
 
     </Box>
