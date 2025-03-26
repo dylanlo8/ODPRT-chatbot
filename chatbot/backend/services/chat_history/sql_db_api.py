@@ -8,6 +8,7 @@ from chatbot.backend.services.chat_history.sql_db import (
     delete_conversation,
     get_messages,
     update_conversation_rating,
+    fetch_dashboard_statistics,
     update_conversation_title,
     update_message_useful
 )
