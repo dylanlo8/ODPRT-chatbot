@@ -83,7 +83,7 @@ const fetchData = async (range) => {
       >
         {/* ROW 1 */}
         <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <StatBox title="Conversations" figure="XX" />
+          <StatBox title="Conversations Created" figure="XX" />
         </Box>
 
         <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
@@ -95,7 +95,7 @@ const fetchData = async (range) => {
         </Box>       
 
         <Box gridColumn="span 3" gridRow="span 2" backgroundColor={colors.white} display="flex" flexDirection="column" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <PieBox title="Intervention" figure="XX" data={data.intervention} />
+          <PieBox title="Interventions" figure="XX" data={data.intervention} />
         </Box>
 
         {/* ROW 2 */}
@@ -113,20 +113,20 @@ const fetchData = async (range) => {
 
         {/* ROW 3 */}
         <Box gridColumn="span 6" gridRow="span 2" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <BarBox title="Top 10 Most Common Queries" data={data.commonQueries} keys={["unresolved", "resolved"]} index="query" showLegend={true} />
+          <BarBox title="Top 10 Conversation Topics" data={data.commonQueries} keys={["unresolved", "resolved"]} index="query" showLegend={true} />
         </Box>
 
         <Box gridColumn="span 6" gridRow="span 2" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <LineBox title="User Queries Over Time" data={data.userQueries} showLegend={false}/>
+          <LineBox title="Number of User Queries Over Time" data={data.userQueries} showLegend={false}/>
         </Box>
 
         {/* ROW 4 */}
         <Box gridColumn="span 6" gridRow="span 2" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <BarBox title="Top 10 Most Common Unresolved Queries" data={data.unresolvedQueries} keys={["unresolved"]} index="query" showLegend={false} />
+          <BarBox title="Top 10 Converstion Topics requiring Intervention" data={data.unresolvedQueries} keys={["unresolved"]} index="query" showLegend={false} />
         </Box>
 
         <Box gridColumn="span 6" gridRow="span 2" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <LineBox title="User Experience Over Time" data={data.userExperience} showLegend={true}/>
+          <LineBox title="Average Rating Over Time" data={data.userExperience} showLegend={true}/>
         </Box>
       </Box>
     </Box>
