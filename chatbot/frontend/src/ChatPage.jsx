@@ -159,39 +159,61 @@ const ChatPage = () => {
 
   };
 
-  const sendEmail = async (conversationId) => {
+  const sendEmail = async (chatHistory) => {
     try {
-      const response = await fetch(`${API_SERVICE}/conversations/${conversationId}/send-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to send email");
-      }
-  
-      const data = await response.json();
-      return data;
+        const response = await fetch(`${API_SERVICE}/chat/email-escalation/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ chat_history: chatHistory }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
     } catch (error) {
-      console.error("Error sending email:", error);
+        console.error('Failed to send email:', error);
+        alert('Failed to send email. Please try again.');
     }
-  };
-  
+}
+
   const handleExportChat = async (chatId) => {
-    const emailData = await sendEmail(chatId);
-    if (emailData) {
-      const subject = encodeURIComponent(emailData.subject);
-      const body = encodeURIComponent(emailData.body);
-      const recipients = emailData.recipients.join(",");
-  
-      const mailtoLink = `mailto:${recipients}?subject=${subject}&body=${body}`;
-      window.location.href = mailtoLink; 
-  };
+    try {
+        // Fetch the conversation messages for the given chatId
+        const messages = await fetchConversationMessages(chatId);
+
+        if (!messages || messages.length === 0) {
+            alert('No messages found for this chat.');
+            return;
+        }
+
+        // Convert the messages to a string format for sending via email
+        const chatHistory = messages.map(message => {
+          return `Sender: ${message.sender}\nMessage: ${message.text}`;
+        }).join('\n\n');
+        
+        // Send the email with the chat history
+        const emailData = await sendEmail(chatHistory);
+
+        if (emailData) {
+            const subject = encodeURIComponent(emailData.email_subject);
+            const body = encodeURIComponent(emailData.email_body);
+            const recipients = emailData.email_recipients.join(",");
+
+            const mailtoLink = `mailto:${recipients}?subject=${subject}&body=${body}`;
+            window.location.href = mailtoLink;
+        }
+    } catch (error) {
+        console.error('Failed to export chat:', error);
+        alert('Failed to export chat. Please try again.');
+    }
 };
   
-  
-  
-  
+
   useEffect(() => {
     resetIdleTimer();
     window.addEventListener("mousemove", resetIdleTimer);
