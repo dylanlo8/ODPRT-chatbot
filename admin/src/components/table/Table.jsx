@@ -14,6 +14,7 @@ const Table = ({ files, setFiles }) => {
   const [selectedRow, setSelectedRow] = useState(null);
   const [notification, setNotification] = useState({ message: "", type: "" });
 
+
   useEffect(() => {
     const loadFiles = async () => {
       try {
