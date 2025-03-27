@@ -3,7 +3,7 @@ import { tokens } from "../../theme";
 
 import Uploader from "./Uploader"; 
 
-const UploaderBox = () => {
+const UploaderBox = ({ onUploadSuccess }) => {
     const colors = tokens();
 
   return (
@@ -12,7 +12,7 @@ const UploaderBox = () => {
         <Box height="200px" display="flex" justifyContent="center" alignItems="center">
             <Box display="flex" flexDirection="column" alignItems="center">
                 {/* FILE UPLOADER */}
-                <Uploader />
+                <Uploader onUploadSuccess={ onUploadSuccess } />
                 
                 {/* UPLOAD CAPTION */}
                 <Box display="flex" gap={0.5} alignItems="center">
