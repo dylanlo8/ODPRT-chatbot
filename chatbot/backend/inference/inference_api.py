@@ -20,6 +20,8 @@ class ChatQueryRequest(BaseModel):
     uploaded_content: str = ""
     chat_history: str = ""
 
+class EmailEscalationRequest(BaseModel):
+    chat_history: str = ""
 
 @chat_router.post("/query/")
 async def chat_query(request: ChatQueryRequest) -> dict:  # Use the Pydantic model
@@ -31,5 +33,21 @@ async def chat_query(request: ChatQueryRequest) -> dict:  # Use the Pydantic mod
         )
 
         return {"answer": answer}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@chat_router.post("/email-escalation/")
+async def email_escalation(request: EmailEscalationRequest) -> dict:  # Use the Pydantic model
+    try:
+        # Get the email subject, body, and recipients
+        email_subject, email_body, _ = response_generator.generate_email(
+            chat_history=request.chat_history
+        )
+        
+        # Re-direct all email escalations to iep-admin@nus.edu.sg
+        temp_recipient = ["iep-admin@nus.edu.sg"]
+
+        return {"email_subject": email_subject, "email_body": email_body, "email_recipients": temp_recipient}
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
