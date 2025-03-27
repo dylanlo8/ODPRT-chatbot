@@ -1,4 +1,5 @@
 import os
+import logging
 from supabase import create_client, Client
 from datetime import datetime
 
@@ -19,10 +20,11 @@ def insert_message(message: dict) -> dict:
     """
 
     try:
-        update_conversation_timing(message["conversation_id"])
+        update_conversation_timing(message['conversation_id'])
         response = supabase.table("messages").insert([message]).execute()
         return response
     except Exception as exception:
+        logging.error(f"Error inserting message: {exception}")
         return exception
     
 # Bulk Insertion of Conversations
@@ -167,6 +169,50 @@ def update_conversation_timing(conversation_id: str) -> dict:
         response = (
             supabase.table("conversations")
             .update({"updated_at": "now()"})
+            .eq("conversation_id", conversation_id)
+            .execute()
+        )
+        return response
+    except Exception as exception:
+        return exception
+    
+def update_message_useful(message_id: str, is_useful: bool) -> dict:
+    """
+    Update the usefulness of a specific message.
+    
+    Args:
+        message_id (str): The UUID of the message
+        is_useful (bool): True if the message is useful, False otherwise
+        
+    Returns:
+        dict: API response after updating the message usefulness
+    """
+    try:
+        response = (
+            supabase.table("messages")
+            .update({"is_useful": is_useful})
+            .eq("message_id", message_id)
+            .execute()
+        )
+        return response
+    except Exception as exception:
+        return exception
+    
+def update_conversation_title(conversation_id: str, title: str) -> dict:
+    """
+    Update the title of a specific conversation.
+    
+    Args:
+        conversation_id (str): The UUID of the conversation
+        title (str): The new title for the conversation
+        
+    Returns:
+        dict: API response after updating the conversation title
+    """
+    try:
+        response = (
+            supabase.table("conversations")
+            .update({"conversation_title": title})
             .eq("conversation_id", conversation_id)
             .execute()
         )

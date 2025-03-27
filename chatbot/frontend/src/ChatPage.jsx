@@ -5,7 +5,8 @@ import ChatHistory from "./ChatHistory/ChatHistory";
 import FeedbackForm from "./FeedbackForm/FeedbackForm";
 import "./ChatPage.css";
 
-// Generate or retrieve userUUID from localStorage
+const API_SERVICE = "http://localhost:8000";
+
 const getUserUUID = () => {
   let userUUID = localStorage.getItem("userUUID");
   if (!userUUID) {
@@ -15,27 +16,54 @@ const getUserUUID = () => {
   return userUUID;
 };
 
-const sendToBackend = async (userId, chatHistory) => {
-  try {
-    const response = await fetch('/api/saveUserData', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        chatHistory,
-      }),
-    });
 
+const fetchUserConversations = async (userId) => {
+  try {
+    const response = await fetch(`${API_SERVICE}/users/${userId}/conversations`);
     const data = await response.json();
     if (response.ok) {
-      console.log('Data saved successfully:', data);
+      return data.data;
     } else {
-      console.error('Error saving data:', data);
+      console.error('Error fetching user conversations:', data);
+      return [];
     }
   } catch (error) {
-    console.error('Failed to send data to the backend:', error);
+    console.error('Failed to fetch user conversations:', error);
+    return [];
+  }
+};
+
+const fetchConversationMessages = async (conversationId) => {
+  try {
+    const response = await fetch(`${API_SERVICE}/conversations/${conversationId}/messages`);
+    const data = await response.json();
+    if (response.ok) {
+      return data.data;
+    } else {
+      console.error('Error fetching conversation messages:', data);
+      return [];
+    }
+  } catch (error) {
+    console.error('Failed to fetch conversation messages:', error);
+    return [];
+  }
+};
+
+const deleteConversation = async (conversationId) => {
+  try {
+    const response = await fetch(`${API_SERVICE}/conversations/${conversationId}`, {
+      method: 'DELETE',
+    });
+    const data = await response.json();
+    if (response.ok) {
+      return data.data;
+    } else {
+      console.error('Error deleting conversation:', data);
+      return null;
+    }
+  } catch (error) {
+    console.error('Failed to delete conversation:', error);
+    return null;
   }
 };
 
@@ -45,85 +73,187 @@ const ChatPage = () => {
   const [chatHistory, setChatHistory] = useState([]);
   const [currentChatId, setCurrentChatId] = useState(null);
   const [showChatHistory, setShowChatHistory] = useState(true);
-
-  // Function to handle chat history updates
-  const updateChatHistory = (newChatHistory) => {
-    setChatHistory(newChatHistory);
-    // Optionally, you can send the updated chat history to the backend here
-    sendToBackend(userUUID, newChatHistory);
-  };
-
-  const handleSendMessage = (message) => {
-    setMessages((prevMessages) => {
-      const updatedMessages = [...prevMessages, message];
-      if (currentChatId) {
-        const updatedHistory = chatHistory.map(chat =>
-          chat.id === currentChatId ? { ...chat, messages: updatedMessages } : chat
-        );
-        updateChatHistory(updatedHistory);
-      }
-      return updatedMessages;
-    });
-  };
-
-  const handleNewChat = () => {
-    setMessages([]);
-    setCurrentChatId(null);
-  };
-
-  const handleLoadChat = (chatId) => {
-    const selectedChat = chatHistory.find((chat) => chat.id === chatId);
-    if (selectedChat) {
-      setMessages(selectedChat.messages);
-      setCurrentChatId(selectedChat.id);
-    }
-  };
-
-  const handleDeleteChat = (chatId) => {
-    const updatedHistory = chatHistory.filter((chat) => chat.id !== chatId);
-    updateChatHistory(updatedHistory);
-    setMessages([]);
-    setCurrentChatId(null);
-  };
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [idleTimer, setIdleTimer] = useState(null);
 
   useEffect(() => {
-    if (messages.length > 0) {
-      const chatIndex = chatHistory.length;
-      const chatId = currentChatId || `${userUUID}-${chatIndex}`;
-      const existingChat = chatHistory.find(chat => chat.id === chatId);
+    const loadUserConversations = async () => {
+    const conversations = await fetchUserConversations(userUUID);
+      setChatHistory(conversations);
+    };
+    loadUserConversations();
+  }, [userUUID]);
 
-      if (existingChat) {
-        const updatedHistory = chatHistory.map(chat =>
-          chat.id === chatId ? { ...chat, messages } : chat
-        );
-        updateChatHistory(updatedHistory);
-      } else {
-        const newChat = {
-          id: chatId,
-          messages,
-          date: new Date().toISOString(),
-        };
-        const updatedHistory = [newChat, ...chatHistory].slice(0, 10);
-        updateChatHistory(updatedHistory);
-      }
+  useEffect(() => {
+    console.log("messages ", messages)
+  }, [messages])
 
-      if (!currentChatId) {
-        setCurrentChatId(chatId);
-      }
-    }
-  }, [messages]);
+  const handleNewChat = async () => {
+    setCurrentChatId(null); 
+    setMessages([]); 
+  };
+
+  const handleLoadChat = async (chatId) => {
+    setCurrentChatId(chatId); 
+    const messages = await fetchConversationMessages(chatId);
+    setMessages(messages);
+  };
+
+  const handleUpdateMessageFeedback = (messageId, feedback) => {
+    setMessages((prevMessages) => {
+      const updatedMessages = prevMessages.map(innerArray =>
+        innerArray.map(msg =>
+          msg.message_id === messageId ? { ...msg, is_useful: feedback } : msg
+        )
+      );
+      return [...updatedMessages]; 
+    });
+  };
+  
+
+  const handleDeleteChat = async (chatId) => {
+    await deleteConversation(chatId);
+    setChatHistory((prevHistory) =>
+      prevHistory.filter((chat) => chat.conversation_id !== chatId)
+    );
+    setMessages([]);
+    setCurrentChatId(null);
+  };
 
   const toggleChatHistory = () => {
-    setShowChatHistory(prev => !prev);
+    setShowChatHistory((prev) => !prev);
   };
+
+  const handleFeedbackCancel = () => {
+    setShowFeedback(false); 
+    resetIdleTimer(); 
+  };
+  
+  const resetIdleTimer = () => {
+    if (idleTimer) {
+      clearTimeout(idleTimer); 
+    }
+    setIdleTimer(
+      setTimeout(() => {
+        setShowFeedback(true); 
+      }, 300000) 
+    );
+  };
+  useEffect(() => {
+    console.log("Updated chatHistory", chatHistory);
+  }, [chatHistory]);
+
+  const handleNewConversationCreated = (newChat) => {
+    console.log("creating new chat ", newChat);
+    setCurrentChatId(newChat.conversation_id);
+    console.log("Before", chatHistory)
+    setChatHistory((prev) => [
+      {
+        ...newChat, 
+      },
+      ...prev,
+    ]);    
+
+    setMessages([]); 
+    console.log("After", chatHistory)
+
+  };
+
+  const sendEmail = async (chatHistory) => {
+    try {
+        const response = await fetch(`${API_SERVICE}/chat/email-escalation/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ chat_history: chatHistory }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Failed to send email:', error);
+        alert('Failed to send email. Please try again.');
+    }
+}
+
+  const handleExportChat = async (chatId) => {
+    try {
+        // Fetch the conversation messages for the given chatId
+        const messages = await fetchConversationMessages(chatId);
+
+        if (!messages || messages.length === 0) {
+            alert('No messages found for this chat.');
+            return;
+        }
+
+        // Convert the messages to a string format for sending via email
+        const chatHistory = messages.map(message => {
+          return `Sender: ${message.sender}\nMessage: ${message.text}`;
+        }).join('\n\n');
+        
+        // Send the email with the chat history
+        const emailData = await sendEmail(chatHistory);
+
+        if (emailData) {
+            const subject = encodeURIComponent(emailData.email_subject);
+            const body = encodeURIComponent(emailData.email_body);
+            const recipients = emailData.email_recipients.join(",");
+
+            const mailtoLink = `mailto:${recipients}?subject=${subject}&body=${body}`;
+            window.location.href = mailtoLink;
+        }
+    } catch (error) {
+        console.error('Failed to export chat:', error);
+        alert('Failed to export chat. Please try again.');
+    }
+};
+  
+
+  useEffect(() => {
+    resetIdleTimer();
+    window.addEventListener("mousemove", resetIdleTimer);
+    window.addEventListener("keydown", resetIdleTimer);
+    window.addEventListener("click", resetIdleTimer);
+    window.addEventListener("scroll", resetIdleTimer);
+  
+    return () => {
+      if (idleTimer) clearTimeout(idleTimer); // Cleanup the timer
+      window.removeEventListener("mousemove", resetIdleTimer);
+      window.removeEventListener("keydown", resetIdleTimer);
+      window.removeEventListener("click", resetIdleTimer);
+      window.removeEventListener("scroll", resetIdleTimer);
+    };
+  }, [showFeedback]);
+  
 
   return (
     <div className="chat-page">
-      <button onClick={toggleChatHistory} className="menu-button">☰</button>
+      <button onClick={toggleChatHistory} className="menu-button">
+        ☰
+      </button>
       {showChatHistory && (
-        <ChatHistory chatHistory={chatHistory} onNewChat={handleNewChat} onLoadChat={handleLoadChat} onDeleteChat={handleDeleteChat} />
+        <ChatHistory
+          chatHistory={chatHistory}
+          onNewChat={handleNewChat}
+          onLoadChat={handleLoadChat}
+          onDeleteChat={handleDeleteChat}
+          onExportChat={handleExportChat}
+        />
       )}
-      <Chatbot messages={messages} onSendMessage={handleSendMessage} />
+      <Chatbot
+        messages={messages}
+        currentChatId={currentChatId}
+        userUUID={userUUID}
+        onSendMessage={(message) => setMessages((prev) => [...prev, message])}
+        onNewConversationCreated={handleNewConversationCreated}
+        onUpdateMessageFeedback={handleUpdateMessageFeedback}
+      />
+      {showFeedback && <FeedbackForm conversationId = {currentChatId} onClose={handleFeedbackCancel} />}
     </div>
   );
 };

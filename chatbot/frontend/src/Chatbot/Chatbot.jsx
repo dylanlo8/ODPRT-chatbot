@@ -1,23 +1,18 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faLink, faTimesCircle, faThumbsUp, faThumbsDown } from '@fortawesome/free-solid-svg-icons';
 import ReactMarkdown from 'react-markdown';
+import { v4 as uuidv4 } from 'uuid'; // Import uuid for generating message IDs
 import "./Chatbot.css";
 
-const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
-  const QUERY_SERVICE = "http://localhost:8000/chat/query/";
-  const DOCUMENT_PARSER_SERVICE = "http://localhost:8000/document-parser/process-upload/";
+const API_SERVICE = "http://localhost:8000";
+
+const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConversationCreated, onUpdateMessageFeedback}) => {  const QUERY_SERVICE = `${API_SERVICE}/chat/query/`;
+  const DOCUMENT_PARSER_SERVICE = `${API_SERVICE}/document-parser/process-upload/`;
   const [inputText, setInputText] = useState("");
   const [attachedFiles, setAttachedFiles] = useState([]); 
   const [uploadedContent, setUploadedContent] = useState("");
-  const textareaRef = useRef(null);
-
-  const autoResizeTextarea = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';  
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`; 
-    }
-  };
+  const [loading, setLoading] = useState(false);
 
   const handleDeleteFile = (index) => { 
     const updatedFiles = attachedFiles.filter((_, i) => i !== index);
@@ -34,51 +29,135 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
   };
 
   const handleSendMessage = async () => {
+    console.log('Sending message:', inputText);
     if (inputText.trim() === "" && attachedFiles.length === 0) return;
-  
-    // Create a new message object with file information
-    const newMessage = { 
-      text: inputText, 
-      sender: "Human", 
-      files: attachedFiles.map(file => file.name) // Include file names
-    }; 
-  
-    onSendMessage(newMessage);
-    
-    setInputText(""); 
-    setAttachedFiles([]);
-  
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";  
+
+    const humanMessage = {
+        text: inputText,
+        sender: "user",
+        files: attachedFiles.map((file) => file.name),
+    };
+
+    let conversationId = currentChatId;
+
+    // If no conversation exists, create one and wait for ChatPage to update state
+    if (!conversationId) {
+        conversationId = uuidv4();
+        const newConversation = await createConversation(userUUID, conversationId, inputText);
+
+        if (newConversation) {
+            onNewConversationCreated(newConversation[0]);
+            await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for state update
+        }
     }
-  
+
+    console.log("Using conversation ID:", conversationId);
+
+    // Insert the user message into the database
+    const insertedMessage = await insertMessage(conversationId, humanMessage.sender, humanMessage.text);
+    if (insertedMessage) {
+        onSendMessage(insertedMessage);
+    }
+
+    setInputText("");
+    setAttachedFiles([]);
+    setLoading(true);
+
+    const inputBox = document.querySelector(".input-box");
+    if (inputBox) {
+      inputBox.textContent = ""; 
+    }
+
     try {
-      const chatHistoryString = formatChatHistory([...messages, newMessage]);
-      console.log("Formatted History:", chatHistoryString); 
-  
-      const response = await fetch(QUERY_SERVICE, {
+        const chatHistoryString = formatChatHistory([...messages, humanMessage]);
+
+        const response = await fetch(QUERY_SERVICE, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_query: inputText,
+                chat_history: chatHistoryString,
+                uploaded_content: uploadedContent,
+            }),
+        });
+
+        const data = await response.json();
+        const botMessage = {
+            sender: 'bot',
+            text: data.answer,
+        };
+
+        const insertedBotMessage = await insertMessage(conversationId, botMessage.sender, botMessage.text);
+        if (insertedBotMessage) {
+            onSendMessage(insertedBotMessage);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        const errorMessage = {
+            sender: 'bot',
+            text: "Something went wrong",
+        };
+        const insertedErrorMessage = await insertMessage(conversationId, errorMessage.sender, errorMessage.text);
+        if (insertedErrorMessage) {
+            onSendMessage(insertedErrorMessage);
+        }
+    } finally {
+        setLoading(false);
+    }
+};
+
+  const insertMessage = async (conversationId, sender, text) => {
+    try {
+      // Insert message into the database
+      const response = await fetch(`${API_SERVICE}/messages/insert`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          user_query: inputText,
-          chat_history: chatHistoryString,
-          uploaded_content: uploadedContent,
+        body: JSON.stringify({
+          conversation_id: conversationId,
+          sender: sender,
+          text: text,
         }),
       });
-  
       const data = await response.json();
-      const botMessage = { sender: 'AI', text: data.answer };
-      
-      onSendMessage(botMessage);
+      if (response.ok) {
+        return data.data;
+      } else {
+        console.error('Error inserting message:', data);
+        return null;
+      }
     } catch (error) {
-      console.error('Error:', error);
-      const errorMessage = { 
-        sender: 'AI', 
-        text: "Something went wrong"
-      };
-      onSendMessage(errorMessage);
+      console.error('Failed to insert message:', error);
+      return null;
+    }
+  };
+
+  const createConversation = async (userId, conversationId, conversationTitle) => {
+    try {
+      const response = await fetch(`${API_SERVICE}/conversations/insert`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          conversation_id: conversationId,
+          user_id: userId,
+          conversation_title: conversationTitle,
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        return data.data;
+      } else {
+        console.error('Error creating conversation:', data);
+        return null;
+      }
+    } catch (error) {
+      console.error('Failed to create conversation:', error);
+      return null;
     }
   };
 
@@ -95,22 +174,9 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
     return data.text_chunks.join(" ");
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();  
-    }
-  };
-
-  const handleInputChange = (e) => {
-    setInputText(e.target.value);
-    autoResizeTextarea();
-  };
-
   const handleFileChange = async (e) => {
     const uploadedFiles = Array.from(e.target.files);
 
-    // Check if the total number of files exceeds 3
     if (uploadedFiles.length + attachedFiles.length > 3) {
       alert("You can only upload a maximum of 3 files.");
       return;
@@ -128,7 +194,6 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
     if (validFiles.length > 0) {
       setAttachedFiles([...attachedFiles, ...validFiles]);
 
-      // Extract content from all files
       const extractedContents = await Promise.all(
         validFiles.map(file => uploadAndExtractFile(file))
       );
@@ -136,32 +201,26 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
     }
   };
 
-  const handleLinkClick = () => {
-    document.getElementById("fileInput").click();
-  };
-
   const handleFeedback = async (message, feedback) => {
     console.log('Feedback:', feedback, "for message:", message.text);
+    
+    onUpdateMessageFeedback(message.message_id, feedback);
+
     try {
-      const response = await fetch(FEEDBACK_SERVICE, {
-        method: 'POST',
+      const response = await fetch(`${API_SERVICE}/messages/${message.message_id}/useful?is_useful=${feedback}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: message.text,
-          feedback: feedback,
-        }),
+        }
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to send feedback');
       }
-
       console.log('Feedback sent successfully');
     } catch (error) {
       console.error('Error sending feedback:', error);
-    }
+    }     
   };
 
   return (
@@ -170,65 +229,63 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
         <h2 className="placeholder">Ask NUS ODPRT anything!</h2>
       ) : (
         <div className="chat-box">
-  {messages.map((msg, index) => {
-    const result = msg.text;
-    return (
-      <div key={index} className={`message-container ${msg.sender}`}>
-        {/* Display attached files outside the message container for human messages */}
-        {msg.sender === "Human" && msg.files && msg.files.length > 0 && (
-          <div className="attached-files-message">
-            <strong>Attached Files:</strong>
-            <ul>
-              {msg.files.map((file, fileIndex) => (
-                <li key={fileIndex}>{file}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+          {messages.flatMap(innerArray => innerArray).map((msg, index) => {
+            return (
+              <div key={index} className={`message-container ${msg.sender}`}>
+                {msg.sender === "user" && msg.files && msg.files.length > 0 && (
+                  <div className="attached-files-message">
+                    <strong>Attached Files:</strong>
+                    <ul>
+                      {msg.files.map((file, fileIndex) => (
+                        <li key={fileIndex}>{file}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <div className={`message ${msg.sender}`}>
+                  <ReactMarkdown
+                    components={{
+                      p(props) {
+                        const { node, ...rest } = props;
+                        return <p style={{ margin: '0' }} {...rest} />;
+                      }
+                    }}
+                  >
+                    {msg.text}
+                  </ReactMarkdown>
+                </div>
 
-        {/* Display the message text inside the message container */}
-        <div className={`message ${msg.sender}`}>
-          <ReactMarkdown
-            components={{
-              p(props) {
-                const { node, ...rest } = props;
-                return <p style={{ margin: '0' }} {...rest} />;
-              }
-            }}
-          >
-            {result}
-          </ReactMarkdown>
-          
+                {msg.sender === 'bot' && (
+                  <div className="feedback-buttons">
+                    <button
+                      className={`feedback-button ${msg.is_useful === true ? 'liked' : ''}`} 
+                      onClick={() => handleFeedback(msg, true)}
+                      title="Like"
+                    >
+                      <FontAwesomeIcon icon={faThumbsUp} />
+                    </button>
+                    <button
+                      className={`feedback-button ${msg.is_useful === false ? 'disliked' : ''}`} 
+                      onClick={() => handleFeedback(msg, false)}
+                      title="Dislike"
+                    >
+                      <FontAwesomeIcon icon={faThumbsDown} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {loading && <div className="loading-dots">...</div>}
         </div>
-        {msg.sender === 'AI' && (
-            <div className="feedback-buttons">
-              <button className="feedback-button" 
-                onClick={() => handleFeedback(msg, 'like')}
-                title="Like"
-              >
-                <FontAwesomeIcon icon={faThumbsUp} />
-              </button>
-              <button className="feedback-button" 
-                onClick={() => handleFeedback(msg, 'dislike')}
-                title="Dislike"
-              >
-                <FontAwesomeIcon icon={faThumbsDown} />
-              </button>
-            </div>
-          )}
-      </div>
-      
-    );
-    
-  })}
-</div>
       )}
       
       <div className="input-container">
         <FontAwesomeIcon 
           icon={faLink} 
           className="link-icon" 
-          onClick={handleLinkClick}
+          onClick={() => document.getElementById("fileInput").click()}
         />
         <input
           type="file"
@@ -238,35 +295,44 @@ const Chatbot = ({ messages, onSendMessage, setIsChatModified }) => {
           multiple 
           accept=".docx,.pdf" 
         />
-       
-        <textarea
-          ref={textareaRef}
+
+        <div
+          className="input-box"
+          contentEditable
           placeholder={messages.length === 0 ? "Type your message..." : ""}
-          value={inputText}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyPress}
+          onInput={(e) => setInputText(e.target.textContent)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSendMessage();
+            }
+          }}
           spellCheck="false"
           data-gramm="false"
           data-gramm_editor="false"
-        />
+          role="textbox"
+          aria-placeholder={messages.length === 0 ? "Type your message..." : ""}
+        ></div>
+
         <FontAwesomeIcon 
           icon={faArrowRight} 
           className="send-icon" 
           onClick={handleSendMessage}
         />
       </div>
+      
       <div className="attached-files">
-          {attachedFiles.map((file, index) => (
-            <div key={index} className="file-item">
-              <span>{file.name}</span>
-              <FontAwesomeIcon 
-                icon={faTimesCircle} 
-                className="delete-icon" 
-                onClick={() => handleDeleteFile(index)}
-              />
-            </div>
-          ))}
-        </div>
+        {attachedFiles.map((file, index) => (
+          <div key={index} className="file-item">
+            <span>{file.name}</span>
+            <FontAwesomeIcon 
+              icon={faTimesCircle} 
+              className="delete-icon" 
+              onClick={() => handleDeleteFile(index)}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

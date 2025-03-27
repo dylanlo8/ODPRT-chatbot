@@ -3,7 +3,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSmile, faFrown, faMeh, faGrinStars, faAngry } from '@fortawesome/free-solid-svg-icons';
 import "./FeedbackForm.css";
 
-const FeedbackForm = ({ onClose, onSubmit }) => {
+const API_SERVICE = "http://localhost:8000";
+
+const FeedbackForm = ({ conversationId, onClose }) => {
   const [feedback, setFeedback] = useState("");
   const [selectedEmoji, setSelectedEmoji] = useState(null);
 
@@ -19,17 +21,47 @@ const FeedbackForm = ({ onClose, onSubmit }) => {
     setSelectedEmoji(index);
     console.log(`Selected Emoji: ${label}`);
   };
-
-  const handleSubmit = () => {
+  
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     console.log(`Feedback Submitted: ${feedback}`);
     console.log(`Selected Emoji: ${selectedEmoji !== null ? emojis[selectedEmoji].label : "None"}`);
-    onSubmit(feedback);
-    onClose(); // Close popup after submission
+    
+    const feedbackData = {};
+
+    if (selectedEmoji !== null) {
+      feedbackData.rating = emojis[selectedEmoji].label;
+    }
+  
+    if (feedback !== null) {
+      feedbackData.text = feedback;
+    }
+
+    try {
+      const response = await fetch(`${API_SERVICE}/conversations/${conversationId}/feedback`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(feedbackData),
+      });
+
+      if (response.ok) {
+        console.log("Feedback submitted successfully!");
+        onClose();  // Close form after submission
+      } else {
+        console.error("Error submitting feedback");
+      }
+    } catch (error) {
+      console.error("Failed to submit feedback:", error);
+    }
+    onClose();
   };
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault(); // Prevents a new line in the textarea
+      e.preventDefault(); 
       handleSubmit();
     }
   };
@@ -55,7 +87,7 @@ const FeedbackForm = ({ onClose, onSubmit }) => {
           placeholder="Leave your feedback..."
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
-          onKeyDown={handleKeyPress} // Listen for Enter key
+          onKeyDown={handleKeyPress} 
         />
         <button className="submit-button" onClick={handleSubmit}>Submit</button>
       </div>

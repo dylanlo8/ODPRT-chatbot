@@ -23,6 +23,14 @@
     flex-grow: 1; /* Pushes content evenly */
   } 
   
+  .chat-title {
+    white-space: nowrap;  
+    overflow: hidden;     
+    text-overflow: ellipsis; 
+    max-width: 100%;     
+    display: block; 
+  }
+  
   .new-chat-btn {
     font-size: 20px;
     background: none;
@@ -70,14 +78,29 @@
     border: none;
     font-size: 1rem;
     cursor: pointer;
-    opacity: 0;
+    opacity: 0.5;
     transition: opacity 0.3s ease;
+    color:gray;
+    padding-left: 5px;
+  }
+
+  .email-btn {
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+    color:gray;
+    padding-left: 5px;
+  }
+  
+  .delete-btn:hover  {
     color:red;
   }
   
-  .chat-item:hover .delete-btn {
-    opacity: 1;
+  .email-btn:hover  {
+    color:#003882;
   }
-  
   
   
