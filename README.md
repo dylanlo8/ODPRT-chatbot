@@ -96,48 +96,20 @@ SUPABASE_TOKEN=
 ##### OpenAI
 To get an OpenAI API key, you can follow the steps listed in this [article](https://medium.com/@lorenzozar/how-to-get-your-own-openai-api-key-f4d44e60c327). Thereafter, set `OPENAI_API_KEY` to the API key you just obtained and `OPENAI_MODEL` to the GPT model for your LLM (eg gpt-4o-mini).
 
-### Running Locally
+## Running Locally
 
-#### Windows
+### WINDOWS
 
 From the root directory, run the following command:
 ```shell
 ./start.ps1
 ```
-This script starts up both the backend and the frontend components sequentially. Alternatively, to set them up separately, you can run the following commands:
 
-To set up the backend, run
-```shell
-python chatbot/backend/main.py
-```
-To set up the frontend, navigate to chatbot/frontend by running
-```shell
-cd chatbot/frontend
-```
-Then, run the command
-```shell
-npm start
-```
-
-#### Mac/Linux
+### Mac/Linux
 
 From the root directory, run the following command:
 ```shell
 ./start.sh
-```
-This script starts up both the backend and the frontend components sequentially. Alternatively, to set them up separately, you can run the following commands:
-
-To set up the backend, run
-```shell
-python chatbot/backend/main.py
-```
-To set up the frontend, navigate to chatbot/frontend by running
-```shell
-cd chatbot/frontend
-```
-Then, run the command
-```shell
-npm start
 ```
 
 ## Usage
@@ -148,23 +120,29 @@ npm start
 
 `/email` - Generate an email draft based on chat conversation history. Expects a POST request with JSON payload containing messages (conversation history)
 
-### Frontend Interface
+## Frontend Interface
 
-![Landing Page](./docs/images/chatbot_landing_page.png)
+### Chatbot
+
+![Landing Page](placeholder)
 *Page where chatbot will be hosted*
 
 
-![Interface](./docs/images/chatbot_interface.png)
+![Interface](placeholder)
 *Interface of the chatbot*
 
 
-![Q&A](./docs/images/chatbot_q&a.png)
+![Q&A](placeholder)
 *Question and answer*
 
 
-![Email](./docs/images/chatbot_mailto_link.png)
+![Email](placeholder)
 *Mailto link appears when user wants to email IEP department*
 
 
-![Feedback](./docs/images/chatbot_feedback.png)
+![Feedback](placeholder)
 *Feedback modal pops up after user is done interacting with the chatbot*
+
+### Admin Dashboard
+
+![Dashboard Landing Page](placeholder)
