@@ -1,17 +1,7 @@
 from fastapi import FastAPI, APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-from chatbot.backend.services.chat_history.sql_db import (
-    insert_message,
-    insert_conversation,
-    get_user_conversations,
-    delete_conversation,
-    get_messages,
-    update_conversation_rating,
-    fetch_dashboard_statistics,
-    update_conversation_title,
-    update_message_useful
-)
+from chatbot.backend.services.chat_history.sql_db import *
 
 # ==========================
 # Pydantic Models
@@ -29,7 +19,7 @@ class ConversationContent(BaseModel):
     feedback: Optional[str] = None
 
 class Feedback(BaseModel):
-    rating: int  # conversation_id is now passed in the URL
+    rating: int 
     text: str
 
 class DateRange(BaseModel):
@@ -70,7 +60,7 @@ def delete_conversation_route(conversation_id: str):
     response = delete_conversation(conversation_id)
     return response
 
-@conversations_router.put("/{conversation_id}/feedback")
+@conversations_router.post("/{conversation_id}/feedback")
 def update_conversation_rating_route(conversation_id: str, feedback: Feedback):
     response = update_conversation_rating(conversation_id, feedback.rating, feedback.text)
     return response
@@ -78,6 +68,16 @@ def update_conversation_rating_route(conversation_id: str, feedback: Feedback):
 @conversations_router.put("/{conversation_id}/title")
 def update_conversation_title_route(conversation_id: str, title: str):
     response = update_conversation_title(conversation_id, title)
+    return response
+
+@conversations_router.put("/{conversation_id}/topic")
+def update_conversation_topic_route(conversation_id: str, topic: str):
+    response = update_conversation_topic(conversation_id, topic)
+    return response
+
+@conversations_router.put("/{conversation_id}/intervention")
+def update_conversation_intervention_route(conversation_id: str):
+    response = update_conversation_intervention(conversation_id)
     return response
 
 ################################
