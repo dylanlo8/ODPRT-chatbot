@@ -13,10 +13,10 @@ const Uploader = ({ onUploadSuccess }) => {
         if (files.length === 0) return;
         
         const selectedFile = files[0];
-        const allowedTypes = ["image/png", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+        const allowedTypes = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.ms-outlook"];
 
         if (!allowedTypes.includes(selectedFile.type)) {
-            setNotification({ message: "Error: Invalid file type. Please upload a PDF or DOCX file.", type: "error" });
+            setNotification({ message: "Error: Invalid file type. Please upload a PDF, DOCX or MSG file.", type: "error" });
             return;
         }
 
@@ -41,7 +41,7 @@ const Uploader = ({ onUploadSuccess }) => {
             <form onClick={() => document.querySelector(".input-field").click()}>
                 <input
                     type="file"
-                    accept=".pdf, .docx"
+                    accept=".pdf, .docx, .msg"
                     className="input-field"
                     hidden
                     onChange={handleFileChange}
