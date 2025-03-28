@@ -9,9 +9,10 @@ const FileUpload = () => {
     const colors = tokens();
 
     const [files, setFiles] = useState([]);
+    const [refreshKey, setRefreshKey] = useState(0);
     
-    const addFile = (newFile) => {
-        setFiles((prev) => [newFile, ...prev]);
+    const handleFileUploadSuccess = () => {
+        setRefreshKey(prev => prev + 1); 
     };
   
     return (
@@ -36,7 +37,7 @@ const FileUpload = () => {
             borderRadius="12px"
             border={`2px solid ${colors.gray[200]}`}
             >
-                <UploaderBox onFileUploaded={addFile}/>
+                <UploaderBox onFileUploaded={handleFileUploadSuccess}/>
             </Box>
             
             {/* ROW 2 TABLE OF FILES */}
@@ -49,7 +50,7 @@ const FileUpload = () => {
             borderRadius="12px"
             border={`2px solid ${colors.gray[200]}`}
             >
-                <TableBox files={files} setFiles={setFiles}/>
+                <TableBox files={files} setFiles={setFiles} refreshKey={refreshKey}/>
             </Box>
         </Box>
     </Box>
