@@ -67,6 +67,45 @@ const deleteConversation = async (conversationId) => {
   }
 };
 
+const generateChatTopic = async (chatId) => {
+  try {
+    const response = await fetch(`${API_SERVICE}/conversations/${chatId}/generate-topic`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      console.log("Generated topic:", data.topic);
+      return data.topic;
+    } else {
+      console.error("Error generating chat topic:", data);
+      return null;
+    }
+  } catch (error) {
+    console.error("Failed to generate chat topic:", error);
+    return null;
+  }
+};
+
+const updateTopic = async (conversationId, topic) => {
+  try {
+    await fetch(`${API_SERVICE}/conversations/${conversationId}/update-topic`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ topic }),
+    });
+  } catch (error) {
+    console.error("Failed to update chat topic:", error);
+  }
+};
+
+
+
 const ChatPage = () => {
   const userUUID = getUserUUID();
   const [messages, setMessages] = useState([]);
@@ -75,6 +114,31 @@ const ChatPage = () => {
   const [showChatHistory, setShowChatHistory] = useState(true);
   const [showFeedback, setShowFeedback] = useState(false);
   const [idleTimer, setIdleTimer] = useState(null);
+  const [topicTimer, setTopicTimer] = useState(null);
+
+  const resetTopicTimer = () => {
+    if (topicTimer) {
+      clearTimeout(topicTimer);
+    }
+  
+    setTopicTimer(
+      setTimeout(async () => {
+        if (currentChatId && messages.length > 0) {
+          const topic = await generateChatTopic(currentChatId);
+          //testing
+          console.log("Generated topic:", topic);
+          await updateTopic(currentChatId, topic)
+        }
+      }, 60000) 
+    );
+  };
+  
+  useEffect(() => {
+    resetTopicTimer();
+    return () => {
+      if (topicTimer) clearTimeout(topicTimer);
+    };
+  }, [messages])
 
   useEffect(() => {
     const loadUserConversations = async () => {
