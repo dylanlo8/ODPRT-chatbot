@@ -20,7 +20,7 @@ const UploaderBox = ({ onFileUploaded }) => {
                         Click here
                     </Typography>
                     <Typography variant="h5" fontWeight="400" sx={{ color: colors.text }}>
-                        to upload your file (.pdf, .png, .jpg, .jpeg)
+                        to upload your file (.pdf, .docx)
                     </Typography>
                 </Box>
             
