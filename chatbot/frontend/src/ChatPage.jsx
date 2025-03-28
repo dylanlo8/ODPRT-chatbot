@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { FaComment } from "react-icons/fa";
 import Chatbot from "./Chatbot/Chatbot";
 import ChatHistory from "./ChatHistory/ChatHistory";
 import FeedbackForm from "./FeedbackForm/FeedbackForm";
@@ -112,7 +113,7 @@ const updateTopic = async (conversationId, topic) => {
 
 const ChatPage = () => {
   const userUUID = getUserUUID();
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([{bot : "Hello! How can I help you today?"}]);
   const [chatHistory, setChatHistory] = useState([]);
   const [currentChatId, setCurrentChatId] = useState(null);
   const [showChatHistory, setShowChatHistory] = useState(true);
@@ -190,6 +191,11 @@ const ChatPage = () => {
 
   const toggleChatHistory = () => {
     setShowChatHistory((prev) => !prev);
+  };
+
+  const toggleFeedbackForm = () => {
+    setShowFeedback((prev) => !prev);
+    resetIdleTimer(); 
   };
 
   const handleFeedbackCancel = () => {
@@ -317,6 +323,19 @@ const ChatPage = () => {
           onExportChat={handleExportChat}
         />
       )}
+      
+      {messages.length > 0 && (
+        <button className="feedback-button" onClick={toggleFeedbackForm}>
+          <span className="feedback-icon">
+            <FaComment size={18} />
+          </span>
+          <span className="feedback-label">Send Feedback</span>
+        </button>
+
+
+
+      )}
+
       <Chatbot
         messages={messages}
         currentChatId={currentChatId}
@@ -325,6 +344,7 @@ const ChatPage = () => {
         onNewConversationCreated={handleNewConversationCreated}
         onUpdateMessageFeedback={handleUpdateMessageFeedback}
       />
+      
       {showFeedback && <FeedbackForm conversationId = {currentChatId} onClose={handleFeedbackCancel} />}
     </div>
   );

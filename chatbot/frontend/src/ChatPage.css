@@ -11,10 +11,94 @@
     cursor: pointer;
     position: absolute;
     top: 10px;
-    left: 10px; /* Adjust this based on your layout */
   }
   
   .menu-button:hover {
     opacity: 0.8;
+  }
+
+  .feedback-button {
+    display: flex;
+    align-items: end;
+    padding-right: 0;
+    background: none;  
+    border: none;     
+    padding: 0;      
+    cursor: default; 
+  }
+  
+  .feedback-icon {
+    display: flex;
+    align-items: end;
+    padding-bottom: 33px;
+    padding-left: 10px;
+    color: #003882;
+    opacity: 0.6;
+    font-size: 20px; 
+    cursor: pointer;
+  }
+
+
+  .chat-page {
+    display: flex;  
+    height: 100vh;  /* Full screen height */
+  }
+  
+  .menu-button {
+    font-size: 20px; /* Adjust size */
+    margin-right: 10px; /* Add spacing */
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: absolute;
+    top: 10px;
+  }
+  
+  .menu-button:hover {
+    opacity: 0.8;
+  }
+
+  .feedback-button {
+    display: flex;
+    align-items: end;
+    padding-right: 0;
+    background: none;  
+    border: none;     
+    padding: 0;      
+    cursor: default; 
+    align-items: flex-end; /* Align icon to bottom */
+
+  }
+  
+  .feedback-icon {
+    display: flex;
+    align-items: end;
+    padding-bottom: 33px;
+    padding-left: 10px;
+    color: #003882;
+    opacity: 0.6;
+    font-size: 20px; 
+    cursor: pointer;
+  }
+
+  .feedback-label {
+    position: absolute;
+    left: 35px;
+    bottom: 33px;           
+    white-space: nowrap;
+    color: black;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background-color: gray;
+    padding: 4px 8px;      
+    border-radius: 4px;    
+    pointer-events: none;  
+    z-index: 1000;
+  }
+  
+  
+  .feedback-button:hover .feedback-label {
+    opacity: 1;           
   }
   
