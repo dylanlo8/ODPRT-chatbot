@@ -88,6 +88,10 @@ def insert_messages_route(message: MessageContent):
     response = insert_message(message.model_dump())
     return response
 
+@messages_router.put("/{message_id}/useful")
+def update_message_useful_route(message_id: str, is_useful: bool):
+    response = update_message_useful(message_id, is_useful)
+    return response
 
 ################################
 # Dashboard Routes
@@ -98,8 +102,4 @@ def fetch_dashboard_statistics_route(date_range: DateRange):
         start_date=date_range.start_date, 
         end_date=date_range.end_date
     )
-    return response
-@messages_router.put("/{message_id}/useful")
-def update_message_useful_route(message_id: str, is_useful: bool):
-    response = update_message_useful(message_id, is_useful)
     return response
