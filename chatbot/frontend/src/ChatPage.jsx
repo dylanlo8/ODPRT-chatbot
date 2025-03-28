@@ -113,7 +113,7 @@ const updateTopic = async (conversationId, topic) => {
 
 const ChatPage = () => {
   const userUUID = getUserUUID();
-  const [messages, setMessages] = useState([{bot : "Hello! How can I help you today?"}]);
+  const [messages, setMessages] = useState([]);
   const [chatHistory, setChatHistory] = useState([]);
   const [currentChatId, setCurrentChatId] = useState(null);
   const [showChatHistory, setShowChatHistory] = useState(true);
