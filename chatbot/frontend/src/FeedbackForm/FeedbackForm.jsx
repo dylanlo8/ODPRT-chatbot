@@ -31,16 +31,16 @@ const FeedbackForm = ({ conversationId, onClose }) => {
     const feedbackData = {};
 
     if (selectedEmoji !== null) {
-      feedbackData.rating = emojis[selectedEmoji].label;
+      feedbackData.rating = selectedEmoji + 1; // Emojis are 0-indexed, so we add 1 to match the rating scale;
     }
   
     if (feedback !== null) {
       feedbackData.text = feedback;
     }
-
+    console.log(feedbackData);
     try {
       const response = await fetch(`${API_SERVICE}/conversations/${conversationId}/feedback`, {
-        method: "PUT",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },

@@ -59,47 +59,50 @@ class SimpleTopicModel:
         self,
         qa_pairs: list,
         threshold=0.2,
-    ):
+    ) -> str:
         """
-        maps multiple qa pairs to topics using batch embedding
+        Maps multiple QA pairs to the most relevant topic using batch embedding.
 
-        args:
-            qa_pairs (list): list of question-answer pairs
-            threshold (float): minimum similarity score required
+        Args:
+            qa_pairs (list): List of question-answer pairs.
+            threshold (float): Minimum similarity score required.
 
-        returns:
-            list: list of best matching topics for each qa pair
+        Returns:
+            str: The most relevant topic for the QA pairs, or None if no topic is relevant.
         """
-        # batch embed all qa pairs
+        # Batch embed all QA pairs
         qa_embeddings = self.embedding_model.embed_documents(qa_pairs)
 
-        # topic matrix
+        # Topic matrix
         topic_embeddings_matrix = np.array(
             [self.topic_embeddings[desc] for desc in self.topic_desc_list]
         )
 
-        results = []
+        # Initialize variables to track the best topic and similarity
+        best_topic = None
+        max_similarity = 0
+
         for i, qa_embedding in enumerate(qa_embeddings):
             qa_array = np.array([qa_embedding]).reshape(1, -1)
 
-            # calculate all similarities
+            # Calculate all similarities
             similarities = cosine_similarity(qa_array, topic_embeddings_matrix)[0]
 
-            # get index of highest similarity
+            # Get index of highest similarity
             best_index = np.argmax(similarities)
-            best_topic = self.topic_desc_list[best_index]
-            max_similarity = similarities[best_index]
+            candidate_topic = self.topic_desc_list[best_index]
+            candidate_similarity = similarities[best_index]
 
-            # apply threshold chec
-            if max_similarity < threshold:
-                self.logger.info(
-                    f"no topic found for {qa_pairs[i]} with similarity {round(max_similarity, 2)}"
-                )
-                results.append("no topic found")
-            else:
-                results.append(best_topic)
+            # Apply threshold check
+            if candidate_similarity >= threshold and candidate_similarity > max_similarity:
+                best_topic = candidate_topic
+                max_similarity = candidate_similarity
 
-        return results
+        if best_topic:
+            return best_topic
+        else:
+            self.logger.info("No relevant topic found for the provided QA pairs.")
+            return None
 
 
 simple_tm = SimpleTopicModel()

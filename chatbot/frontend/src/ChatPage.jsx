@@ -67,16 +67,19 @@ const deleteConversation = async (conversationId) => {
   }
 };
 
-const generateChatTopic = async (chatId) => {
+const generateChatTopic = async (chatId, messages) => {
   try {
-    const response = await fetch(`${API_SERVICE}/conversations/${chatId}/generate-topic`, {
+    // Get topic mapping
+    const response = await fetch(`${API_SERVICE}/topic-model/map-topics/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({ "qa_pairs" : messages.map((msg) => msg.text) })
     });
 
     const data = await response.json();
+
     if (response.ok) {
       console.log("Generated topic:", data.topic);
       return data.topic;
@@ -92,19 +95,20 @@ const generateChatTopic = async (chatId) => {
 
 const updateTopic = async (conversationId, topic) => {
   try {
-    await fetch(`${API_SERVICE}/conversations/${conversationId}/update-topic`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ topic }),
+    const response = await fetch(`${API_SERVICE}/conversations/${conversationId}/topic?topic=${topic}`, {
+      method: "PUT",
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Error updating chat topic:", errorData);
+    } else {
+      console.log("Chat topic updated successfully");
+    }
   } catch (error) {
     console.error("Failed to update chat topic:", error);
   }
 };
-
-
 
 const ChatPage = () => {
   const userUUID = getUserUUID();
@@ -124,7 +128,7 @@ const ChatPage = () => {
     setTopicTimer(
       setTimeout(async () => {
         if (currentChatId && messages.length > 0) {
-          const topic = await generateChatTopic(currentChatId);
+          const topic = await generateChatTopic(currentChatId, messages);
           //testing
           console.log("Generated topic:", topic);
           await updateTopic(currentChatId, topic)
@@ -223,7 +227,7 @@ const ChatPage = () => {
 
   };
 
-  const sendEmail = async (chatHistory) => {
+  const sendEmail = async (chatHistory, chatId) => {
     try {
         const response = await fetch(`${API_SERVICE}/chat/email-escalation/`, {
             method: 'POST',
@@ -231,6 +235,10 @@ const ChatPage = () => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ chat_history: chatHistory }),
+        });
+        
+        const intervention = await fetch(`${API_SERVICE}/conversations/${chatId}/intervention/`, {
+          method: 'PUT',
         });
 
         if (!response.ok) {
@@ -261,7 +269,7 @@ const ChatPage = () => {
         }).join('\n\n');
         
         // Send the email with the chat history
-        const emailData = await sendEmail(chatHistory);
+        const emailData = await sendEmail(chatHistory, chatId);
 
         if (emailData) {
             const subject = encodeURIComponent(emailData.email_subject);
