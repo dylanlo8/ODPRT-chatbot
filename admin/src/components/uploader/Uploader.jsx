@@ -4,7 +4,7 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { uploadFile } from "../../api/FileUploadApi"; 
 import { tokens } from "../../theme";
 
-const Uploader = () => {
+const Uploader = ({ onUploadSuccess }) => {
     const colors = tokens();
     const [notification, setNotification] = useState({ message: "", type: "" });
     const [uploading, setUploading] = useState(false); 
@@ -26,6 +26,8 @@ const Uploader = () => {
             const response = await uploadFile(selectedFile);
             setNotification({ message: "File successfully uploaded!", type: "success" });
             console.log("Uploaded file:", response); 
+
+            if (onUploadSuccess) onUploadSuccess();
         } catch (error) {
             setNotification({ message: "Upload failed. Please try again.", type: "error" });
             console.error("Upload error:", error);
