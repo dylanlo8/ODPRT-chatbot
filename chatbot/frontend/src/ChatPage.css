@@ -17,26 +17,6 @@
     opacity: 0.8;
   }
 
-  .feedback-button {
-    display: flex;
-    align-items: end;
-    padding-right: 0;
-    background: none;  
-    border: none;     
-    padding: 0;      
-    cursor: default; 
-  }
-  
-  .feedback-icon {
-    display: flex;
-    align-items: end;
-    padding-bottom: 33px;
-    padding-left: 10px;
-    color: #003882;
-    opacity: 0.6;
-    font-size: 20px; 
-    cursor: pointer;
-  }
 
 
   .chat-page {
@@ -57,30 +37,24 @@
   .menu-button:hover {
     opacity: 0.8;
   }
-
+  
   .feedback-button {
-    display: flex;
-    align-items: end;
-    padding-right: 0;
     background: none;  
     border: none;     
     padding: 0;      
-    cursor: default; 
-    align-items: flex-end; /* Align icon to bottom */
-
   }
   
   .feedback-icon {
     display: flex;
-    align-items: end;
     padding-bottom: 33px;
     padding-left: 10px;
     color: #003882;
     opacity: 0.6;
     font-size: 20px; 
     cursor: pointer;
+    z-index: 1;
   }
-
+  
   .feedback-label {
     position: absolute;
     left: 35px;
@@ -89,13 +63,20 @@
     color: black;
     font-size: 14px;
     opacity: 0;
-    transition: opacity 0.3s ease;
     background-color: gray;
     padding: 4px 8px;      
     border-radius: 4px;    
     pointer-events: none;  
-    z-index: 1000;
+    z-index: 2; 
   }
+
+  .feedback-container {
+    position: relative; 
+    display: flex; 
+    align-items: end; 
+    margin-top: 40px; /* Adds space below menu button */
+
+  } 
   
   
   .feedback-button:hover .feedback-label {

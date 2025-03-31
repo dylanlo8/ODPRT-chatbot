@@ -323,7 +323,7 @@ const ChatPage = () => {
           onExportChat={handleExportChat}
         />
       )}
-      
+      <div className="feedback-container">
       {messages.length > 0 && (
         <button className="feedback-button" onClick={toggleFeedbackForm}>
           <span className="feedback-icon">
@@ -335,6 +335,7 @@ const ChatPage = () => {
 
 
       )}
+      </div>
 
       <Chatbot
         messages={messages}
