@@ -38,7 +38,7 @@ class DocumentParser:
         self.similarity_threshold = similarity_threshold
         self.embedding_model = embedding_model
         self.logger = logger
-        self.poppler_path = os.getenv("POPPLER_PATH")
+        # self.poppler_path = os.getenv("POPPLER_PATH")
 
     def read_attachments(self):
         """Reads all attachments in the directory and returns a list of file paths."""
@@ -186,7 +186,7 @@ class DocumentParser:
         if output_folder is None:
             output_folder = os.path.join(os.path.dirname(os.path.dirname(pdf_path)), "temp_images")
         os.makedirs(output_folder, exist_ok=True)
-        images = convert_from_path(pdf_path, dpi=dpi, poppler_path=self.poppler_path)
+        images = convert_from_path(pdf_path, dpi=dpi)
         image_paths = []
 
         for i, image in enumerate(images):
@@ -366,7 +366,7 @@ class DocumentParser:
         extracted_text = ""
 
         # Convert PDF pages to images
-        images = convert_from_path(file_path, poppler_path=self.poppler_path)
+        images = convert_from_path(file_path)
 
         for i, image in enumerate(images):
             text = pytesseract.image_to_string(image)
@@ -392,7 +392,7 @@ class DocumentParser:
                 os.remove(os.path.join(save_directory, file))  # Clear the directory before saving new images
         os.makedirs(save_directory, exist_ok=True)
 
-        images = convert_from_path(file_path, poppler_path=self.poppler_path)
+        images = convert_from_path(file_path)
         extracted_figures = {}
         all_extracted_images = []
 
