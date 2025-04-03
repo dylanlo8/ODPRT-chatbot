@@ -5,12 +5,12 @@ const StatBox = ({ stats = [] }) => {
   const colors = tokens();
 
   return (
-    <Box width="100%" m="0 30px">
+    <Box width="100%" >
       <Box display="flex"
         justifyContent="space-between"
         flexWrap="wrap">
         {stats.map(({ title, figure }, index) => (
-          <Box key={index} minWidth="50%" mb="20px">
+          <Box key={index}>
             <Typography
               variant="h6"
               fontWeight="600"

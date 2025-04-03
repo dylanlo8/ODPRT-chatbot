@@ -2,14 +2,12 @@ import axios from "axios";
 import { useState } from "react";
 import { Box } from "@mui/material";
 import { tokens } from "../theme";
-// import { mockUserQueriesData, mockUserExperienceData, mockInterventionData, mockCommonQueriesData, mockUnresolvedQueriesData } from "../data/mockData";
 import DateFilter from "../components/date_filter/DateFilter"
-// import { filterDataByDate } from "../components/date_filter/DateUtils"
 import Header from "../components/Header";
 import BarBox from "../components/bar/BarBox";
 import LineBox from "../components/line/LineBox";
-import PieBox from "../components/pie/PieBox";
 import StatBox from "../components/StatBox";
+import TotalUsers from "../components/TotalUsers"
 
 const Dashboard = () => {
   const colors = tokens();
@@ -117,14 +115,22 @@ const fetchData = async (range) => {
       {/* HEADER */}
       <Header title="DASHBOARD" />
 
-      {/* DATE FILTER */}
-      <Box display="flex" gap="10px">
-      <DateFilter
-        dateRange={dateRange}
-        setDateRange={setDateRange}
-        onDateChange={handleDateChange}
-      />
-    </Box>
+      <Box display="flex" gap={2} alignItems="center" mb="10px">
+        {/* TOTAL USERS */}
+        <TotalUsers figure={result?.total_users || "XX"} />
+          <Box display="flex" alignItems="center">
+          
+        </Box>   
+
+        {/* DATE FILTER */}
+        <Box display="flex" gap="10px">
+          <DateFilter
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            onDateChange={handleDateChange}
+          />
+        </Box>
+      </Box>
     </Box>
 
       {/* GRID & COMPONENTS */}
@@ -137,27 +143,30 @@ const fetchData = async (range) => {
         {/* ROW 1 */}
         <Box gridColumn="span 6" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
         <StatBox stats=
-        {[{ title: "Conversations Created", figure: "XX" },
-          { title: "New Users", figure: "XX" },
-          { title: "Interventions", figure: "XX" },
+        {[{ title: "Conversations Created", figure: result?.total_conversations || "XX" },
+          { title: "New Users", figure: result?.new_users_since_start || "XX" },
+          { title: "Interventions", figure: result?.intervention_count || "XX" },
           ]} />
-          <StatBox title="Conversations Created" figure={result?.total_conversations || "XX"} />
-        </Box>
-{/* 
-        <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <StatBox title="Avg No. of Messages per Conversation" figure={result?.avg_messages_per_conversation || "XX"} />
         </Box>
 
-        <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <StatBox title="Total Users" figure={result?.total_users || "XX"} />
-        </Box>       
-
-        <Box gridColumn="span 3" gridRow="span 2" backgroundColor={colors.white} display="flex" flexDirection="column" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <PieBox title="Interventions" figure={result?.intervention_count || "XX"} data={data.intervention} />
-        </Box> */}
+        <Box gridColumn="span 6" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
+        <StatBox stats=
+        {[]} />
+        </Box>
 
         {/* ROW 2 */}
-        <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
+        <Box gridColumn="span 6" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
+        <StatBox stats=
+        {[{ title: "Avg Messages per Conversation", figure: result?.avg_messages_per_conversation || "XX" },
+          { title: "Average Rating per Conversation", figure: result?.avg_rating || "XX" },
+          ]} />
+        </Box>
+        
+        <Box gridColumn="span 6" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
+        <StatBox stats=
+        {[]} />
+        </Box>                    
+        {/* <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
           <StatBox title="Avg Time Spent per Conversation" figure={result?.avg_time_spent_per_conversation_seconds ? `${Math.floor(result.avg_time_spent_per_conversation_seconds / 60)}m ${Math.floor(result.avg_time_spent_per_conversation_seconds % 60)}s` : "XX"}/>
         </Box>
 
@@ -167,7 +176,7 @@ const fetchData = async (range) => {
 
         <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
           <StatBox title="New Users" figure={result?.new_users_since_start || "XX"} />
-        </Box> 
+        </Box>  */}
 
         {/* ROW 3 */}
         <Box gridColumn="span 6" gridRow="span 2" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
