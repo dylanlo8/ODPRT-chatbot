@@ -7,10 +7,10 @@ const StatBox = ({ stats = [] }) => {
   return (
     <Box width="100%" >
       <Box display="flex"
-        justifyContent="space-between"
-        flexWrap="wrap">
+        flexWrap="wrap"
+        ml="30px">
         {stats.map(({ title, figure }, index) => (
-          <Box key={index}>
+          <Box key={index} sx={{ mr: 10 }}>
             <Typography
               variant="h6"
               fontWeight="600"

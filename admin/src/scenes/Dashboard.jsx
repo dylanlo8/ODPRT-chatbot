@@ -118,9 +118,6 @@ const fetchData = async (range) => {
       <Box display="flex" gap={2} alignItems="center" mb="10px">
         {/* TOTAL USERS */}
         <TotalUsers figure={result?.total_users || "XX"} />
-          <Box display="flex" alignItems="center">
-          
-        </Box>   
 
         {/* DATE FILTER */}
         <Box display="flex" gap="10px">
@@ -184,7 +181,7 @@ const fetchData = async (range) => {
         </Box>
 
         <Box gridColumn="span 6" gridRow="span 2" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <LineBox title="Number of User Queries Over Time" data={data.userQueries} showLegend={false}/>
+          <LineBox title="Number of Messages Over Time" data={data.userQueries} showLegend={false}/>
         </Box>
 
         {/* ROW 4 */}
