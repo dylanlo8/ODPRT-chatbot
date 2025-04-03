@@ -25,14 +25,18 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
   );
 };
 
-const Navbar = () => {
+const Navbar = ({ isCollapsed, setIsCollapsed }) => {
   const colors = tokens();
-  const [isCollapsed, setIsCollapsed] = useState(true);
   const [selected, setSelected] = useState("Dashboard");
 
   return (
     <Box
       sx={{
+        height: "100vh",    
+        position: "fixed",      
+        top: 0,
+        left: 0,
+        zIndex: 1200,
         "& .pro-sidebar-inner": {
           background: `${colors.indigo[500]} !important`,
         },

@@ -112,7 +112,7 @@ const fetchData = async (range) => {
   };
 
   return (
-    <Box mt="30px" mx="30px">
+    <Box mt="30px" mx="30px" >
     <Box display="flex" justifyContent="space-between">
       {/* HEADER */}
       <Header title="DASHBOARD" />
@@ -135,10 +135,15 @@ const fetchData = async (range) => {
         gap="20px"
       >
         {/* ROW 1 */}
-        <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
+        <Box gridColumn="span 6" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
+        <StatBox stats=
+        {[{ title: "Conversations Created", figure: "XX" },
+          { title: "New Users", figure: "XX" },
+          { title: "Interventions", figure: "XX" },
+          ]} />
           <StatBox title="Conversations Created" figure={result?.total_conversations || "XX"} />
         </Box>
-
+{/* 
         <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
           <StatBox title="Avg No. of Messages per Conversation" figure={result?.avg_messages_per_conversation || "XX"} />
         </Box>
@@ -149,7 +154,7 @@ const fetchData = async (range) => {
 
         <Box gridColumn="span 3" gridRow="span 2" backgroundColor={colors.white} display="flex" flexDirection="column" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
           <PieBox title="Interventions" figure={result?.intervention_count || "XX"} data={data.intervention} />
-        </Box>
+        </Box> */}
 
         {/* ROW 2 */}
         <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>

@@ -1,35 +1,33 @@
 import { Box, Typography } from "@mui/material";
 import { tokens } from "../theme";
 
-const StatBox = ({ title, figure }) => {
+const StatBox = ({ stats = [] }) => {
   const colors = tokens();
 
   return (
-    <Box width="100%" 
-    m="0 30px"
-    >
-      {/* TITLE */}
-      <Box display="flex" justifyContent="space-between">
-          <Typography
-            variant="h5"
-            fontWeight="600"
-            sx={{ color: colors.text }}
-          >
-            {title}
-          </Typography>
+    <Box width="100%" m="0 30px">
+      <Box display="flex"
+        justifyContent="space-between"
+        flexWrap="wrap">
+        {stats.map(({ title, figure }, index) => (
+          <Box key={index} minWidth="50%" mb="20px">
+            <Typography
+              variant="h6"
+              fontWeight="600"
+              sx={{ color: colors.text }}
+            >
+              {title}
+            </Typography>
+            <Typography
+              variant="h3"
+              fontWeight="bold"
+              sx={{ color: colors.text, mt: "5px" }}
+            >
+              {figure}
+            </Typography>
+          </Box>
+        ))}
       </Box>
-
-      {/* FIGURE */}
-      <Box display="flex" justifyContent="space-between" mt="2px">
-        <Box my="15px">
-          <Typography variant="h3" 
-          fontWeight="bold"
-          sx={{ color: colors.text }}>
-            {figure}
-          </Typography>
-        </Box>
-      </Box>
-
     </Box>
   );
 };
