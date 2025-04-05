@@ -2,12 +2,14 @@ import axios from "axios";
 import { useState } from "react";
 import { Box } from "@mui/material";
 import { tokens } from "../theme";
-import DateFilter from "../components/date_filter/DateFilter"
+import DateFilter from "../components/date_filter/DateFilter";
 import Header from "../components/Header";
 import BarBox from "../components/bar/BarBox";
 import LineBox from "../components/line/LineBox";
 import StatBox from "../components/StatBox";
-import TotalUsers from "../components/TotalUsers"
+import ThumbsBox from "../components/thumbs/ThumbsBox"
+import TotalUsers from "../components/TotalUsers";
+
 
 const Dashboard = () => {
   const colors = tokens();
@@ -147,8 +149,7 @@ const fetchData = async (range) => {
         </Box>
 
         <Box gridColumn="span 6" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-        <StatBox stats=
-        {[]} />
+        <ThumbsBox/>
         </Box>
 
         {/* ROW 2 */}
