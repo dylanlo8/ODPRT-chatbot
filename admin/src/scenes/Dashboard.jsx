@@ -2,9 +2,10 @@ import axios from "axios";
 import { useState } from "react";
 import { Box } from "@mui/material";
 import { tokens } from "../theme";
-import DateFilter from "../components/date_filter/DateFilter";
+import DateFilter from "../components/DateFilter";
 import Header from "../components/Header";
 import BarBox from "../components/bar/BarBox";
+import FeedbackBox from "../components/feedback/FeedbackBox";
 import LineBox from "../components/line/LineBox";
 import StatBox from "../components/StatBox";
 import ThumbsBox from "../components/thumbs/ThumbsBox"
@@ -149,7 +150,17 @@ const fetchData = async (range) => {
         </Box>
 
         <Box gridColumn="span 6" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-        <ThumbsBox/>
+        <ThumbsBox upFigure="XX" upMessages={[
+                "The Office of the Deputy President (Research & Technology) oversees NUS’s research strategy, innovation ecosystem, and global research partnerships.",
+                "Yes, ODPRT works closely with NUS Enterprise and the Industry Liaison Office to support research translation, innovation, and spin-off formation.",
+                "Yes! ODPRT administers several internal research grant schemes. You can explore open calls via the Research Portal or reach out to your department’s grant administrator for assistance.",
+              ]}
+              downFigure="XX" downMessages={[
+                "Sorry to hear that! ODPRT typically responds within 7–10 working days. Would you like me to flag this for follow-up?",
+                'To use the IEP Contracting Hub, access it via CDPRT (hosted on Pactly). As a PI, researcher, or faculty-admin, you can submit agreement requests, upload drafts, and download NUS standard templates. The Hub lets you track requests from submission to execution and view or download executed agreements. For help or to set up an account, contact the IEP team through the Hub.',
+                "I am sorry, but I am unable to provide a response to your query at the moment"                
+              ]}
+              />
         </Box>
 
         {/* ROW 2 */}
@@ -161,8 +172,15 @@ const fetchData = async (range) => {
         </Box>
         
         <Box gridColumn="span 6" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-        <StatBox stats=
-        {[]} />
+        <FeedbackBox feedbacks={[
+          "It actually understood what I meant without me having to reword everything.",
+          "It kept repeating the same thing no matter how I phrased my question.",
+          "Strengths: Maintains a friendly and professional tone, which enhances user engagement. Suggestions: Watch for overuse of certain phrases; consider adding personality tweaks depending on brand voice."
+        ]} dates= {[
+          "03/03/2025",
+          "02/03/2025",
+          "02/03/2025"         
+        ]}/>
         </Box>                    
         {/* <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
           <StatBox title="Avg Time Spent per Conversation" figure={result?.avg_time_spent_per_conversation_seconds ? `${Math.floor(result.avg_time_spent_per_conversation_seconds / 60)}m ${Math.floor(result.avg_time_spent_per_conversation_seconds % 60)}s` : "XX"}/>

@@ -3,7 +3,7 @@ import { tokens } from "../../theme";
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 
-const Thumbs = ({ Figure, isThumbsUp }) => { // replace with figure, and isUp/ isDown
+const Thumbs = ({ figure, isThumbsUp }) => { // replace with figure, and isUp/ isDown
     const colors = tokens();
   
     return (
@@ -15,7 +15,7 @@ const Thumbs = ({ Figure, isThumbsUp }) => { // replace with figure, and isUp/ i
               fontWeight="bold"
               sx={{ color: colors.text }}
             >
-              {Figure}
+              {figure}
             </Typography>
         </Box>
       </Box>
