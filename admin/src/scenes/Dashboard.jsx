@@ -38,21 +38,6 @@ const fetchData = async (range) => {
     const result = response.data;
     setResult(result); // Store raw results
     
-    // Format intervention data for PieBox
-    const interventionData = [
-      {
-        id: "intervention required",
-        label: "Intervention Required",
-        value: result.intervention_count,
-        color: tokens().indigo[500],
-      },
-      {
-        id: "no intervention",
-        label: "No Intervention",
-        value: result.total_conversations - result.intervention_count,
-        color: tokens().gray[500],
-      }
-    ];
 
     // Format common queries data for BarBox
     const commonQueriesData = result.top_topics.map(item => ({
@@ -95,7 +80,6 @@ const fetchData = async (range) => {
     ];
 
     setData({
-      intervention: interventionData,
       commonQueries: commonQueriesData,
       userQueries: userQueriesData,
       unresolvedQueries: unresolvedQueriesData,
@@ -182,17 +166,6 @@ const fetchData = async (range) => {
           "02/03/2025"         
         ]}/>
         </Box>                    
-        {/* <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <StatBox title="Avg Time Spent per Conversation" figure={result?.avg_time_spent_per_conversation_seconds ? `${Math.floor(result.avg_time_spent_per_conversation_seconds / 60)}m ${Math.floor(result.avg_time_spent_per_conversation_seconds % 60)}s` : "XX"}/>
-        </Box>
-
-        <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <StatBox title="Avg Rating per Conversation" figure={result?.avg_rating || "XX"}/>
-        </Box>
-
-        <Box gridColumn="span 3" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
-          <StatBox title="New Users" figure={result?.new_users_since_start || "XX"} />
-        </Box>  */}
 
         {/* ROW 3 */}
         <Box gridColumn="span 6" gridRow="span 2" backgroundColor={colors.white} display="flex" alignItems="center" justifyContent="center" borderRadius="12px" border={`2px solid ${colors.gray[200]}`}>
