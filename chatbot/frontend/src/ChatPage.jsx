@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { FaComment } from "react-icons/fa";
 import Chatbot from "./Chatbot/Chatbot";
 import ChatHistory from "./ChatHistory/ChatHistory";
 import FeedbackForm from "./FeedbackForm/FeedbackForm";
@@ -192,6 +193,11 @@ const ChatPage = () => {
     setShowChatHistory((prev) => !prev);
   };
 
+  const toggleFeedbackForm = () => {
+    setShowFeedback((prev) => !prev);
+    resetIdleTimer(); 
+  };
+
   const handleFeedbackCancel = () => {
     setShowFeedback(false); 
     resetIdleTimer(); 
@@ -317,6 +323,20 @@ const ChatPage = () => {
           onExportChat={handleExportChat}
         />
       )}
+      <div className="feedback-container">
+      {messages.length > 0 && (
+        <button className="feedback-button" onClick={toggleFeedbackForm}>
+          <span className="feedback-icon">
+            <FaComment size={18} />
+          </span>
+          <span className="feedback-label">Send Feedback</span>
+        </button>
+
+
+
+      )}
+      </div>
+
       <Chatbot
         messages={messages}
         currentChatId={currentChatId}
@@ -325,6 +345,7 @@ const ChatPage = () => {
         onNewConversationCreated={handleNewConversationCreated}
         onUpdateMessageFeedback={handleUpdateMessageFeedback}
       />
+      
       {showFeedback && <FeedbackForm conversationId = {currentChatId} onClose={handleFeedbackCancel} />}
     </div>
   );
