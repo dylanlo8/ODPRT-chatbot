@@ -3,6 +3,20 @@ import { tokens } from "../../theme";
 
 const BarChart = ({ data, keys, index, showLegend}) => {
   const colors = tokens();
+  const maxY = Math.max( // obtain the maximum bar plot value 
+    ...data.map(d => 
+      Math.max(...keys.map(key => d[key] ?? 0))
+    )
+  );
+
+  const generateIntegerTicks = (max, maxTicks = 5) => { // generate number of ticks according to values
+    if (max === 0) return [0];
+    const step = Math.ceil(max / maxTicks);
+    const lastTick = Math.ceil(max / step) * step;
+    return Array.from({ length: Math.floor(lastTick / step) + 1 }, (_, i) => i * step);
+  };
+  const tickValues = generateIntegerTicks(maxY, 5); // limit to generating max 5 more ticks 
+
 
   return (
     <ResponsiveBar
@@ -86,7 +100,7 @@ const BarChart = ({ data, keys, index, showLegend}) => {
                 dominantBaseline="central"
                 style={{
                   fill: colors.text,
-                  fontSize: 12,
+                  fontSize: 11,
                 }}
               >
                 {displayValue}
@@ -100,16 +114,15 @@ const BarChart = ({ data, keys, index, showLegend}) => {
         tickPadding: 5,
         tickRotation: 0,
         legendOffset: -40,
-        tickValues: 5,
+        fontSize: 11,
+        tickValues: tickValues,
       }}
-      enableLabel={false}
+      enableLabel={true}
+      label={(d) => `${d.value}`}
       enableGridY={false}
       labelSkipWidth={12}
       labelSkipHeight={12}
-      labelTextColor={{
-        from: "color",
-        modifiers: [["darker", 1.6]],
-      }}
+      labelTextColor= {colors.white}
       legends={
         showLegend
         ? [

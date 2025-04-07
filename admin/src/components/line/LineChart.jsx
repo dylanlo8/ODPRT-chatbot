@@ -5,7 +5,7 @@ import { tokens } from "../../theme";
 const LineChart = ({ data, showLegend }) => {
   const colors = tokens();
 
-  const xValues = data[0]?.data.map(d => d.x) || []; // get all x-axis values 
+  const xValues = data[0]?.data.map(d => d?.x) || []; // get all x-axis values 
 
   const maxTicks = 3; // limit the chart to display maximum 7 values in the x-axis 
   const total = xValues.length;

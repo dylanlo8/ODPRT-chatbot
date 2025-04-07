@@ -183,6 +183,7 @@ const Dashboard = () => {
           border={`2px solid ${colors.gray[200]}`}
         >
           <FeedbackBox
+            figure={result?.total_feedbacks || "XX"}
             feedbacks={result?.recent_feedbacks?.map((fb) => fb.feedback) || ["XX"]}
             dates={result?.recent_feedbacks?.map((fb) => new Date(fb.created_at).toLocaleDateString()) || ["XX"]}
           />

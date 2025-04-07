@@ -21,7 +21,7 @@ const StatBox = ({ stats = [] }) => {
             <Typography
               variant="h3"
               fontWeight="bold"
-              sx={{ color: colors.text, mt: "5px" }}
+              sx={{ color: colors.text }}
             >
               {figure}
             </Typography>
