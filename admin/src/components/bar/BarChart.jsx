@@ -74,12 +74,33 @@ const BarChart = ({ data, keys, index, showLegend}) => {
         tickPadding: 5,
         tickRotation: 0,
         legendOffset: 32,
+        renderTick: (tick) => { // limit number of characters for axis 
+          const value = tick.value ?? ""; 
+          const displayValue = value.length > 10 ? value.slice(0, 10) + "…" : value;
+      
+          return (
+            <g transform={`translate(${tick.x},${tick.y + 10})`}>
+              <title>{value}</title> 
+              <text
+                textAnchor="middle"
+                dominantBaseline="central"
+                style={{
+                  fill: colors.text,
+                  fontSize: 12,
+                }}
+              >
+                {displayValue}
+              </text>
+            </g>
+          );
+        },
       }}
       axisLeft={{
         tickSize: 0,
         tickPadding: 5,
         tickRotation: 0,
         legendOffset: -40,
+        tickValues: 5,
       }}
       enableLabel={false}
       enableGridY={false}
