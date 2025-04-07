@@ -253,3 +253,48 @@ def fetch_dashboard_statistics(
     except Exception as e:
         print("Error fetching dashboard statistics:", e)
         return {"error": str(e)}
+    
+def update_conversation_topic(conversation_id: str, topic: str) -> dict:
+    """
+    Update the topic of a specific conversation.
+
+    Args:
+        conversation_id (str): The UUID of the conversation.
+        topic (str): The new topic for the conversation.
+
+    Returns:
+        dict: API response after updating the conversation topic.
+    """
+    try:
+        response = (
+            supabase.table("conversations")
+            .update({"topic": topic})
+            .eq("conversation_id", conversation_id)
+            .execute()
+        )
+        return response
+    except Exception as exception:
+        logging.error(f"Error updating conversation topic: {exception}")
+        return {"error": str(exception)}
+
+def update_conversation_intervention(conversation_id: str) -> dict:
+    """
+    Update the intervention timing of a specific conversation.
+
+    Args:
+        conversation_id (str): The UUID of the conversation.
+
+    Returns:
+        dict: API response after updating the conversation intervention timing.
+    """
+    try:
+        response = (
+            supabase.table("conversations")
+            .update({"intervention_required": True})
+            .eq("conversation_id", conversation_id)
+            .execute()
+        )
+        return response
+    except Exception as exception:
+        logging.error(f"Error updating conversation intervention timing: {exception}")
+        return {"error": str(exception)}

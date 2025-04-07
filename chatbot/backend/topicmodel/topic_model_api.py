@@ -19,10 +19,9 @@ class TopicModelRequest(BaseModel):
 def map_topics(request: TopicModelRequest):
     try:
         # map the topics
-        topics = simple_tm.map_all_topics(qa_pairs=request.qa_pairs)
+        topic = simple_tm.map_all_topics(qa_pairs=request.qa_pairs)
         return {
-            "status": "success",
-            "topics": topics,
+            "topic": topic,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
