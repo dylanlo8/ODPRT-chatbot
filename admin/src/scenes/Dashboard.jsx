@@ -10,6 +10,7 @@ import StatBox from "../components/StatBox";
 import ThumbsBox from "../components/thumbs/ThumbsBox";
 import TotalUsers from "../components/TotalUsers";
 import { fetchDashboardData } from "../api/DashboardApi"; // Import the API function
+import { preprocessTimeSeries } from "../utils/DashboardUtils";
 
 const Dashboard = () => {
   const colors = tokens();
