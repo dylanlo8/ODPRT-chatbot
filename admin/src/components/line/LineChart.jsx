@@ -5,12 +5,12 @@ import { tokens } from "../../theme";
 const LineChart = ({ data, showLegend }) => {
   const colors = tokens();
 
-  const xValues = data[0]?.data.map(d => d?.x) || []; // get all x-axis values 
+  // const xValues = data[0]?.data.map(d => d?.x) || []; // get all x-axis values 
 
-  const maxTicks = 3; // limit the chart to display maximum 7 values in the x-axis 
-  const total = xValues.length;
-  const step = Math.max(1, Math.floor(total / maxTicks));
-  const tickValues = xValues.filter((_, index) => index % step === 0);
+  // const maxTicks = 3; // limit the chart to display maximum 7 values in the x-axis 
+  // const total = xValues.length;
+  // const step = Math.max(1, Math.floor(total / maxTicks));
+  // const tickValues = xValues.filter((_, index) => index % step === 0);
 
   return (
     <ResponsiveLine
@@ -52,7 +52,7 @@ const LineChart = ({ data, showLegend }) => {
         tickSize: 0,
         tickPadding: 20,
         tickRotation: 0,
-        tickValues: tickValues, // limit x-axis ticks
+        // tickValues: tickValues, // limit x-axis ticks
       }}
       axisLeft={{
         orient: "left",
