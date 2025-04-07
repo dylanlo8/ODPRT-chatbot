@@ -341,7 +341,7 @@ const ChatPage = () => {
         messages={messages}
         currentChatId={currentChatId}
         userUUID={userUUID}
-        onSendMessage={(message) => setMessages((prev) => [...prev, message])}
+        onSendMessage={(message) => setMessages((prev) => [...prev, ...[].concat(message)])}
         onNewConversationCreated={handleNewConversationCreated}
         onUpdateMessageFeedback={handleUpdateMessageFeedback}
       />
