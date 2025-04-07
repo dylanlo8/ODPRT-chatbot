@@ -1,15 +1,15 @@
 import { Box, Typography } from "@mui/material";
 import { tokens } from "../../theme";
 
-import Table from "./Table";
+import Feedback from "./Feedback";
 
-const TableBox = ({ files, setFiles, refreshKey }) => {
+const FeedbackBox = ({ feedbacks, dates }) => {
   const colors = tokens();
 
   return (
     <Box width="100%">
  
-        <Box ml="30px" mt="30px">
+        <Box ml="30px">
           {/* TITLE */}
             <Box display="flex" justifyContent="space-between">
             <Typography
@@ -17,17 +17,17 @@ const TableBox = ({ files, setFiles, refreshKey }) => {
                 fontWeight="600"
                 sx={{ color: colors.text }}
             >
-                Uploaded Files
+                Most Recent Feedbacks
             </Typography>
         </Box>
+        
+        {/* FEEDBACK */}
+        <Box>
+          <Feedback feedbacks={feedbacks} dates={dates}></Feedback>
         </Box>
-
-        {/* TABLE */}
-        <Box height="50vh">
-            <Table files={files} setFiles={setFiles} refreshKey={refreshKey} />
         </Box>
-
     </Box>
   );
 };
-export default TableBox;
+
+export default FeedbackBox;
