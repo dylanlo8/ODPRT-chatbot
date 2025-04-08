@@ -14,7 +14,6 @@ load_dotenv(override=True)
 
 class VectorDB:
     def __init__(self, collection_name):
-
         # Establish a connection to Zillis
         self.endpoint = os.getenv("ZILLIS_ENDPOINT")
         self.token = os.getenv("ZILLIS_TOKEN")
@@ -41,10 +40,28 @@ class VectorDB:
         self.collection_name = collection_name
 
     def insert(self, data):
+        """
+        Inserts data into the collection.
+
+        Args:
+            data (Any): The data to be inserted into the collection.
+
+        Returns:
+            None
+        """
         self.collection.insert(data)
         self.collection.load()
 
     def hybrid_search(self, query: str) -> str:
+        """
+        Performs a hybrid search on the collection using dense and sparse embeddings.
+
+        Args:
+            query (str): The query string to search for.
+
+        Returns:
+            str: A formatted string containing the search results.
+        """
         # Get query embedding
         dense_embedding, sparse_embedding = self.embedding_model.encode_texts([query])
 
@@ -86,6 +103,12 @@ class VectorDB:
         return "\n\n".join(context), context
 
     def drop_collection(self):
+        """
+        Drops the collection if it exists.
+
+        Returns:
+            None
+        """
         # Check if the collection exists
         if utility.has_collection(self.collection_name):
             collection = Collection(name=self.collection_name)
@@ -101,6 +124,15 @@ class VectorDB:
             print(f"Collection '{self.collection_name}' does not exist")
 
     def batch_ingestion(self, data):
+        """
+        Performs batch ingestion of data into the collection.
+
+        Args:
+            data (Any): The data to be ingested.
+
+        Returns:
+            None
+        """
         batch_size = 100
         total_elements = len(data)  # Ensure batching considers the number of records
         total_batches = (total_elements + batch_size - 1) // batch_size
@@ -117,6 +149,16 @@ class VectorDB:
             self.collection.insert(batch)  # Insert batch into collection
 
     def delete_data(self, field: str, match_results: list[str]):
+        """
+        Deletes entries from the collection where the specified field matches any value in match_results.
+
+        Args:
+            field (str): The field to match against.
+            match_results (list[str]): A list of values to match for deletion.
+
+        Returns:
+            Any: The result of the delete operation.
+        """
         """
         Delete entries from Milvus where 'field' matches any value in 'match_results'.
         """

@@ -1,3 +1,8 @@
+"""
+This module defines chains for processing user queries.
+It includes chains for classifying queries, generating responses, and creating email templates.
+"""
+
 from langchain_core.prompts.chat import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
@@ -9,7 +14,7 @@ from chatbot.backend.prompts.query_prompts import (
 from chatbot.backend.schemas.structured_outputs import SemanticRouting, EmailTemplate
 from chatbot.backend.services.models.llm import gpt_4o_mini
 
-# classifies user queries
+# Define a chain for classifying user queries
 routing_chain = ChatPromptTemplate.from_messages(
     [
         ("system", ROUTING_PROMPT),
@@ -19,7 +24,7 @@ routing_chain = ChatPromptTemplate.from_messages(
     ]
 ) | gpt_4o_mini.with_structured_output(SemanticRouting)
 
-# generates responses
+# Define a chain for generating responses to user queries
 answer_chain = (
     ChatPromptTemplate.from_messages(
         [
@@ -34,7 +39,7 @@ answer_chain = (
     | StrOutputParser()
 )
 
-# generates emails
+# Define a chain for generating email templates based on chat history
 generate_email_chain = ChatPromptTemplate.from_messages(
     [
         ("system", EMAIL_TEMPLATE),
