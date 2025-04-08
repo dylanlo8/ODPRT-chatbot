@@ -7,7 +7,13 @@ from chatbot.backend.services.vector_db.db import vector_db
 class IngestionService:
     def ingest_images(self, image_paths):
         """
-        Ingests image data into the vector database
+        Ingests image data into the vector database.
+
+        Steps:
+        1. Generate image summaries using the VLM model.
+        2. Encode the summaries to generate dense and sparse embeddings.
+        3. Prepare the data for ingestion, including metadata and embeddings.
+        4. Batch ingest the data into the vector database.
         """
         # Step 1: Generate image summaries
         image_summaries = vlm.generate_image_summaries(image_paths)
@@ -33,7 +39,12 @@ class IngestionService:
 
     def ingest_texts(self, text_chunks, doc_source, doc_type):
         """
-        Ingests text data into the vector database
+        Ingests text data into the vector database.
+
+        Steps:
+        1. Encode the provided text chunks to generate dense and sparse embeddings.
+        2. Prepare the data for ingestion, including metadata and embeddings.
+        3. Batch ingest the data into the vector database.
         """
         # Embed the text Chunks
         print("Encoding Text")

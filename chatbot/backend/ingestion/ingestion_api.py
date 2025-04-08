@@ -6,6 +6,10 @@ from chatbot.backend.document_parser.document_parser import DocumentParser
 import shutil
 import os
 
+"""
+This module defines the ingestion API for handling file uploads and processing.
+It includes endpoints for ingesting various file types such as images, PDFs, and Word documents.
+"""
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -34,6 +38,7 @@ async def ingest_files(files: list[UploadFile] = File(...)):
                 logger.info(f"Saved image file to {temp_file_path}")
                 ingestion_service.ingest_images([temp_file_path])
                 temp_file_paths.append(temp_file_path)
+            
             # PDF or DOCX Files
             elif file.content_type in ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']:
                 temp_file_path = f"/tmp/{file.filename}"
@@ -43,8 +48,10 @@ async def ingest_files(files: list[UploadFile] = File(...)):
                 extracted_text = document_parser.process_user_uploads(temp_file_path)
                 ingestion_service.ingest_texts(extracted_text, file.filename, "Word Documents / PDF")
                 temp_file_paths.append(temp_file_path)
+            
             else:
                 raise HTTPException(status_code=400, detail=f"Invalid file type for {file.filename}.")
+        
         except Exception as e:
             logger.error(f"Error processing file {file.filename}: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Failed to process file {file.filename}: {str(e)}")

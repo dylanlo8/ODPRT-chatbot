@@ -26,8 +26,21 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 
+"""
+This module defines the DocumentParser class, which processes various types of documents.
+It includes methods for extracting text, images, and relevant content from attachments.
+"""
+
 class DocumentParser:
-    """class to parse attachments and return ingestable chunks of information"""
+    """
+    A class to parse attachments and return ingestible chunks of information.
+
+    Attributes:
+        directory (str): Directory containing attachments to process.
+        similarity_threshold (float): Threshold for determining relevance.
+        embedding_model: Model used for semantic chunking.
+        logger: Logger instance for logging messages.
+    """
 
     def __init__(
         self,
@@ -41,6 +54,12 @@ class DocumentParser:
         # self.poppler_path = os.getenv("POPPLER_PATH")
 
     def read_attachments(self):
+        """
+        Reads all attachments in the directory and returns a list of file paths.
+
+        Returns:
+            List[str]: List of file paths for all attachments.
+        """
         """Reads all attachments in the directory and returns a list of file paths."""
         files = []
         for root, _, filenames in os.walk(self.directory):
@@ -49,6 +68,12 @@ class DocumentParser:
         return files
 
     def filter_useful_attachments(self) -> List[str]:
+        """
+        Filters and processes useful attachments from emails in the specified directory.
+
+        Returns:
+            List[str]: List of relevant processed attachment file paths.
+        """
         """
         Filters and processes useful attachments from emails in 'processed_docs/emails_with_attachments'.
 
@@ -161,6 +186,15 @@ class DocumentParser:
         Returns:
             str: Path to the generated temporary PDF file.
         """
+        """
+        Converts a DOCX file to PDF and saves it in a temporary directory.
+
+        Args:
+            docx_path (str): Path to the DOCX file.
+
+        Returns:
+            str: Path to the generated temporary PDF file.
+        """
         temp_pdf_dir = os.path.join(os.path.dirname(os.path.dirname(docx_path)), "temp_pdfs")  # Store temporary PDFs separately
         os.makedirs(temp_pdf_dir, exist_ok=True)  # Ensure directory exists
 
@@ -172,6 +206,17 @@ class DocumentParser:
         return output_pdf_path
 
     def convert_pdf_to_images(self, pdf_path: str, output_folder: str = None, dpi: int = 300) -> List[str]:
+        """
+        Converts a PDF into images, one image per page.
+
+        Args:
+            pdf_path (str): Path to the PDF file.
+            output_folder (str, optional): Folder to save extracted images.
+            dpi (int, optional): Resolution of the output images.
+
+        Returns:
+            List[str]: List of paths to the saved image files.
+        """
         """
         Converts a PDF into images, one image per page.
 
@@ -196,9 +241,17 @@ class DocumentParser:
 
         return image_paths
 
-    def classify_attachment_relevance(
-        self, email_thread: str, attachment_path: str
-    ) -> str:
+    def classify_attachment_relevance(self, email_thread: str, attachment_path: str) -> str:
+        """
+        Classifies whether an attachment (PDF, DOCX, or images) is relevant based on the email context.
+
+        Args:
+            email_thread (str): The cleaned email text.
+            attachment_path (str): The file path to the attachment.
+
+        Returns:
+            str: Path to the final processed relevant PDF, or "not_relevant" if no relevant content is found.
+        """
         """
         Classifies whether an attachment (PDF, DOCX, or images) is relevant based on the email context.
 
@@ -297,6 +350,16 @@ class DocumentParser:
         Returns:
             str: Path to the final processed PDF.
         """
+        """
+        Combines relevant pages (images) into a single PDF.
+
+        Args:
+            useful_images (List[str]): List of image paths for relevant pages.
+            attachment_path (str): The original attachment file path.
+
+        Returns:
+            str: Path to the final processed PDF.
+        """
         if not useful_images:
             self.logger.info(
                 f"No relevant pages found for {attachment_path}. Skipping PDF creation."
@@ -325,9 +388,17 @@ class DocumentParser:
 
         return output_pdf_path
 
-    def extract_images_from_docx(
-        docx_path: str, output_folder: str = None
-    ) -> List[str]:
+    def extract_images_from_docx(docx_path: str, output_folder: str = None) -> List[str]:
+        """
+        Extracts images from a DOCX file and saves them as image files.
+
+        Args:
+            docx_path (str): Path to the DOCX file.
+            output_folder (str, optional): Folder to save extracted images.
+
+        Returns:
+            List[str]: List of paths to the saved image files.
+        """
         """
         Extracts images from a DOCX file and saves them as image files.
 
@@ -362,6 +433,15 @@ class DocumentParser:
         return image_paths
 
     def extract_text_from_pdf(self, file_path: str):
+        """
+        Extracts text from a PDF file.
+
+        Args:
+            file_path (str): Path to the PDF file.
+
+        Returns:
+            str: Extracted text from the PDF.
+        """
         """Extracts text from a PDF file."""
         extracted_text = ""
 
@@ -376,6 +456,16 @@ class DocumentParser:
         return extracted_text
 
     def extract_images_from_pdf(self, file_path: str, min_contour_area=5000):
+        """
+        Extracts images from a PDF file.
+
+        Args:
+            file_path (str): Path to the PDF file.
+            min_contour_area (int): Minimum contour area to consider an object as a figure.
+
+        Returns:
+            dict: A dictionary containing extracted figures.
+        """
         """
         Extracts images from a PDF file.
 
@@ -451,6 +541,15 @@ class DocumentParser:
         return extracted_figures
 
     def extract_text_from_docx(self, file_path: str):
+        """
+        Extracts text from a Word document.
+
+        Args:
+            file_path (str): Path to the Word document.
+
+        Returns:
+            str: Extracted text from the Word document.
+        """
         """Extracts text from a Word document."""
         doc = Document(file_path)
         full_text = []
@@ -468,6 +567,15 @@ class DocumentParser:
     def separate_text_and_images(self, file_path: str):
         """
         Extracts both text and images from an attachment.
+
+        Args:
+            file_path (str): Path to the attachment.
+
+        Returns:
+            tuple: A tuple containing extracted text, list of images, and the file path.
+        """
+        """
+        Extracts both text and images from an attachment.
         Returns a tuple: (extracted_text, list_of_images).
         """
         mime_type, _ = mimetypes.guess_type(file_path)
@@ -483,6 +591,15 @@ class DocumentParser:
         return text, images, file_path
     
     def chunk_text(self, text):
+        """
+        Splits text into semantic chunks using the embedding model.
+
+        Args:
+            text (str): The text to be chunked.
+
+        Returns:
+            List[str]: List of semantic text chunks.
+        """
         os.environ["TOKENIZERS_PARALLELISM"] = "false"
         semantic_chunker = SemanticChunker(
             embedding_model, breakpoint_threshold_type="percentile"
@@ -494,6 +611,12 @@ class DocumentParser:
         return [chunk.page_content for chunk in semantic_chunks]
     
     def process_and_save_attachments(self):
+        """
+        Processes filtered useful attachments:
+        - Extracts text and images.
+        - Generates semantic chunks from text.
+        - Saves text chunks and images as pickle files in 'data_pkl'.
+        """
         """
         Processes filtered useful attachments:
         - Extracts text and images.
@@ -607,6 +730,15 @@ class DocumentParser:
     #     print("Finished processing all attachments.")
     
     def extract_text_from_user_uploads(self, file_path: str):
+        """
+        Extracts text from user-uploaded files.
+
+        Args:
+            file_path (str): Path to the uploaded file.
+
+        Returns:
+            str: Extracted text from the file.
+        """
         mime_type, _ = mimetypes.guess_type(file_path)
         text = ""
         if mime_type and "pdf" in mime_type:
@@ -617,6 +749,15 @@ class DocumentParser:
 
 
     def process_user_uploads(self, file_path: str):
+        """
+        Processes user-uploaded files by extracting text and generating semantic chunks.
+
+        Args:
+            file_path (str): Path to the uploaded file.
+
+        Returns:
+            List[str]: List of semantic text chunks.
+        """
         extracted_text = self.extract_text_from_user_uploads(file_path)
         text_chunks = self.chunk_text(extracted_text)
         return text_chunks

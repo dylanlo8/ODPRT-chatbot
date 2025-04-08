@@ -1,3 +1,8 @@
+/**
+ * ChatPage component serves as the main interface for the chatbot application.
+ * It manages user interactions, chat history, feedback, and communication with the backend API.
+ */
+
 import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { FaComment } from "react-icons/fa";
@@ -6,8 +11,16 @@ import ChatHistory from "./ChatHistory/ChatHistory";
 import FeedbackForm from "./FeedbackForm/FeedbackForm";
 import "./ChatPage.css";
 
+/**
+ * Base URL for the backend API service.
+ */
 const API_SERVICE = "http://localhost:8000";
 
+/**
+ * Retrieves or generates a unique user identifier (UUID) stored in localStorage.
+ * 
+ * @returns {string} The user's UUID.
+ */
 const getUserUUID = () => {
   let userUUID = localStorage.getItem("userUUID");
   if (!userUUID) {
@@ -18,6 +31,12 @@ const getUserUUID = () => {
 };
 
 
+/**
+ * Fetches the list of user conversations from the backend.
+ * 
+ * @param {string} userId - The unique identifier of the user.
+ * @returns {Promise<Array>} A promise resolving to an array of user conversations.
+ */
 const fetchUserConversations = async (userId) => {
   try {
     const response = await fetch(`${API_SERVICE}/users/${userId}/conversations`);
@@ -34,6 +53,12 @@ const fetchUserConversations = async (userId) => {
   }
 };
 
+/**
+ * Fetches the messages of a specific conversation from the backend.
+ * 
+ * @param {string} conversationId - The unique identifier of the conversation.
+ * @returns {Promise<Array>} A promise resolving to an array of messages.
+ */
 const fetchConversationMessages = async (conversationId) => {
   try {
     const response = await fetch(`${API_SERVICE}/conversations/${conversationId}/messages`);
@@ -50,6 +75,12 @@ const fetchConversationMessages = async (conversationId) => {
   }
 };
 
+/**
+ * Deletes a specific conversation from the backend.
+ * 
+ * @param {string} conversationId - The unique identifier of the conversation.
+ * @returns {Promise<Object|null>} A promise resolving to the deleted conversation data or null if an error occurs.
+ */
 const deleteConversation = async (conversationId) => {
   try {
     const response = await fetch(`${API_SERVICE}/conversations/${conversationId}`, {
@@ -68,6 +99,13 @@ const deleteConversation = async (conversationId) => {
   }
 };
 
+/**
+ * Generates a topic for a chat based on its messages using the backend topic model.
+ * 
+ * @param {string} chatId - The unique identifier of the chat.
+ * @param {Array} messages - An array of chat messages.
+ * @returns {Promise<string|null>} A promise resolving to the generated topic or null if an error occurs.
+ */
 const generateChatTopic = async (chatId, messages) => {
   try {
     // Get topic mapping
@@ -94,6 +132,12 @@ const generateChatTopic = async (chatId, messages) => {
   }
 };
 
+/**
+ * Updates the topic of a specific conversation in the backend.
+ * 
+ * @param {string} conversationId - The unique identifier of the conversation.
+ * @param {string} topic - The new topic to be updated.
+ */
 const updateTopic = async (conversationId, topic) => {
   try {
     const response = await fetch(`${API_SERVICE}/conversations/${conversationId}/topic?topic=${topic}`, {
@@ -111,6 +155,9 @@ const updateTopic = async (conversationId, topic) => {
   }
 };
 
+/**
+ * Main ChatPage component that renders the chatbot interface, chat history, and feedback form.
+ */
 const ChatPage = () => {
   const userUUID = getUserUUID();
   const [messages, setMessages] = useState([]);
@@ -121,6 +168,9 @@ const ChatPage = () => {
   const [idleTimer, setIdleTimer] = useState(null);
   const [topicTimer, setTopicTimer] = useState(null);
 
+  /**
+   * Resets the timer for generating a chat topic. If the timer is already running, it clears it first.
+   */
   const resetTopicTimer = () => {
     if (topicTimer) {
       clearTimeout(topicTimer);
@@ -157,17 +207,31 @@ const ChatPage = () => {
     console.log("messages ", messages)
   }, [messages])
 
+  /**
+   * Handles the creation of a new chat by resetting the current chat ID and messages.
+   */
   const handleNewChat = async () => {
     setCurrentChatId(null); 
     setMessages([]); 
   };
 
+  /**
+   * Loads a specific chat by fetching its messages and setting them in the state.
+   * 
+   * @param {string} chatId - The unique identifier of the chat to load.
+   */
   const handleLoadChat = async (chatId) => {
     setCurrentChatId(chatId); 
     const messages = await fetchConversationMessages(chatId);
     setMessages(messages);
   };
 
+  /**
+   * Updates the feedback for a specific message in the chat.
+   * 
+   * @param {string} messageId - The unique identifier of the message.
+   * @param {boolean} feedback - The feedback value (true for useful, false for not useful).
+   */
   const handleUpdateMessageFeedback = (messageId, feedback) => {
     setMessages((prevMessages) => {
       const updatedMessages = prevMessages.map(innerArray =>
@@ -180,6 +244,11 @@ const ChatPage = () => {
   };
   
 
+  /**
+   * Deletes a specific chat and updates the chat history and messages state.
+   * 
+   * @param {string} chatId - The unique identifier of the chat to delete.
+   */
   const handleDeleteChat = async (chatId) => {
     await deleteConversation(chatId);
     setChatHistory((prevHistory) =>
@@ -189,20 +258,32 @@ const ChatPage = () => {
     setCurrentChatId(null);
   };
 
+  /**
+   * Toggles the visibility of the chat history panel.
+   */
   const toggleChatHistory = () => {
     setShowChatHistory((prev) => !prev);
   };
 
+  /**
+   * Toggles the visibility of the feedback form and resets the idle timer.
+   */
   const toggleFeedbackForm = () => {
     setShowFeedback((prev) => !prev);
     resetIdleTimer(); 
   };
 
+  /**
+   * Handles the cancellation of the feedback form and resets the idle timer.
+   */
   const handleFeedbackCancel = () => {
     setShowFeedback(false); 
     resetIdleTimer(); 
   };
   
+  /**
+   * Resets the idle timer. If the timer is already running, it clears it first.
+   */
   const resetIdleTimer = () => {
     if (idleTimer) {
       clearTimeout(idleTimer); 
@@ -217,6 +298,11 @@ const ChatPage = () => {
     console.log("Updated chatHistory", chatHistory);
   }, [chatHistory]);
 
+  /**
+   * Handles the creation of a new conversation by updating the chat history and resetting messages.
+   * 
+   * @param {Object} newChat - The new chat object containing conversation details.
+   */
   const handleNewConversationCreated = (newChat) => {
     console.log("creating new chat ", newChat);
     setCurrentChatId(newChat.conversation_id);
@@ -233,6 +319,13 @@ const ChatPage = () => {
 
   };
 
+  /**
+   * Sends an email escalation for a specific chat by communicating with the backend.
+   * 
+   * @param {string} chatHistory - The chat history to include in the email.
+   * @param {string} chatId - The unique identifier of the chat.
+   * @returns {Promise<Object|null>} A promise resolving to the email data or null if an error occurs.
+   */
   const sendEmail = async (chatHistory, chatId) => {
     try {
         const response = await fetch(`${API_SERVICE}/chat/email-escalation/`, {
@@ -259,6 +352,11 @@ const ChatPage = () => {
     }
 }
 
+  /**
+   * Exports a specific chat by sending its messages via email.
+   * 
+   * @param {string} chatId - The unique identifier of the chat to export.
+   */
   const handleExportChat = async (chatId) => {
     try {
         // Fetch the conversation messages for the given chatId
