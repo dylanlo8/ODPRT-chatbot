@@ -40,50 +40,49 @@ const Dashboard = () => {
   const fetchData = async (range) => {
     try {
       const result = await fetchDashboardData(range); // Use the API function
-      setResult(result); // Store raw results
+      setResult(result || {}); // Store raw results with fallback to empty object
 
-      // Format common queries data for BarBox
-      const commonQueriesData = result.top_topics.map((item) => ({
-        query: item.topic,
+      // Format common queries data for BarBox with null checks
+      const commonQueriesData = (result?.top_topics || []).map((item) => ({
+        query: item.topic || "Unknown",
         resolved:
-          item.frequency -
-          (result.top_unresolved_topics.find((t) => t.topic === item.topic)?.unresolved_count || 0),
+          (item.frequency || 0) -
+          ((result?.top_unresolved_topics || []).find((t) => t.topic === item.topic)?.unresolved_count || 0),
         resolvedColor: tokens().gray[500],
-        unresolved: result.top_unresolved_topics.find((t) => t.topic === item.topic)?.unresolved_count || 0,
+        unresolved: (result?.top_unresolved_topics || []).find((t) => t.topic === item.topic)?.unresolved_count || 0,
         unresolvedColor: tokens().indigo[500],
       }));
 
-      // Format unresolved queries data for BarBox
-      const unresolvedQueriesData = result.top_unresolved_topics.map((item) => ({
-        query: item.topic,
-        unresolved: item.unresolved_count,
+      // Format unresolved queries data for BarBox with null checks
+      const unresolvedQueriesData = (result?.top_unresolved_topics || []).map((item) => ({
+        query: item.faculty || "Unknown",
+        unresolved: item.unresolved_count || 0,
         unresolvedColor: tokens().indigo[500],
       }));
 
-      // Format user queries over time data for LineBox
-      const rawUserQueriesData = result.user_queries_over_time.map(item => ({
-        x: new Date(item.date).toLocaleDateString(),
-        y: item.total,
+      // Format user queries over time data for LineBox with null checks
+      const rawUserQueriesData = (result?.user_queries_over_time || []).map(item => ({
+        x: new Date(item.date || new Date()).toLocaleDateString(),
+        y: item.total || 0,
       }));
-      
-      const sampledUserQueriesData = downsample(rawUserQueriesData, 7);
+    
       
       const userQueriesData = [
         {
           id: "queries",
           color: tokens().indigo[500],
-          data: sampledUserQueriesData,
+          data: rawUserQueriesData,
         }
       ];
 
-      // Format user experience over time data for LineBox
+      // Format user experience over time data for LineBox with null checks
       const userExperienceData = [
         {
           id: "ratings",
           color: tokens().indigo[500],
-          data: result.user_experience_over_time.map((item) => ({
-            x: new Date(item.date).toLocaleDateString(),
-            y: item.avg_rating,
+          data: (result?.user_experience_over_time || []).map((item) => ({
+            x: new Date(item.date || new Date()).toLocaleDateString(),
+            y: item.avg_rating || 0,
           })),
         },
       ];
@@ -96,6 +95,13 @@ const Dashboard = () => {
       });
     } catch (err) {
       console.error("Error fetching data:", err);
+      // Set empty data on error
+      setData({
+        commonQueries: [],
+        userQueries: [{ id: "queries", color: tokens().indigo[500], data: [] }],
+        unresolvedQueries: [],
+        userExperience: [{ id: "ratings", color: tokens().indigo[500], data: [] }],
+      });
     }
   };
 
