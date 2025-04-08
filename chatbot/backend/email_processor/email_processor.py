@@ -11,8 +11,21 @@ import os
 import shutil
 
 
+"""
+This module defines the EmailProcessor class, which processes emails for ingestion.
+It includes methods for filtering useful emails, extracting QA pairs, and deduplicating content.
+"""
+
 class EmailProcessor:
-    """class to process emails for optimal ingestion"""
+    """
+    A class to process emails for optimal ingestion.
+
+    Attributes:
+        directory (str): Directory containing email data.
+        similarity_threshold (float): Threshold for determining semantic similarity.
+        embedding_model: Model used for computing embeddings.
+        logger: Logger instance for logging messages.
+    """
 
     def __init__(
         self,
@@ -24,19 +37,17 @@ class EmailProcessor:
         self.embedding_model = embedding_model
         self.logger = logger
 
-    def _classify_email(
-        self,
-        email_thread: str,
-    ) -> Literal["useful", "not_useful"]:
+    def _classify_email(self, email_thread: str) -> Literal["useful", "not_useful"]:
         """
-        classify email thread based on usefulness
+        Classifies an email thread based on its usefulness.
 
         Args:
-            email_thread (str): email thread
+            email_thread (str): The email thread content.
 
         Returns:
-            classification (Literal["useful", "not_useful"]): classification of email thread
+            Literal["useful", "not_useful"]: Classification of the email thread.
         """
+
         # invoke chain
         response = classification_chain.invoke({"email_thread": email_thread})
         return response.classification
@@ -80,38 +91,30 @@ class EmailProcessor:
         self.logger.info(f"Useful emails: {len(useful_emails)}")
         return useful_emails
 
-    def _qa_email(
-        self,
-        email_thread: str,
-    ) -> Tuple[List[str], List[str]]:
+    def _qa_email(self, email_thread: str) -> Tuple[List[str], List[str]]:
         """
-        qa email thread
+        Extracts questions and answers from an email thread.
 
         Args:
-            email_thread (str): email thread
+            email_thread (str): The email thread content.
 
         Returns:
-            questions (List[str]): list of questions
-            answers (List[str]): list of answers
+            Tuple[List[str], List[str]]: A tuple containing lists of questions and answers.
         """
         # invoke chain
         response = qa_chain.invoke({"email_thread": email_thread})
         return response.questions, response.answers
 
-    def _merge_qa_pairs(
-        self,
-        questions: List[str],
-        answers: List[str],
-    ) -> List[str]:
+    def _merge_qa_pairs(self, questions: List[str], answers: List[str]) -> List[str]:
         """
-        merge questions and answers
+        Merges questions and answers into QA pairs.
 
         Args:
-            questions (List[str]): list of questions
-            answers (List[str]): list of answers
+            questions (List[str]): List of questions.
+            answers (List[str]): List of answers.
 
         Returns:
-            qa_pairs (List[str]): list of questions and answers
+            List[str]: List of merged QA pairs.
         """
         qa_pairs = []
         for idx, question in enumerate(questions):
@@ -120,18 +123,15 @@ class EmailProcessor:
             qa_pairs.append(qa)
         return qa_pairs
 
-    def _find_duplicates(
-        self,
-        texts: List[str],
-    ) -> List[int]:
+    def _find_duplicates(self, texts: List[str]) -> List[int]:
         """
-        find duplicate texts based on semantic similarity
+        Finds duplicate texts based on semantic similarity.
 
         Args:
-            texts (List[str]): List of text strings to check for duplicates
+            texts (List[str]): List of text strings to check for duplicates.
 
         Returns:
-            List[int]: Indices of texts that are duplicates
+            List[int]: Indices of texts that are duplicates.
         """
         # compute embeddings for all texts
         embeddings = self.embedding_model.compute_embeddings(texts)
@@ -149,18 +149,15 @@ class EmailProcessor:
 
         return sorted(list(duplicate_indices))
 
-    def _dedup_qa_pairs(
-        self,
-        qa_pairs: List[str],
-    ) -> List[str]:
+    def _dedup_qa_pairs(self, qa_pairs: List[str]) -> List[str]:
         """
-        remove duplicate QA pairs based on semantic similarity.
+        Removes duplicate QA pairs based on semantic similarity.
 
         Args:
-            qa_pairs (List[str]): List of question-answer pairs
+            qa_pairs (List[str]): List of question-answer pairs.
 
         Returns:
-            List[str]: Deduplicated question-answer pairs
+            List[str]: Deduplicated question-answer pairs.
         """
         if not qa_pairs:
             return []
@@ -179,12 +176,12 @@ class EmailProcessor:
 
     def get_qa_pairs(self) -> List[str]:
         """
-        get qa pairs from emails
+        Extracts QA pairs from emails.
 
         Returns:
-            questions (List[str]): list of questions
-            answers (List[str]): list of answers
+            List[str]: List of deduplicated QA pairs.
         """
+    
         useful_emails = self._filter_useful_emails()
         final_questions = []
         final_answers = []

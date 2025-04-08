@@ -25,6 +25,9 @@ class SemanticRouting(BaseModel):
     classification: Literal["unrelated", "related", "vague"] = Field(
         description="a string to represent if the query is vague, unrelated or related"
     )
+    reasoning: str = Field(
+        description="A string to represent the reasoning behind the classification"
+    )
     clarifying_question: str = Field(
         description="A follow-up question to request more details before proceeding with further classification."
     )

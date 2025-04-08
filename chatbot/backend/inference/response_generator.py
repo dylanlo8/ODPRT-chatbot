@@ -38,11 +38,13 @@ class ResponseGenerator:
             }
         )
 
-        classification, clarifying_question = (
+        classification, reasoning, clarifying_question = (
             result.classification,
+            result.reasoning,
             result.clarifying_question,
         )
-        return classification, clarifying_question
+
+        return classification, reasoning, clarifying_question
 
     def _generate_answer(
         self,
@@ -79,7 +81,7 @@ class ResponseGenerator:
         Returns:
             answer: response to user query
         """
-        classification, clarifying_question = self._router(
+        classification, reasoning, clarifying_question = self._router(
             user_query=user_query,
             uploaded_content=uploaded_content,
             chat_history=chat_history,
@@ -87,10 +89,12 @@ class ResponseGenerator:
 
         if classification == "unrelated":
             self.logger.info(f"route to `unrelated`")
+            self.logger.info(f"reasoning: {reasoning}")
             return self.unrelated_response
 
         if classification == "vague":
             self.logger.info(f"route to `vague` with clarifying question")
+            self.logger.info(f"reasoning: {reasoning}")
             return clarifying_question
 
         self.logger.info(f"route to `related`")

@@ -17,7 +17,14 @@ BUCKET_NAME = "rag_files"
 
 def upload_file(source_file_path: str, destination_file_path: str) -> dict:
     """
-    Uploads a file to the bucket
+    Uploads a file to the bucket.
+
+    Args:
+        source_file_path (str): The local path of the file to be uploaded.
+        destination_file_path (str): The path where the file will be stored in the bucket.
+
+    Returns:
+        dict: Response from the storage service or an exception in case of failure.
     """
     try:
         # Identify the content type
@@ -48,7 +55,16 @@ def fetch_files(
     ) -> dict:
 
     """
-    Fetches a list of files from the specified folder in the bucket
+    Fetches a list of files from the specified folder in the bucket.
+
+    Args:
+        folder (str): The folder path in the bucket to fetch files from. Defaults to "".
+        limit (int): The maximum number of files to fetch. Defaults to 100.
+        offset (int): The starting point for fetching files. Defaults to 0.
+        sort_by (dict): Sorting criteria with keys 'column' and 'order'. Defaults to {"column": "name", "order": "desc"}.
+
+    Returns:
+        dict: Response containing the list of files or an exception in case of failure.
     """
     try:
         response = supabase.storage.from_(BUCKET_NAME).list(  # Await here
@@ -66,7 +82,13 @@ def fetch_files(
     
 def delete_file(file_names: list[str]) -> dict:
     """
-    Bulk deletes files from the bucket
+    Bulk deletes files from the bucket.
+
+    Args:
+        file_names (list[str]): List of file names to be deleted.
+
+    Returns:
+        dict: Response from the storage service or an exception in case of failure.
     """
     try:
         response = supabase.storage.from_(BUCKET_NAME).remove(file_names)
@@ -75,10 +97,17 @@ def delete_file(file_names: list[str]) -> dict:
         return exception
     
 def download_file(file_path):
-    # Download file from Supabase Storage
+    """
+    Downloads a file from the bucket.
+
+    Args:
+        file_path (str): The path of the file to be downloaded.
+
+    Returns:
+        Any: The downloaded file content or an exception in case of failure.
+    """
     try: 
         response = supabase.storage.from_(BUCKET_NAME).download(file_path)
         return response
     except Exception as exception:
         return exception
-    
