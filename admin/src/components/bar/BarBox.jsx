@@ -13,7 +13,7 @@ const BarBox = ({ title, data, keys, index, showLegend }) => {
           {/* TITLE */}
             <Box display="flex" justifyContent="space-between">
                 <Typography
-                    variant="h5"
+                    variant="h6"
                     fontWeight="600"
                     sx={{ color: colors.text }}
                 >

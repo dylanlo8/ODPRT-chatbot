@@ -23,8 +23,11 @@ const ThumbsBox = ({upFigure, downFigure, upMessages, downMessages}) => {
             <Box display="flex" alignItems="center" mb={0.5}>
               <Thumbs figure={upFigure} isThumbsUp={true} />
             </Box>
-            <Messages msgInput={upMessages}
-            />
+            <Messages msgInput={upMessages}/>
+            {/* <Box minHeight="36px" >
+              <Messages msgInput={upMessages}/>
+            </Box> */}
+            
           </Box>
 
           {/* THUMBS DOWN*/}
@@ -32,9 +35,11 @@ const ThumbsBox = ({upFigure, downFigure, upMessages, downMessages}) => {
             <Box display="flex" alignItems="center" mb={0.5}>
               <Thumbs figure={downFigure} isThumbsUp={false} />
             </Box>
-            <Messages
-              msgInput={downMessages}
-            />
+            <Messages msgInput={downMessages}/>
+            {/* <Box minHeight="36px" >
+              <Messages msgInput={downMessages}/>
+            </Box>             */}
+
           </Box>
         </Box>
       </Box>

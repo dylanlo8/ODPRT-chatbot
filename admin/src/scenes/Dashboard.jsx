@@ -10,6 +10,7 @@ import StatBox from "../components/StatBox";
 import ThumbsBox from "../components/thumbs/ThumbsBox";
 import TotalUsers from "../components/TotalUsers";
 import { fetchDashboardData } from "../api/DashboardApi"; // Import the API function
+import { downsample } from "../utils/DashboardUtils";
 
 const Dashboard = () => {
   const colors = tokens();
@@ -50,15 +51,19 @@ const Dashboard = () => {
       }));
 
       // Format user queries over time data for LineBox
+      const rawUserQueriesData = result.user_queries_over_time.map(item => ({
+        x: new Date(item.date).toLocaleDateString(),
+        y: item.total,
+      }));
+      
+      const sampledUserQueriesData = downsample(rawUserQueriesData, 7);
+      
       const userQueriesData = [
         {
           id: "queries",
           color: tokens().indigo[500],
-          data: result.user_queries_over_time.map((item) => ({
-            x: new Date(item.date).toLocaleDateString(),
-            y: item.total,
-          })),
-        },
+          data: sampledUserQueriesData,
+        }
       ];
 
       // Format user experience over time data for LineBox
@@ -183,6 +188,7 @@ const Dashboard = () => {
           border={`2px solid ${colors.gray[200]}`}
         >
           <FeedbackBox
+            figure={result?.total_feedbacks || "XX"}
             feedbacks={result?.recent_feedbacks?.map((fb) => fb.feedback) || ["XX"]}
             dates={result?.recent_feedbacks?.map((fb) => new Date(fb.created_at).toLocaleDateString()) || ["XX"]}
           />

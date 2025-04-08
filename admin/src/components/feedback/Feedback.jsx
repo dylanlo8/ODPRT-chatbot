@@ -1,24 +1,55 @@
-import React from 'react';
-import './Feedback.css';
+import { Box, Typography } from '@mui/material';
+import { tokens } from "../../theme";
 
 const Feedback = ({ feedbacks, dates }) => {
-  const maxChars = 70; // Set your character limit here
+  const colors = tokens();
 
   return (
-      <ol className="feedback-list">
-        {feedbacks.map((text, index) => {
-          const truncated = text.length > maxChars ? text.slice(0, maxChars) + '...' : text;
-
-          return (
-            <li key={index} className="feedback-item">
-              <span className="feedback-text" title={text}>
-                "{truncated}" - {dates[index]}
+    <Box>
+      <Box>
+        {feedbacks.map((fdbk, index) => (
+          <Typography
+            key={index}
+            variant="body2"
+            sx={{
+              color: colors.text,
+              fontSize: "12px",
+              lineHeight: 1,
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              maxWidth: "550px",
+            }}
+          >
+            {index + 1}.{" "}
+            <span style={{ flexShrink: 0 }}>&ldquo;</span>
+            <span
+              title={fdbk}
+              style={{
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                flexShrink: 1,
+              }}
+            >
+              {fdbk}
+            </span>
+            <span style={{ flexShrink: 0 }}>&rdquo;</span>
+            {dates?.[index] && (
+              <span
+                style={{
+                  flexShrink: 0,
+                  whiteSpace: "nowrap",
+                  marginLeft: "4px",
+                }}
+              >
+                - {dates[index]}
               </span>
-            </li>
-          );
-        })}
-      </ol>
-
+            )}
+          </Typography>
+        ))}
+      </Box>
+    </Box>
   );
 };
 

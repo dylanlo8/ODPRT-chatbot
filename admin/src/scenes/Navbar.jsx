@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import { Box, IconButton, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
@@ -27,7 +27,17 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
 
 const Navbar = ({ isCollapsed, setIsCollapsed }) => {
   const colors = tokens();
-  const [selected, setSelected] = useState("Dashboard");
+  
+  // Initialize selected state from localStorage or default to "Dashboard"
+  const [selected, setSelected] = useState(() => {
+    const savedSelected = localStorage.getItem('selectedMenu');
+    return savedSelected ? savedSelected : "Dashboard";
+  });
+
+  useEffect(() => {
+    // Store the selected menu item in localStorage whenever it changes
+    localStorage.setItem('selectedMenu', selected);
+  }, [selected]);
 
   return (
     <Box
@@ -105,3 +115,4 @@ const Navbar = ({ isCollapsed, setIsCollapsed }) => {
 };
 
 export default Navbar;
+
