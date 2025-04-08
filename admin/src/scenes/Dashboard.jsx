@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Box } from "@mui/material";
 import { tokens } from "../theme";
 import DateFilter from "../components/DateFilter";
@@ -15,8 +15,18 @@ import { downsample } from "../utils/DashboardUtils";
 const Dashboard = () => {
   const colors = tokens();
 
+  // Calculate default date range (past 3 months to today)
+  const today = new Date();
+  const threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(today.getMonth() - 3);
+
+  const defaultDateRange = {
+    from: threeMonthsAgo.toISOString().split("T")[0], // Format as YYYY-MM-DD
+    to: today.toISOString().split("T")[0],
+  };
+
   // State to manage date filter and dashboard data
-  const [dateRange, setDateRange] = useState({ from: "", to: "" });
+  const [dateRange, setDateRange] = useState(defaultDateRange);
   const [data, setData] = useState({
     intervention: [],
     commonQueries: [],
@@ -88,6 +98,20 @@ const Dashboard = () => {
       console.error("Error fetching data:", err);
     }
   };
+
+  // Fetch data on component mount with default date range
+  useEffect(() => {
+    const today = new Date();
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(today.getMonth() - 3);
+
+    const defaultDateRange = {
+      from: threeMonthsAgo.toISOString().split("T")[0],
+      to: today.toISOString().split("T")[0],
+    };
+
+    fetchData(defaultDateRange);
+  }, []);
 
   // Function to handle date range changes
   const handleDateChange = (range) => {

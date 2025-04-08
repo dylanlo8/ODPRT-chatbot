@@ -234,12 +234,10 @@ const ChatPage = () => {
    */
   const handleUpdateMessageFeedback = (messageId, feedback) => {
     setMessages((prevMessages) => {
-      const updatedMessages = prevMessages.map(innerArray =>
-        innerArray.map(msg =>
-          msg.message_id === messageId ? { ...msg, is_useful: feedback } : msg
-        )
+      const updatedMessages = prevMessages.map((msg) =>
+        msg.message_id === messageId ? { ...msg, is_useful: feedback } : msg
       );
-      return [...updatedMessages]; 
+      return updatedMessages; // Return the updated flat array
     });
   };
   
