@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { FaComment } from "react-icons/fa";
 import Chatbot from "./Chatbot/Chatbot";
 import ChatHistory from "./ChatHistory/ChatHistory";
 import FeedbackForm from "./FeedbackForm/FeedbackForm";
@@ -67,6 +68,49 @@ const deleteConversation = async (conversationId) => {
   }
 };
 
+const generateChatTopic = async (chatId, messages) => {
+  try {
+    // Get topic mapping
+    const response = await fetch(`${API_SERVICE}/topic-model/map-topics/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ "qa_pairs" : messages.map((msg) => msg.text) })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log("Generated topic:", data.topic);
+      return data.topic;
+    } else {
+      console.error("Error generating chat topic:", data);
+      return null;
+    }
+  } catch (error) {
+    console.error("Failed to generate chat topic:", error);
+    return null;
+  }
+};
+
+const updateTopic = async (conversationId, topic) => {
+  try {
+    const response = await fetch(`${API_SERVICE}/conversations/${conversationId}/topic?topic=${topic}`, {
+      method: "PUT",
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Error updating chat topic:", errorData);
+    } else {
+      console.log("Chat topic updated successfully");
+    }
+  } catch (error) {
+    console.error("Failed to update chat topic:", error);
+  }
+};
+
 const ChatPage = () => {
   const userUUID = getUserUUID();
   const [messages, setMessages] = useState([]);
@@ -75,6 +119,31 @@ const ChatPage = () => {
   const [showChatHistory, setShowChatHistory] = useState(true);
   const [showFeedback, setShowFeedback] = useState(false);
   const [idleTimer, setIdleTimer] = useState(null);
+  const [topicTimer, setTopicTimer] = useState(null);
+
+  const resetTopicTimer = () => {
+    if (topicTimer) {
+      clearTimeout(topicTimer);
+    }
+  
+    setTopicTimer(
+      setTimeout(async () => {
+        if (currentChatId && messages.length > 0) {
+          const topic = await generateChatTopic(currentChatId, messages);
+          //testing
+          console.log("Generated topic:", topic);
+          await updateTopic(currentChatId, topic)
+        }
+      }, 60000) 
+    );
+  };
+  
+  useEffect(() => {
+    resetTopicTimer();
+    return () => {
+      if (topicTimer) clearTimeout(topicTimer);
+    };
+  }, [messages])
 
   useEffect(() => {
     const loadUserConversations = async () => {
@@ -124,6 +193,11 @@ const ChatPage = () => {
     setShowChatHistory((prev) => !prev);
   };
 
+  const toggleFeedbackForm = () => {
+    setShowFeedback((prev) => !prev);
+    resetIdleTimer(); 
+  };
+
   const handleFeedbackCancel = () => {
     setShowFeedback(false); 
     resetIdleTimer(); 
@@ -159,7 +233,7 @@ const ChatPage = () => {
 
   };
 
-  const sendEmail = async (chatHistory) => {
+  const sendEmail = async (chatHistory, chatId) => {
     try {
         const response = await fetch(`${API_SERVICE}/chat/email-escalation/`, {
             method: 'POST',
@@ -167,6 +241,10 @@ const ChatPage = () => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ chat_history: chatHistory }),
+        });
+        
+        const intervention = await fetch(`${API_SERVICE}/conversations/${chatId}/intervention/`, {
+          method: 'PUT',
         });
 
         if (!response.ok) {
@@ -197,7 +275,7 @@ const ChatPage = () => {
         }).join('\n\n');
         
         // Send the email with the chat history
-        const emailData = await sendEmail(chatHistory);
+        const emailData = await sendEmail(chatHistory, chatId);
 
         if (emailData) {
             const subject = encodeURIComponent(emailData.email_subject);
@@ -245,14 +323,29 @@ const ChatPage = () => {
           onExportChat={handleExportChat}
         />
       )}
+      <div className="feedback-container">
+      {messages.length > 0 && (
+        <button className="feedback-button" onClick={toggleFeedbackForm}>
+          <span className="feedback-icon">
+            <FaComment size={18} />
+          </span>
+          <span className="feedback-label">Send Feedback</span>
+        </button>
+
+
+
+      )}
+      </div>
+
       <Chatbot
         messages={messages}
         currentChatId={currentChatId}
         userUUID={userUUID}
-        onSendMessage={(message) => setMessages((prev) => [...prev, message])}
+        onSendMessage={(message) => setMessages((prev) => [...prev, ...[].concat(message)])}
         onNewConversationCreated={handleNewConversationCreated}
         onUpdateMessageFeedback={handleUpdateMessageFeedback}
       />
+      
       {showFeedback && <FeedbackForm conversationId = {currentChatId} onClose={handleFeedbackCancel} />}
     </div>
   );

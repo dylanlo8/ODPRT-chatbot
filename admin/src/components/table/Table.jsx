@@ -7,18 +7,19 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const Table = ({ files, setFiles }) => {
+const Table = ({ files, setFiles, refreshKey }) => {
   const colors = tokens();
   const [loading, setLoading ] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [notification, setNotification] = useState({ message: "", type: "" });
 
+  // Fetching data upon reload 
   useEffect(() => {
     const loadFiles = async () => {
+      setLoading(true);
       try {
         const data = await fetchFiles();
-        
         const modifiedData = data.map(file => ({
           id : file.id,
           file_name : file.name,
@@ -34,7 +35,7 @@ const Table = ({ files, setFiles }) => {
       }
     };
     loadFiles();
-  }, [ setFiles ]);
+  }, [refreshKey, setFiles]);
 
   const handleMenuOpen = (event, rowId) => {
     setAnchorEl(event.currentTarget);

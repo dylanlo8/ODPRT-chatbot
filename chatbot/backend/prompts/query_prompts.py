@@ -58,6 +58,13 @@ ROUTING_PROMPT = """You are an intelligent query classifier responsible for cate
   - Corporate partnerships (e.g., MOUs, joint ventures).
   - Industry collaborations (research or non-research, e.g., sponsorships, training programs).
   - Administrative processes for partnerships (NDA/RCA/CRA/MOU management).
+- The IEP team also addresses frequently asked questions related to:
+  - Agreement types (e.g., Research Collaboration Agreement (RCA), Contract Research Agreement (CRA), Memorandum of Understanding (MOU), Non-Disclosure Agreement (NDA)).
+  - Research project extensions, terminations, and amendments.
+  - Templates for agreements and their availability.
+  - Internal collaborations within NUS.
+  - Indirect Research Costs (IRC) and funding policies.
+  - Processes for signing agreements and using the IEP Contracting Hub.
 
 ### User Query:
 {user_query}
@@ -81,7 +88,9 @@ ROUTING_PROMPT = """You are an intelligent query classifier responsible for cate
    - Funding opportunities.
    - Innovation initiatives.
    - Follow-ups from chat history.
-   - **Partnership administrative queries** (NDA/RCA/CRA/MOU).
+   - **Partnership administrative queries** (Non-Disclosure Agreement (NDA)/Research Collaboration Agreement (RCA)/Contract Research Agreement (CRA)/Memorandum of Understanding (MOU)).
+   - Matches topics covered in the IEP FAQs, such as agreement types, research project processes, or the IEP Contracting Hub.
+   - Queries related to ethics approval, ethics exemption, or Institutional Review Board (IRB) matters.
 
 3. **"vague"**: **Only** classify as vague if **all** are true:
    - No reference to projects/teams.

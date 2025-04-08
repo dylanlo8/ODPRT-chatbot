@@ -28,6 +28,11 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConver
       .join("\n\n");
   };
 
+  useEffect(() => {
+    console.log("Loading state changed:", loading);
+  }, [loading]);
+  
+
   const handleSendMessage = async () => {
     console.log('Sending message:', inputText);
     if (inputText.trim() === "" && attachedFiles.length === 0) return;
@@ -107,6 +112,7 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConver
         setLoading(false);
     }
 };
+
 
   const insertMessage = async (conversationId, sender, text) => {
     try {
@@ -256,16 +262,16 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConver
                 </div>
 
                 {msg.sender === 'bot' && (
-                  <div className="feedback-buttons">
+                  <div className="thumbs-buttons">
                     <button
-                      className={`feedback-button ${msg.is_useful === true ? 'liked' : ''}`} 
+                      className={`thumbs-button ${msg.is_useful === true ? 'liked' : ''}`} 
                       onClick={() => handleFeedback(msg, true)}
                       title="Like"
                     >
                       <FontAwesomeIcon icon={faThumbsUp} />
                     </button>
                     <button
-                      className={`feedback-button ${msg.is_useful === false ? 'disliked' : ''}`} 
+                      className={`thumbs-button ${msg.is_useful === false ? 'disliked' : ''}`} 
                       onClick={() => handleFeedback(msg, false)}
                       title="Dislike"
                     >
@@ -277,7 +283,8 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConver
             );
           })}
 
-          {loading && <div className="loading-dots">...</div>}
+          {loading && <div className="spinner"></div>}
+
         </div>
       )}
       

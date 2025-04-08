@@ -4,7 +4,7 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { uploadFile } from "../../api/FileUploadApi"; 
 import { tokens } from "../../theme";
 
-const Uploader = ({ onFileUploaded }) => {
+const Uploader = ({ onUploadSuccess }) => {
     const colors = tokens();
     const [notification, setNotification] = useState({ message: "", type: "" });
     const [uploading, setUploading] = useState(false); 
@@ -13,10 +13,10 @@ const Uploader = ({ onFileUploaded }) => {
         if (files.length === 0) return;
         
         const selectedFile = files[0];
-        const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "application/pdf"];
+        const allowedTypes = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.ms-outlook"];
 
         if (!allowedTypes.includes(selectedFile.type)) {
-            setNotification({ message: "Error: Invalid file type. Please upload a PDF, PNG, JPG, or JPEG file.", type: "error" });
+            setNotification({ message: "Error: Invalid file type. Please upload a PDF, DOCX or MSG file.", type: "error" });
             return;
         }
 
@@ -24,17 +24,10 @@ const Uploader = ({ onFileUploaded }) => {
 
         try {
             const response = await uploadFile(selectedFile);
-            // const newFile = {
-            //     id: response.id,
-            //     file_name: response.name,
-            //     file_size: `${(response.metadata.size / 1024).toFixed(2)} KB`,
-            //     upload_date: new Date(response.created_at).toLocaleString(),
-            //     file_url: response.file_url 
-            // };
-
-            // onFileUploaded?.(newFile); 
             setNotification({ message: "File successfully uploaded!", type: "success" });
             console.log("Uploaded file:", response); 
+
+            if (onUploadSuccess) onUploadSuccess();
         } catch (error) {
             setNotification({ message: "Upload failed. Please try again.", type: "error" });
             console.error("Upload error:", error);
@@ -48,7 +41,7 @@ const Uploader = ({ onFileUploaded }) => {
             <form onClick={() => document.querySelector(".input-field").click()}>
                 <input
                     type="file"
-                    accept=".pdf, .png, .jpg, .jpeg"
+                    accept=".pdf, .docx, .msg"
                     className="input-field"
                     hidden
                     onChange={handleFileChange}

@@ -55,15 +55,6 @@ BEGIN
             FROM conversations
             WHERE intervention_required = TRUE AND created_at BETWEEN start_date AND end_date
         ),
-        'avg_time_spent_per_conversation_seconds', (
-            SELECT ROUND(EXTRACT(EPOCH FROM AVG(duration))::numeric, 2)
-            FROM (
-                SELECT MAX(created_at) - MIN(created_at) AS duration
-                FROM messages
-                WHERE created_at BETWEEN start_date AND end_date
-                GROUP BY conversation_id
-            ) AS durations
-        ),
         'avg_rating', (
             SELECT ROUND(AVG(rating), 2)
             FROM conversations
@@ -120,6 +111,51 @@ BEGIN
                 GROUP BY date
                 ORDER BY date
             ) AS r
+        ),
+        'total_feedbacks', (
+            SELECT COUNT(*)
+            FROM conversations
+            WHERE feedback IS NOT NULL AND created_at BETWEEN start_date AND end_date
+        ),
+        'total_thumbs_up', (
+            SELECT COUNT(*)
+            FROM messages
+            WHERE is_useful = TRUE AND created_at BETWEEN start_date AND end_date
+        ),
+        'total_thumbs_down', (
+            SELECT COUNT(*)
+            FROM messages
+            WHERE is_useful = FALSE AND created_at BETWEEN start_date AND end_date
+        ),
+        'recent_feedbacks', (
+            SELECT json_agg(f)
+            FROM (
+                SELECT conversation_id, user_id, feedback, created_at
+                FROM conversations
+                WHERE feedback IS NOT NULL AND created_at BETWEEN start_date AND end_date
+                ORDER BY created_at DESC
+                LIMIT 5
+            ) AS f
+        ),
+        'recent_thumbs_up_messages', (
+            SELECT json_agg(m)
+            FROM (
+                SELECT message_id, conversation_id, sender, text, created_at
+                FROM messages
+                WHERE is_useful = TRUE AND created_at BETWEEN start_date AND end_date
+                ORDER BY created_at DESC
+                LIMIT 5
+            ) AS m
+        ),
+        'recent_thumbs_down_messages', (
+            SELECT json_agg(m)
+            FROM (
+                SELECT message_id, conversation_id, sender, text, created_at
+                FROM messages
+                WHERE is_useful = FALSE AND created_at BETWEEN start_date AND end_date
+                ORDER BY created_at DESC
+                LIMIT 5
+            ) AS m
         )
     ) INTO result;
 
