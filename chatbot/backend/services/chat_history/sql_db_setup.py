@@ -92,16 +92,21 @@ BEGIN
             ) AS q
         ),
         'top_unresolved_topics', (
-            SELECT json_agg(u)
-            FROM (
-                SELECT topic, COUNT(*) AS unresolved_count
-                FROM conversations
-                WHERE intervention_required = TRUE AND created_at BETWEEN start_date AND end_date
-                GROUP BY topic
-                ORDER BY unresolved_count DESC
-                LIMIT 10
-            ) AS u
-        ),
+    SELECT json_agg(u)
+    FROM (
+        SELECT 
+            u.faculty,
+            c.topic, 
+            COUNT(*) AS unresolved_count
+        FROM conversations c
+        JOIN users u ON c.user_id = u.user_id
+        WHERE c.intervention_required = TRUE
+          AND c.created_at BETWEEN start_date AND end_date
+        GROUP BY u.faculty, c.topic
+        ORDER BY unresolved_count DESC
+        LIMIT 10
+    ) AS u
+),
         'user_experience_over_time', (
             SELECT json_agg(r)
             FROM (
