@@ -1,6 +1,6 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFileExport, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import "./ChatHistory.css";
 
 const ChatHistory = ({ chatHistory, onNewChat, onLoadChat, onDeleteChat, onExportChat }) => {
@@ -48,7 +48,7 @@ const ChatHistory = ({ chatHistory, onNewChat, onLoadChat, onDeleteChat, onExpor
                       </div>
                       <FontAwesomeIcon 
                         className = "email-btn"
-                        icon = {faFileExport}
+                        icon = {faEnvelope}
                         title="Email Correspondent"
                         onClick = {() => onExportChat(chat.conversation_id)}
                       />
