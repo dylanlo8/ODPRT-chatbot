@@ -10,10 +10,10 @@ import StatBox from "../components/StatBox";
 import ThumbsBox from "../components/thumbs/ThumbsBox";
 import TotalUsers from "../components/TotalUsers";
 import { fetchDashboardData } from "../api/DashboardApi"; // Import the API function
-import { downsample } from "../utils/DashboardUtils";
 
 const Dashboard = () => {
   const colors = tokens();
+  const [facultySummary, setFacultySummary] = useState([]);
 
   // Calculate default date range (past 3 months to today)
   const today = new Date();
@@ -55,10 +55,27 @@ const Dashboard = () => {
 
       // Format unresolved queries data for BarBox with null checks
       const unresolvedQueriesData = (result?.top_unresolved_topics || []).map((item) => ({
-        query: item.faculty || "Unknown",
+        dept: item.faculty || "Unknown",
+        query: item.topic || "Unknown",
         unresolved: item.unresolved_count || 0,
         unresolvedColor: tokens().indigo[500],
       }));
+
+      // Format unresolved queries into faculty-level summary 
+      const facultySummary = unresolvedQueriesData.reduce((acc, item) => {
+        const existing = acc.find((entry) => entry.dept === item.dept);
+        if (existing) {
+          existing.unresolved += item.unresolved;
+        } else {
+          acc.push({
+            dept: item.dept,
+            unresolved: item.unresolved,
+            unresolvedColor: item.unresolvedColor,
+          });
+        }
+        return acc;
+      }, []);
+      setFacultySummary(facultySummary);
 
       // Format user queries over time data for LineBox with null checks
       const rawUserQueriesData = (result?.user_queries_over_time || []).map(item => ({
@@ -236,7 +253,7 @@ const Dashboard = () => {
           border={`2px solid ${colors.gray[200]}`}
         >
           <BarBox
-            title="Top 10 Conversation Topics"
+            title="Common Conversation Topics"
             data={data.commonQueries}
             keys={["unresolved", "resolved"]}
             index="query"
@@ -269,11 +286,13 @@ const Dashboard = () => {
           border={`2px solid ${colors.gray[200]}`}
         >
           <BarBox
-            title="Top 10 Conversation Topics requiring Intervention"
-            data={data.unresolvedQueries}
+            title="Common Conversation Topics Requiring Intervention"
+            data={ facultySummary }
             keys={["unresolved"]}
-            index="query"
+            index="dept"
             showLegend={false}
+            hover={true}
+            topicBreakdown={data.unresolvedQueries || []}
           />
         </Box>
 
