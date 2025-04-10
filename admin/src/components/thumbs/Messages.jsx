@@ -6,18 +6,21 @@ const Messages = ({ msgInput }) => {
   const colors = tokens();
   const [tooltip, setTooltip] = useState(null);
 
+  // limit to top 3 most recent messages 
+  const top3 = msgInput.slice(0, 3);
+
   return (
     <Box display="flex">
       {/* Messages */}
       <Box>
-        {msgInput.map((msg, index) => (
+        {top3.map((msg, index) => (
           <Typography
             key={index}
             variant="body1"
             sx={{
               color: colors.text,
               fontSize: "12px",
-              lineHeight: 1.4,
+              lineHeight: 1,
               display: "flex",
               alignItems: "flex-start",
               gap: "4px",

@@ -6,17 +6,20 @@ const Feedback = ({ feedbacks, dates }) => {
   const colors = tokens();
   const [tooltip, setTooltip] = useState(null); // custom tooltip state
 
+  // limit to top 3 most recent feedbacks 
+  const top3 = feedbacks.slice(0, 3);
+
   return (
     <Box>
       <Box>
-        {feedbacks.map((fdbk, index) => (
+        {top3.map((fdbk, index) => (
           <Typography
             key={index}
             variant="body2"
             sx={{
               color: colors.text,
               fontSize: "12px",
-              lineHeight: 1.4,
+              lineHeight: 1,
               display: "flex",
               alignItems: "flex-start",
               gap: "4px",
