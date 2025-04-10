@@ -286,8 +286,9 @@ const Dashboard = () => {
           border={`2px solid ${colors.gray[200]}`}
         >
           <BarBox
-            title="Common Conversation Topics Requiring Intervention"
+            title="Intervened Topics by Faculty"
             data={ facultySummary }
+            pieTitle="Title Case"
             keys={["unresolved"]}
             index="dept"
             showLegend={false}

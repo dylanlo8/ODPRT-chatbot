@@ -3,7 +3,7 @@ import { tokens } from "../../theme";
 
 import BarChart from "./BarChart";
 
-const BarBox = ({ title, data, keys, index, showLegend, hover, topicBreakdown }) => {
+const BarBox = ({ title, data, keys, index, showLegend, pieTitle, hover, topicBreakdown }) => {
   const colors = tokens();
 
   return (
@@ -27,6 +27,7 @@ const BarBox = ({ title, data, keys, index, showLegend, hover, topicBreakdown })
             <BarChart 
             data={data} 
             keys={keys}
+            pieTitle={pieTitle}
             index={index}
             showLegend={showLegend} 
             hover={hover}

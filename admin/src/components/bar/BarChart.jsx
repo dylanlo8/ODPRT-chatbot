@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { ResponsiveBar } from "@nivo/bar";
 import { tokens } from "../../theme";
-import PieChart from "../pie/PieChart"; // Ensure this path is correct
+import PieBox from "../pie/PieBox"; // Ensure this path is correct
 
-const BarChart = ({ data, keys, index, showLegend, hover, topicBreakdown }) => {
+const BarChart = ({ data, keys, index, showLegend, pieTitle, hover, topicBreakdown }) => {
   const colors = tokens();
   const [hoveredFaculty, setHoveredFaculty] = useState(null);
   const pieColors = [
@@ -12,7 +12,6 @@ const BarChart = ({ data, keys, index, showLegend, hover, topicBreakdown }) => {
     colors.indigo[600],
     colors.gray[600],
     colors.indigo[400],
-    colors.gray[400]
   ];
 
   // Obtain the maximum bar plot value
@@ -31,7 +30,23 @@ const BarChart = ({ data, keys, index, showLegend, hover, topicBreakdown }) => {
     );
   };
 
-  const tickValues = generateIntegerTicks(maxY, 5); // Limit to max 5 ticks
+  // Limit to max 5 ticks
+  const tickValues = generateIntegerTicks(maxY, 5); 
+
+  // Filter topic breakdown to only include rows that belong to the currently hovered faculty
+  const filtered = (topicBreakdown || []).filter(
+    (item) => item.dept?.toLowerCase() === hoveredFaculty?.toLowerCase()
+  );
+  
+  // Sort by unresolved descending
+  const sorted = [...filtered].sort((a, b) => b.unresolved - a.unresolved);
+  
+  // Take top 5
+  const top5 = sorted.slice(0, 5);
+  
+  // Group "Others"
+  const others = sorted.slice(5);
+  const othersTotal = others.reduce((sum, item) => sum + item.unresolved, 0);
 
   return (
     <div style={{ display: "flex", position: "relative", height: "100%" }}>
@@ -154,8 +169,8 @@ const BarChart = ({ data, keys, index, showLegend, hover, topicBreakdown }) => {
         <div
         style={{
           position: "absolute",
-          bottom: 50,
-          right: -150,
+          bottom: 10,
+          right: -175,
           width: "300px",
           height: "300px",
           background: colors.white,
@@ -167,15 +182,26 @@ const BarChart = ({ data, keys, index, showLegend, hover, topicBreakdown }) => {
           }}>
 
             
-          <PieChart
-            data={topicBreakdown
-              .filter((item) => item.dept?.toLowerCase() === hoveredFaculty?.toLowerCase())
-              .map((item, index) => ({
+          <PieBox
+            title={pieTitle}
+            data={[
+              ...top5.map((item, index) => ({
                 id: item.query,
                 label: item.query,
                 value: item.unresolved,
                 color: pieColors[index % pieColors.length],
-              }))}
+              })),
+              ...(othersTotal > 0
+                ? [
+                    {
+                      id: "Others",
+                      label: "Others",
+                      value: othersTotal,
+                      color: tokens().gray[400],
+                    },
+                  ]
+                : []),
+            ]}
           />
         </div>
       )}
