@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Box } from "@mui/material";
 import { tokens } from "../theme";
 import DateFilter from "../components/DateFilter";
+import ExportButton from "../components/export/ExportButton";
 import Header from "../components/Header";
 import BarBox from "../components/bar/BarBox";
 import FeedbackBox from "../components/feedback/FeedbackBox";
@@ -75,6 +76,7 @@ const Dashboard = () => {
         }
         return acc;
       }, []);
+
       setFacultySummary(facultySummary);
 
       // Format user queries over time data for LineBox with null checks
@@ -161,6 +163,9 @@ const Dashboard = () => {
               onDateChange={handleDateChange}
             />
           </Box>
+          
+          {/* EXPORT BUTTON */}
+          <ExportButton> </ExportButton>
         </Box>
       </Box>
 

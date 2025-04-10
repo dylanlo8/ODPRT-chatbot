@@ -6,6 +6,7 @@ import PieBox from "../pie/PieBox"; // Ensure this path is correct
 const BarChart = ({ data, keys, index, showLegend, pieTitle, hover, topicBreakdown }) => {
   const colors = tokens();
   const [hoveredFaculty, setHoveredFaculty] = useState(null);
+  const [tooltip, setTooltip] = useState(null);
   const pieColors = [
     colors.indigo[500],
     colors.gray[500],
@@ -14,7 +15,7 @@ const BarChart = ({ data, keys, index, showLegend, pieTitle, hover, topicBreakdo
     colors.indigo[400],
   ];
 
-  // Obtain the maximum bar plot value
+  // Obtain the maximum y-axis bar plot value
   const maxY = Math.max(
     ...data.map((d) => Math.max(...keys.map((key) => d[key] ?? 0)))
   );
@@ -103,23 +104,38 @@ const BarChart = ({ data, keys, index, showLegend, pieTitle, hover, topicBreakdo
           tickPadding: 5,
           tickRotation: 0,
           legendOffset: 32,
+
           renderTick: (tick) => {
             const value = tick.value ?? "";
-            const displayValue =
-              value.length > 10 ? value.slice(0, 10) + "…" : value;
+            const displayValue = value.length > 10 ? `${value.slice(0, 10)}…` : value;
+          
             return (
-              <g transform={`translate(${tick.x},${tick.y + 10})`}>
+              <g
+                transform={`translate(${tick.x},${tick.y + 10})`}
+                onMouseEnter={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setTooltip({
+                    x: rect.left + rect.width / 2,
+                    y: rect.top,
+                    value,
+                  });
+                }}
+                onMouseLeave={() => setTooltip(null)}
+              >
                 <text
                   textAnchor="middle"
                   dominantBaseline="central"
-                  style={{ fill: colors.text, fontSize: 11 }}
+                  style={{
+                    fill: colors.text,
+                    fontSize: 9,
+                    cursor: "default",
+                  }}
                 >
-                  <title>{value}</title>
                   {displayValue}
                 </text>
               </g>
             );
-          },
+          }  
         }}
         axisLeft={{
           tickSize: 0,
@@ -164,6 +180,27 @@ const BarChart = ({ data, keys, index, showLegend, pieTitle, hover, topicBreakdo
           e.id + ": " + e.formattedValue + " in faculty: " + e.indexValue
         }
       />
+
+      {tooltip && (
+        <div
+          style={{
+            position: "fixed",
+            left: tooltip.x,
+            top: tooltip.y - 30,
+            background: colors.white,
+            color: colors.text,
+            padding: "6px 10px",
+            borderRadius: "6px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            fontSize: "12px",
+            pointerEvents: "none",
+            whiteSpace: "nowrap",
+            zIndex: 9999,
+          }}
+        >
+          {tooltip.value}
+        </div>
+      )}
 
       {hover && hoveredFaculty && (
         <div
