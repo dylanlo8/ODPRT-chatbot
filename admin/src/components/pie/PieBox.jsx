@@ -3,38 +3,29 @@ import { tokens } from "../../theme";
 
 import PieChart from "./PieChart";
 
-const PieBox = ({ title, figure, data }) => {
+const PieBox = ({ title, data }) => {
   const colors = tokens();
 
   return (
     <Box width="100%">
  
-        <Box ml="30px">
+        <Box justifyContent={"center"}>
           {/* TITLE */}
-            <Box display="flex" justifyContent="space-between">
+          <Box display="flex" justifyContent="center" mb="10px">
             <Typography
-                variant="h5"
-                fontWeight="600"
-                sx={{ color: colors.text }}
+            variant="h6"
+            fontWeight="600"
+            sx={{ color: colors.text }}
             >
                 {title}
-            </Typography>
+                </Typography>
         </Box>
 
-        {/* FIGURE */}
-        <Box display="flex" justifyContent="space-between" mt="2px">
-            <Box my="5px">
-            <Typography variant="h3" 
-            fontWeight="bold"
-            sx={{ color: colors.text }}>
-                {figure}
-            </Typography>
-            </Box>
-        </Box>
+        
         </Box>
 
         {/* PIE CHART */}
-        <Box height="152px" >
+        <Box height="200px" >
             <PieChart data={data}/>
         </Box>
 

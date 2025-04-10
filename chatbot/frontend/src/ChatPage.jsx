@@ -16,20 +16,59 @@ import "./ChatPage.css";
  */
 const API_SERVICE = "http://localhost:8000";
 
+// Add this flag to track UUID creation
+let isCreatingUser = false;
+
 /**
  * Retrieves or generates a unique user identifier (UUID) stored in localStorage.
  * 
  * @returns {string} The user's UUID.
  */
-const getUserUUID = () => {
+const getUserUUID = async () => {
   let userUUID = localStorage.getItem("userUUID");
-  if (!userUUID) {
-    userUUID = uuidv4();
-    localStorage.setItem("userUUID", userUUID);
-  }
-  return userUUID;
-};
 
+  // If UUID exists in localStorage, verify it in the database
+  if (userUUID) {
+    try {
+      const response = await fetch(`${API_SERVICE}/users/${userUUID}`);
+      const data = await response.json();
+      
+      if (data.exists) {
+        return userUUID; // User exists, return the existing UUID
+      }
+      // User doesn't exist in database, will create a new one below
+    } catch (error) {
+      console.error("Error checking user UUID:", error);
+      // Continue to create a new UUID on error
+    }
+  }
+
+  // Create a new UUID if:
+  // 1. No UUID in localStorage, OR
+  // 2. UUID in localStorage but not in database
+  userUUID = uuidv4();
+  try {
+    const createResponse = await fetch(`${API_SERVICE}/users/create`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        uuid: userUUID,
+        faculty: "default_faculty", // Replace with actual faculty if available
+      }),
+    });
+
+    if (createResponse.ok) {
+      localStorage.setItem("userUUID", userUUID);
+      return userUUID;
+    } else {
+      console.error("Failed to create user:", await createResponse.json());
+      return null;
+    }
+  } catch (error) {
+    console.error("Error creating user UUID:", error);
+    return null;
+  }
+};
 
 /**
  * Fetches the list of user conversations from the backend.
@@ -159,7 +198,69 @@ const updateTopic = async (conversationId, topic) => {
  * Main ChatPage component that renders the chatbot interface, chat history, and feedback form.
  */
 const ChatPage = () => {
-  const userUUID = getUserUUID();
+  const [userUUID, setUserUUID] = useState(null); // State to store the UUID
+  const [showRegistration, setShowRegistration] = useState(false);
+  const [faculty, setFaculty] = useState("default_faculty");
+
+  useEffect(() => {
+    const checkExistingUser = async () => {
+      const storedUUID = localStorage.getItem("userUUID");
+      
+      if (storedUUID) {
+        try {
+          const response = await fetch(`${API_SERVICE}/users/${storedUUID}`);
+          const data = await response.json();
+          
+          if (data.exists) {
+            setUserUUID(storedUUID);
+            return;
+          }
+        } catch (error) {
+          console.error("Error checking stored UUID:", error);
+        }
+      }
+      
+      // No valid UUID found, show registration form
+      setShowRegistration(true);
+    };
+    
+    checkExistingUser();
+  }, []);
+
+  // Handle form submission to create new user
+  const handleRegistration = async (e) => {
+    e.preventDefault();
+    
+    if (isCreatingUser) return; // Prevent duplicate submissions
+    isCreatingUser = true;
+    
+    try {
+      const newUUID = uuidv4();
+      const createResponse = await fetch(`${API_SERVICE}/users/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uuid: newUUID,
+          faculty: faculty,
+        }),
+      });
+
+      if (createResponse.ok) {
+        localStorage.setItem("userUUID", newUUID);
+        setUserUUID(newUUID);
+        setShowRegistration(false);
+      } else {
+        console.error("Failed to create user:", await createResponse.json());
+        alert("Failed to create user. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error creating user:", error);
+      alert("An error occurred during registration. Please try again.");
+    } finally {
+      isCreatingUser = false;
+    }
+  };
+
   const [messages, setMessages] = useState([]);
   const [chatHistory, setChatHistory] = useState([]);
   const [currentChatId, setCurrentChatId] = useState(null);
@@ -196,12 +297,14 @@ const ChatPage = () => {
   }, [messages])
 
   useEffect(() => {
-    const loadUserConversations = async () => {
-    const conversations = await fetchUserConversations(userUUID);
-      setChatHistory(conversations);
-    };
-    loadUserConversations();
-  }, [userUUID]);
+    if (userUUID) {
+      const loadUserConversations = async () => {
+        const conversations = await fetchUserConversations(userUUID);
+        setChatHistory(conversations);
+      };
+      loadUserConversations();
+    }
+  }, [userUUID]); // Dependency array ensures this runs when userUUID changes
 
   useEffect(() => {
     console.log("messages ", messages)
@@ -234,12 +337,10 @@ const ChatPage = () => {
    */
   const handleUpdateMessageFeedback = (messageId, feedback) => {
     setMessages((prevMessages) => {
-      const updatedMessages = prevMessages.map(innerArray =>
-        innerArray.map(msg =>
-          msg.message_id === messageId ? { ...msg, is_useful: feedback } : msg
-        )
+      const updatedMessages = prevMessages.map((msg) =>
+        msg.message_id === messageId ? { ...msg, is_useful: feedback } : msg
       );
-      return [...updatedMessages]; 
+      return updatedMessages; // Return the updated flat array
     });
   };
   
@@ -406,6 +507,33 @@ const ChatPage = () => {
     };
   }, [showFeedback]);
   
+  if (showRegistration) {
+    return (
+      <div className="registration-container">
+        <h2>Welcome to ODPRT Chatbot</h2>
+        <form onSubmit={handleRegistration}>
+          <div className="form-group">
+            <label htmlFor="faculty">Select your faculty:</label>
+            <select 
+              id="faculty" 
+              value={faculty} 
+              onChange={(e) => setFaculty(e.target.value)}
+              required
+            >
+              <option value="default_faculty">Select Faculty</option>
+              <option value="science">Faculty of Science</option>
+              <option value="arts">Faculty of Arts</option>
+              <option value="engineering">Faculty of Engineering</option>
+              {/* Add more options as needed */}
+            </select>
+          </div>
+          <button type="submit" className="submit-button">
+            Start Chatting
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="chat-page">

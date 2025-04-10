@@ -1,13 +1,52 @@
 import os
 import logging
 from supabase import create_client, Client
+from uuid import uuid4
 from datetime import datetime
 
 url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
 
-# Bulk Insertion of Messages
+# Checks if  auser exists in the database
+def check_user_exists(uuid: str) -> dict:
+    """
+    Check if a user exists in the database.
+
+    Args:
+        uuid (str): The UUID of the user.
+
+    Returns:
+        dict: API response indicating whether the user exists.
+    """
+    try:
+        response = supabase.table("users").select("*").eq("user_id", uuid).execute()
+        if response.data:
+            return {"exists": True}
+        else:
+            return {"exists": False}
+    except Exception as exception:
+        logging.error(f"Error checking user existence: {exception}")
+        return {"error": str(exception)}
+
+# Insert a new user
+def insert_user(uuid: str, faculty: str) -> dict:
+    """
+    Insert a new user into the users table.
+
+    Args:
+        uuid (str): The name of the user.
+
+    Returns:
+        dict: API response after inserting the user.
+    """
+    try:
+        response = supabase.table("users").insert([{"user_id": uuid, "faculty": faculty}]).execute()
+        return response
+    except Exception as exception:
+        logging.error(f"Error inserting user: {exception}")
+        return {"error": str(exception)}
+    
 def insert_message(message: dict) -> dict:
     """
     Bulk Insertion of Messages

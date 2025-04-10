@@ -24,9 +24,6 @@ const ThumbsBox = ({upFigure, downFigure, upMessages, downMessages}) => {
               <Thumbs figure={upFigure} isThumbsUp={true} />
             </Box>
             <Messages msgInput={upMessages}/>
-            {/* <Box minHeight="36px" >
-              <Messages msgInput={upMessages}/>
-            </Box> */}
             
           </Box>
 
@@ -36,9 +33,6 @@ const ThumbsBox = ({upFigure, downFigure, upMessages, downMessages}) => {
               <Thumbs figure={downFigure} isThumbsUp={false} />
             </Box>
             <Messages msgInput={downMessages}/>
-            {/* <Box minHeight="36px" >
-              <Messages msgInput={downMessages}/>
-            </Box>             */}
 
           </Box>
         </Box>

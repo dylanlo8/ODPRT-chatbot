@@ -35,11 +35,37 @@ users_router = APIRouter(prefix="/users", tags=["Users"])
 dashboard_router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 ################################
+# Pydantic Models
+################################
+class CreateUser(BaseModel):
+    uuid: str
+    faculty: str
+
+################################
 # Users Routes
 ################################
+@users_router.post("/create")
+def create_user_route(user: CreateUser):
+    """
+    Create a new user in the users table.
+
+    Args:
+        user (CreateUser): The user details including UUID and faculty.
+
+    Returns:
+        dict: API response after creating the user.
+    """
+    response = insert_user(user.uuid, user.faculty)
+    return response
+
 @users_router.get("/{user_id}/conversations")
 def get_user_conversations_route(user_id: str):
     response = get_user_conversations(user_id)
+    return response
+
+@users_router.get("/{user_id}")
+def check_user_exists_route(user_id: str):
+    response = check_user_exists(user_id)
     return response
 
 ################################
