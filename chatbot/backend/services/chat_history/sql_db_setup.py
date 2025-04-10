@@ -1,4 +1,17 @@
-create_table_sql_query = """
+"""
+If you do not have Supabase already set up,
+This module contains SQL queries and functions that need to be executed in the Supabase SQL Editor.
+
+Instructions:
+1. Open the Supabase Dashboard and navigate to your project.
+2. Go to the "SQL Editor" section in the dashboard.
+3. Copy the SQL script from this file below and paste it into the SQL Editor.
+4. Click "Run" to execute the script and create the necessary tables and functions.
+
+Note: Verify the changes in the "Table Editor" and "Functions" sections after execution.
+"""
+
+SUPABASE_DB_SQL_QUERY_SETUP = """
 CREATE TABLE conversations (
     conversation_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
@@ -84,20 +97,25 @@ BEGIN
         'user_queries_over_time', (
             SELECT json_agg(q)
             FROM (
-                SELECT DATE_TRUNC('day', created_at) AS date, COUNT(*) AS total
-                FROM messages
-                WHERE sender = 'user' AND created_at BETWEEN start_date AND end_date
-                GROUP BY date
-                ORDER BY date
+                SELECT d::DATE AS date, COALESCE(COUNT(m.message_id), 0) AS total
+                FROM generate_series(start_date::DATE, end_date::DATE, '1 day') d
+                LEFT JOIN messages m ON DATE_TRUNC('day', m.created_at) = d AND m.sender = 'user'
+                GROUP BY d
+                ORDER BY d
             ) AS q
         ),
         'top_unresolved_topics', (
             SELECT json_agg(u)
             FROM (
-                SELECT topic, COUNT(*) AS unresolved_count
-                FROM conversations
-                WHERE intervention_required = TRUE AND created_at BETWEEN start_date AND end_date
-                GROUP BY topic
+                SELECT 
+                    u.faculty,
+                    c.topic, 
+                    COUNT(*) AS unresolved_count
+                FROM conversations c
+                JOIN users u ON c.user_id = u.user_id
+                WHERE c.intervention_required = TRUE
+                  AND c.created_at BETWEEN start_date AND end_date
+                GROUP BY u.faculty, c.topic
                 ORDER BY unresolved_count DESC
                 LIMIT 10
             ) AS u
@@ -105,11 +123,14 @@ BEGIN
         'user_experience_over_time', (
             SELECT json_agg(r)
             FROM (
-                SELECT DATE_TRUNC('day', updated_at) AS date, ROUND(AVG(rating), 2) AS avg_rating
-                FROM conversations
-                WHERE rating IS NOT NULL AND created_at BETWEEN start_date AND end_date
-                GROUP BY date
-                ORDER BY date
+                SELECT d::DATE AS date, ROUND(AVG(c.rating), 2) AS avg_rating
+                FROM generate_series(start_date::DATE, end_date::DATE, '1 day') d
+                LEFT JOIN conversations c 
+                    ON DATE_TRUNC('day', c.updated_at) = d 
+                    AND c.rating IS NOT NULL 
+                    AND c.created_at BETWEEN start_date AND end_date
+                GROUP BY d
+                ORDER BY d
             ) AS r
         ),
         'total_feedbacks', (
@@ -162,5 +183,4 @@ BEGIN
     RETURN result;
 END;
 $$;
-
 """
