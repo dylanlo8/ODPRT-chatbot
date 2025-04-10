@@ -12,27 +12,29 @@ import ThumbsBox from "../components/thumbs/ThumbsBox";
 import TotalUsers from "../components/TotalUsers";
 import { fetchDashboardData } from "../api/DashboardApi"; // Import the API function
 
+// Helper function to get default date range (1 month ago to today)
+const getDefaultDateRange = () => {
+  const today = new Date();
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(today.getMonth() - 1);
+  
+  return {
+    from: oneMonthAgo.toISOString().split("T")[0], // Format as YYYY-MM-DD
+    to: today.toISOString().split("T")[0],
+  };
+};
+
 const Dashboard = () => {
   const colors = tokens();
   const [facultySummary, setFacultySummary] = useState([]);
 
-  // Calculate default date range (past 3 months to today)
-  const today = new Date();
-  const threeMonthsAgo = new Date();
-  threeMonthsAgo.setMonth(today.getMonth() - 3);
-
-  const defaultDateRange = {
-    from: threeMonthsAgo.toISOString().split("T")[0], // Format as YYYY-MM-DD
-    to: today.toISOString().split("T")[0],
-  };
-
   // State to manage date filter and dashboard data
-  const [dateRange, setDateRange] = useState(defaultDateRange);
+  const [dateRange, setDateRange] = useState(getDefaultDateRange());
   const [data, setData] = useState({
     intervention: [],
     commonQueries: [],
     userQueries: [],
-    unresolvedQueries: [],
+    interventions: [],
     userExperience: [],
   });
   const [result, setResult] = useState(null);
@@ -46,32 +48,32 @@ const Dashboard = () => {
       // Format common queries data for BarBox with null checks
       const commonQueriesData = (result?.top_topics || []).map((item) => ({
         query: item.topic || "Unknown",
-        resolved:
+        no_intervention:
           (item.frequency || 0) -
-          ((result?.top_unresolved_topics || []).find((t) => t.topic === item.topic)?.unresolved_count || 0),
-        resolvedColor: tokens().gray[500],
-        unresolved: (result?.top_unresolved_topics || []).find((t) => t.topic === item.topic)?.unresolved_count || 0,
-        unresolvedColor: tokens().indigo[500],
+          ((result?.top_intervention_by_faculty || []).find((t) => t.topic === item.topic)?.intervention_count || 0),
+        no_interventionColor: tokens().gray[500],
+        intervention: (result?.top_intervention_by_faculty || []).find((t) => t.topic === item.topic)?.intervention_count || 0,
+        interventionColor: tokens().indigo[500],
       }));
 
-      // Format unresolved queries data for BarBox with null checks
-      const unresolvedQueriesData = (result?.top_unresolved_topics || []).map((item) => ({
+      // Format intervention queries data for BarBox with null checks
+      const interventionsData = (result?.top_intervention_by_faculty || []).map((item) => ({
         dept: item.faculty || "Unknown",
         query: item.topic || "Unknown",
-        unresolved: item.unresolved_count || 0,
-        unresolvedColor: tokens().indigo[500],
+        intervention: item.intervention_count || 0,
+        interventionColor: tokens().indigo[500],
       }));
 
-      // Format unresolved queries into faculty-level summary 
-      const facultySummary = unresolvedQueriesData.reduce((acc, item) => {
+      // Format intervention queries into faculty-level summary 
+      const facultySummary = interventionsData.reduce((acc, item) => {
         const existing = acc.find((entry) => entry.dept === item.dept);
         if (existing) {
-          existing.unresolved += item.unresolved;
+          existing.intervention += item.intervention;
         } else {
           acc.push({
             dept: item.dept,
-            unresolved: item.unresolved,
-            unresolvedColor: item.unresolvedColor,
+            intervention: item.intervention,
+            interventionColor: item.interventionColor,
           });
         }
         return acc;
@@ -109,7 +111,7 @@ const Dashboard = () => {
       setData({
         commonQueries: commonQueriesData,
         userQueries: userQueriesData,
-        unresolvedQueries: unresolvedQueriesData,
+        interventions: interventionsData,
         userExperience: userExperienceData,
       });
     } catch (err) {
@@ -118,7 +120,7 @@ const Dashboard = () => {
       setData({
         commonQueries: [],
         userQueries: [{ id: "queries", color: tokens().indigo[500], data: [] }],
-        unresolvedQueries: [],
+        interventions: [],
         userExperience: [{ id: "ratings", color: tokens().indigo[500], data: [] }],
       });
     }
@@ -126,16 +128,7 @@ const Dashboard = () => {
 
   // Fetch data on component mount with default date range
   useEffect(() => {
-    const today = new Date();
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(today.getMonth() - 3);
-
-    const defaultDateRange = {
-      from: threeMonthsAgo.toISOString().split("T")[0],
-      to: today.toISOString().split("T")[0],
-    };
-
-    fetchData(defaultDateRange);
+    fetchData(dateRange);
   }, []);
 
   // Function to handle date range changes
@@ -260,7 +253,7 @@ const Dashboard = () => {
           <BarBox
             title="Common Conversation Topics"
             data={data.commonQueries}
-            keys={["unresolved", "resolved"]}
+            keys={["intervention", "no_intervention"]}
             index="query"
             showLegend={true}
           />
@@ -291,14 +284,14 @@ const Dashboard = () => {
           border={`2px solid ${colors.gray[200]}`}
         >
           <BarBox
-            title="Intervened Topics by Faculty"
+            title="Interventions across Faculty"
             data={ facultySummary }
-            pieTitle="Title Case"
-            keys={["unresolved"]}
+            pieTitle="Breakdown by Topic"
+            keys={["intervention"]}
             index="dept"
             showLegend={false}
             hover={true}
-            topicBreakdown={data.unresolvedQueries || []}
+            topicBreakdown={data.interventions || []}
           />
         </Box>
 

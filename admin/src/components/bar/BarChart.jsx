@@ -39,15 +39,15 @@ const BarChart = ({ data, keys, index, showLegend, pieTitle, hover, topicBreakdo
     (item) => item.dept?.toLowerCase() === hoveredFaculty?.toLowerCase()
   );
   
-  // Sort by unresolved descending
-  const sorted = [...filtered].sort((a, b) => b.unresolved - a.unresolved);
+  // Sort by intervention descending
+  const sorted = [...filtered].sort((a, b) => b.intervention - a.intervention);
   
   // Take top 5
   const top5 = sorted.slice(0, 5);
   
   // Group "Others"
   const others = sorted.slice(5);
-  const othersTotal = others.reduce((sum, item) => sum + item.unresolved, 0);
+  const othersTotal = others.reduce((sum, item) => sum + item.intervention, 0);
 
   return (
     <div style={{ display: "flex", position: "relative", height: "100%" }}>
@@ -225,7 +225,7 @@ const BarChart = ({ data, keys, index, showLegend, pieTitle, hover, topicBreakdo
               ...top5.map((item, index) => ({
                 id: item.query,
                 label: item.query,
-                value: item.unresolved,
+                value: item.intervention,
                 color: pieColors[index % pieColors.length],
               })),
               ...(othersTotal > 0
