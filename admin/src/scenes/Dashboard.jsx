@@ -305,7 +305,7 @@ const Dashboard = () => {
           borderRadius="12px"
           border={`2px solid ${colors.gray[200]}`}
         >
-          <LineBox title="Average Rating Over Time" data={data.userExperience} showLegend={true} />
+          <LineBox title="Average Rating Over Time" data={data.userExperience} showLegend={false} />
         </Box>
       </Box>
     </Box>
