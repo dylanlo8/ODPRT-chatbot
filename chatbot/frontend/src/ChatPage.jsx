@@ -162,6 +162,7 @@ const generateChatTopic = async (chatId, messages) => {
 
     if (response.ok) {
       console.log("Generated topic:", data.topic);
+      await updateTopic(chatId, data.topic); // Update the topic in the backend
       return data.topic;
     } else {
       console.error("Error generating chat topic:", data);
@@ -270,34 +271,34 @@ const ChatPage = () => {
   const [showChatHistory, setShowChatHistory] = useState(true);
   const [showFeedback, setShowFeedback] = useState(false);
   const idleTimerRef = useRef(null); // initialize idle timer reference
-  const [topicTimer, setTopicTimer] = useState(null);
+  const [topic, setTopic] = useState(null); // State to store the chat topic
 
   /**
-   * Resets the timer for generating a chat topic. If the timer is already running, it clears it first.
-   */
-  const resetTopicTimer = () => {
-    if (topicTimer) {
-      clearTimeout(topicTimer);
+ * Generates a chat topic if:
+ * 1. No topic exists yet
+ * 2. The second message doesn't start with "sorry I am unable..."
+ * 3. The second message's sender is the bot
+ */
+const generateTopicIfNeeded = async () => {
+  // Check if topic needs to be generated
+  const shouldGenerateTopic = 
+    !topic && // 1. No topic exists
+    messages.length > 1 && // There is a second message
+    !messages[1].text.startsWith("sorry I am unable") && // 2. Doesn't start with apology
+    messages[1].sender === 'bot'; // 3. Sent by bot
+
+    console.log("Should generate topic:", shouldGenerateTopic);
+  if (shouldGenerateTopic) {
+    try {
+      const generatedTopic = await generateChatTopic(currentChatId, messages);
+      console.log("Generated topic:", generatedTopic);
+      setTopic(generatedTopic); // Update the topic state
+      await updateTopic(currentChatId, generatedTopic);
+    } catch (error) {
+      console.error("Failed to generate topic:", error);
     }
-  
-    setTopicTimer(
-      setTimeout(async () => {
-        if (currentChatId && messages.length > 0) {
-          const topic = await generateChatTopic(currentChatId, messages);
-          //testing
-          console.log("Generated topic:", topic);
-          await updateTopic(currentChatId, topic)
-        }
-      }, 60000) 
-    );
-  };
-  
-  useEffect(() => {
-    resetTopicTimer();
-    return () => {
-      if (topicTimer) clearTimeout(topicTimer);
-    };
-  }, [messages])
+  }
+};
 
   useEffect(() => {
     if (userUUID) {
@@ -310,7 +311,7 @@ const ChatPage = () => {
   }, [userUUID]); // Dependency array ensures this runs when userUUID changes
 
   useEffect(() => {
-    console.log("messages ", messages)
+    generateTopicIfNeeded();
   }, [messages])
 
   /**
