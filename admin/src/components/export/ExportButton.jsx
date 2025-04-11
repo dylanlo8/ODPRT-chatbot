@@ -1,17 +1,16 @@
 import { Button } from "@mui/material";
 import { tokens } from "../../theme";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import { exportDashboardDataToExcel } from "./Export"; 
 
 
-const ExportButton = () => {
+const ExportButton = ({ onClick }) => {
   const colors = tokens();
 
   return (
     <Button
       variant="contained"
       startIcon={<FileDownloadIcon />}
-      onClick={exportDashboardDataToExcel}
+      onClick={onClick}
       sx={{
         backgroundColor: colors.indigo[500],
         color: colors.white,
