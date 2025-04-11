@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Box } from "@mui/material";
 import { tokens } from "../theme";
 import DateFilter from "../components/DateFilter";
+import ExportButton from "../components/export/ExportButton";
 import Header from "../components/Header";
 import BarBox from "../components/bar/BarBox";
 import FeedbackBox from "../components/feedback/FeedbackBox";
@@ -10,28 +11,31 @@ import StatBox from "../components/StatBox";
 import ThumbsBox from "../components/thumbs/ThumbsBox";
 import TotalUsers from "../components/TotalUsers";
 import { fetchDashboardData } from "../api/DashboardApi"; // Import the API function
-import { downsample } from "../utils/DashboardUtils";
+import { exportDashboardDataToExcel } from "../components/export/Export";
+
+// Helper function to get default date range (1 month ago to today)
+const getDefaultDateRange = () => {
+  const today = new Date();
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(today.getMonth() - 1);
+  
+  return {
+    from: oneMonthAgo.toISOString().split("T")[0], // Format as YYYY-MM-DD
+    to: today.toISOString().split("T")[0],
+  };
+};
 
 const Dashboard = () => {
   const colors = tokens();
-
-  // Calculate default date range (past 3 months to today)
-  const today = new Date();
-  const threeMonthsAgo = new Date();
-  threeMonthsAgo.setMonth(today.getMonth() - 3);
-
-  const defaultDateRange = {
-    from: threeMonthsAgo.toISOString().split("T")[0], // Format as YYYY-MM-DD
-    to: today.toISOString().split("T")[0],
-  };
+  const [facultySummary, setFacultySummary] = useState([]);
 
   // State to manage date filter and dashboard data
-  const [dateRange, setDateRange] = useState(defaultDateRange);
+  const [dateRange, setDateRange] = useState(getDefaultDateRange());
   const [data, setData] = useState({
     intervention: [],
     commonQueries: [],
     userQueries: [],
-    unresolvedQueries: [],
+    interventions: [],
     userExperience: [],
   });
   const [result, setResult] = useState(null);
@@ -45,20 +49,38 @@ const Dashboard = () => {
       // Format common queries data for BarBox with null checks
       const commonQueriesData = (result?.top_topics || []).map((item) => ({
         query: item.topic || "Unknown",
-        resolved:
+        no_intervention:
           (item.frequency || 0) -
-          ((result?.top_unresolved_topics || []).find((t) => t.topic === item.topic)?.unresolved_count || 0),
-        resolvedColor: tokens().gray[500],
-        unresolved: (result?.top_unresolved_topics || []).find((t) => t.topic === item.topic)?.unresolved_count || 0,
-        unresolvedColor: tokens().indigo[500],
+          ((result?.top_intervention_by_faculty || []).find((t) => t.topic === item.topic)?.intervention_count || 0),
+        no_interventionColor: tokens().gray[500],
+        intervention: (result?.top_intervention_by_faculty || []).find((t) => t.topic === item.topic)?.intervention_count || 0,
+        interventionColor: tokens().indigo[500],
       }));
 
-      // Format unresolved queries data for BarBox with null checks
-      const unresolvedQueriesData = (result?.top_unresolved_topics || []).map((item) => ({
-        query: item.faculty || "Unknown",
-        unresolved: item.unresolved_count || 0,
-        unresolvedColor: tokens().indigo[500],
+      // Format intervention queries data for BarBox with null checks
+      const interventionsData = (result?.top_intervention_by_faculty || []).map((item) => ({
+        dept: item.faculty || "Unknown",
+        query: item.topic || "Unknown",
+        intervention: item.intervention_count || 0,
+        interventionColor: tokens().indigo[500],
       }));
+
+      // Format intervention queries into faculty-level summary 
+      const facultySummary = interventionsData.reduce((acc, item) => {
+        const existing = acc.find((entry) => entry.dept === item.dept);
+        if (existing) {
+          existing.intervention += item.intervention;
+        } else {
+          acc.push({
+            dept: item.dept,
+            intervention: item.intervention,
+            interventionColor: item.interventionColor,
+          });
+        }
+        return acc;
+      }, []);
+
+      setFacultySummary(facultySummary);
 
       // Format user queries over time data for LineBox with null checks
       const rawUserQueriesData = (result?.user_queries_over_time || []).map(item => ({
@@ -90,7 +112,7 @@ const Dashboard = () => {
       setData({
         commonQueries: commonQueriesData,
         userQueries: userQueriesData,
-        unresolvedQueries: unresolvedQueriesData,
+        interventions: interventionsData,
         userExperience: userExperienceData,
       });
     } catch (err) {
@@ -99,7 +121,7 @@ const Dashboard = () => {
       setData({
         commonQueries: [],
         userQueries: [{ id: "queries", color: tokens().indigo[500], data: [] }],
-        unresolvedQueries: [],
+        interventions: [],
         userExperience: [{ id: "ratings", color: tokens().indigo[500], data: [] }],
       });
     }
@@ -107,22 +129,22 @@ const Dashboard = () => {
 
   // Fetch data on component mount with default date range
   useEffect(() => {
-    const today = new Date();
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(today.getMonth() - 3);
-
-    const defaultDateRange = {
-      from: threeMonthsAgo.toISOString().split("T")[0],
-      to: today.toISOString().split("T")[0],
-    };
-
-    fetchData(defaultDateRange);
-  }, []);
+    fetchData(dateRange);
+  }, [dateRange]);
 
   // Function to handle date range changes
   const handleDateChange = (range) => {
     if (range.from && range.to) {
       fetchData(range); // Fetch data for the selected date range
+    }
+  };
+
+  // Function to handle export
+  const handleExport = () => {
+    if (result) {
+      exportDashboardDataToExcel(result); // Pass the result data to the export function
+    } else {
+      alert("No data available to export.");
     }
   };
 
@@ -134,7 +156,7 @@ const Dashboard = () => {
 
         <Box display="flex" gap={2} alignItems="center" mb="10px">
           {/* TOTAL USERS */}
-          <TotalUsers figure={result?.total_users || "XX"} />
+          <TotalUsers figure={result?.total_users || 0} />
 
           {/* DATE FILTER */}
           <Box display="flex" gap="10px">
@@ -144,6 +166,9 @@ const Dashboard = () => {
               onDateChange={handleDateChange}
             />
           </Box>
+          
+          {/* EXPORT BUTTON */}
+          <ExportButton onClick={handleExport} />
         </Box>
       </Box>
 
@@ -166,9 +191,9 @@ const Dashboard = () => {
         >
           <StatBox
             stats={[
-              { title: "Conversations Created", figure: result?.total_conversations || "XX" },
-              { title: "New Users", figure: result?.new_users_since_start || "XX" },
-              { title: "Interventions", figure: result?.intervention_count || "XX" },
+              { title: "Conversations Created", figure: result?.total_conversations || 0 },
+              { title: "New Users", figure: result?.new_users_since_start || 0 },
+              { title: "Interventions", figure: result?.intervention_count || 0 },
             ]}
           />
         </Box>
@@ -183,10 +208,10 @@ const Dashboard = () => {
           border={`2px solid ${colors.gray[200]}`}
         >
           <ThumbsBox
-            upFigure={result?.total_thumbs_up || "XX"}
-            upMessages={result?.recent_thumbs_up_messages?.map((msg) => msg.text) || ["XX"]}
-            downFigure={result?.total_thumbs_down || "XX"}
-            downMessages={result?.recent_thumbs_down_messages?.map((msg) => msg.text) || ["XX"]}
+            upFigure={result?.total_thumbs_up || 0}
+            upMessages={result?.recent_thumbs_up_messages?.map((msg) => msg.text) || ["No Records"]}
+            downFigure={result?.total_thumbs_down || 0}
+            downMessages={result?.recent_thumbs_down_messages?.map((msg) => msg.text) || ["No Records"]}
           />
         </Box>
 
@@ -202,8 +227,8 @@ const Dashboard = () => {
         >
           <StatBox
             stats={[
-              { title: "Avg Messages per Conversation", figure: result?.avg_messages_per_conversation || "XX" },
-              { title: "Average Rating per Conversation", figure: result?.avg_rating || "XX" },
+              { title: "Avg Messages per Conversation", figure: result?.avg_messages_per_conversation || 0 },
+              { title: "Average Rating per Conversation", figure: result?.avg_rating || 0 },
             ]}
           />
         </Box>
@@ -218,9 +243,9 @@ const Dashboard = () => {
           border={`2px solid ${colors.gray[200]}`}
         >
           <FeedbackBox
-            figure={result?.total_feedbacks || "XX"}
-            feedbacks={result?.recent_feedbacks?.map((fb) => fb.feedback) || ["XX"]}
-            dates={result?.recent_feedbacks?.map((fb) => new Date(fb.created_at).toLocaleDateString()) || ["XX"]}
+            figure={result?.total_feedbacks || 0}
+            feedbacks={result?.recent_feedbacks?.map((fb) => fb.feedback) || ["No Records Found"]}
+            dates={result?.recent_feedbacks?.map((fb) => new Date(fb.created_at).toLocaleDateString()) || ["-"]}
           />
         </Box>
 
@@ -236,9 +261,9 @@ const Dashboard = () => {
           border={`2px solid ${colors.gray[200]}`}
         >
           <BarBox
-            title="Top 10 Conversation Topics"
+            title="Common Conversation Topics"
             data={data.commonQueries}
-            keys={["unresolved", "resolved"]}
+            keys={["intervention", "no_intervention"]}
             index="query"
             showLegend={true}
           />
@@ -269,11 +294,14 @@ const Dashboard = () => {
           border={`2px solid ${colors.gray[200]}`}
         >
           <BarBox
-            title="Top 10 Conversation Topics requiring Intervention"
-            data={data.unresolvedQueries}
-            keys={["unresolved"]}
-            index="query"
+            title="Interventions across Faculty"
+            data={ facultySummary }
+            pieTitle="Breakdown by Topic"
+            keys={["intervention"]}
+            index="dept"
             showLegend={false}
+            hover={true}
+            topicBreakdown={data.interventions || []}
           />
         </Box>
 
@@ -287,7 +315,7 @@ const Dashboard = () => {
           borderRadius="12px"
           border={`2px solid ${colors.gray[200]}`}
         >
-          <LineBox title="Average Rating Over Time" data={data.userExperience} showLegend={true} />
+          <LineBox title="Average Rating Over Time" data={data.userExperience} showLegend={false} />
         </Box>
       </Box>
     </Box>
