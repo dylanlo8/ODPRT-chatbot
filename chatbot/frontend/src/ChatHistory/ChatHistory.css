@@ -68,9 +68,13 @@
   }
   
   .chat-item div {
-    color: #0056b3;
-    text-decoration: underline;
+    color: rgb(66, 66, 66);
     flex-grow: 1; 
+  }
+
+  .chat-item div:hover {
+    color: black;
+    text-decoration: underline;
   }
   
   .delete-btn {
@@ -78,7 +82,7 @@
     border: none;
     font-size: 1rem;
     cursor: pointer;
-    opacity: 0.5;
+    opacity: 0.7;
     transition: opacity 0.3s ease;
     color:gray;
     padding-left: 5px;
@@ -89,18 +93,22 @@
     border: none;
     font-size: 1rem;
     cursor: pointer;
-    opacity: 0.5;
+    opacity: 0.7;
     transition: opacity 0.3s ease;
-    color:gray;
+    color:#003882;
     padding-left: 5px;
   }
   
   .delete-btn:hover  {
     color:red;
+    opacity: 1;
   }
   
   .email-btn:hover  {
-    color:#003882;
+    opacity: 1;
   }
+
+  
+
   
   

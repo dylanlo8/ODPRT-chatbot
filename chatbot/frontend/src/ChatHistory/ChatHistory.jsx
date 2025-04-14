@@ -1,9 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFileExport, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faPlus, faTrash, faSpinner  } from "@fortawesome/free-solid-svg-icons";
 import "./ChatHistory.css";
 
 const ChatHistory = ({ chatHistory, onNewChat, onLoadChat, onDeleteChat, onExportChat }) => {
+  const [exportingChatId, setExportingChatId] = useState(null);
+
+  const handleExport = async (conversationId) => {
+    setExportingChatId(conversationId);
+    try {
+      await onExportChat(conversationId);
+    } finally {
+      setExportingChatId(null);
+    }
+  };
+
+
   // Group chats by created_at date
   const groupedChats = chatHistory.reduce((acc, chat) => {
     const chatDate = new Date(chat.created_at).toDateString();
@@ -47,10 +59,11 @@ const ChatHistory = ({ chatHistory, onNewChat, onLoadChat, onDeleteChat, onExpor
                         {chat.conversation_title}
                       </div>
                       <FontAwesomeIcon 
-                        className = "email-btn"
-                        icon = {faFileExport}
+                        className="email-btn"
+                        icon={exportingChatId === chat.conversation_id ? faSpinner : faEnvelope}
+                        spin={exportingChatId === chat.conversation_id}
                         title="Email Correspondent"
-                        onClick = {() => onExportChat(chat.conversation_id)}
+                        onClick={() => handleExport(chat.conversation_id)}
                       />
                       <FontAwesomeIcon
                         className="delete-btn"

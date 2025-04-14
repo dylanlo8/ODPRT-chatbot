@@ -254,13 +254,36 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConver
                       p(props) {
                         const { node, ...rest } = props;
                         return <p style={{ margin: '0' }} {...rest} />;
-                      }
+                      },
+                      li(props) {
+                        const { node, children, ...rest } = props;
+                        return (
+                          <li style={{ margin: '0' }} {...rest}>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              {children}
+                            </div>
+                          </li>
+                        );
+                      },
+                      ul(props) {
+                        const { node, ...rest } = props;
+                        return (
+                          <ul
+                            style={{
+                              listStyleType: 'disc',
+                              paddingInlineStart: '0rem',
+                              marginBlockStart: '0rem',
+                              marginBlockEnd: '0rem',
+                            }}
+                            {...rest}
+                          />
+                        );
+                      },
                     }}
                   >
                     {msg.text}
                   </ReactMarkdown>
                 </div>
-
                 {msg.sender === 'bot' && (
                   <div className="thumbs-buttons">
                     <button
@@ -306,7 +329,6 @@ const Chatbot = ({ messages, currentChatId, userUUID, onSendMessage, onNewConver
         <div
           className="input-box"
           contentEditable
-          placeholder={messages.length === 0 ? "Type your message..." : ""}
           onInput={(e) => setInputText(e.target.textContent)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {

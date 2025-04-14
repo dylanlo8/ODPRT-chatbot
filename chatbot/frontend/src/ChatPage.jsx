@@ -3,9 +3,9 @@
  * It manages user interactions, chat history, feedback, and communication with the backend API.
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { FaComment } from "react-icons/fa";
+import { HiOutlineAnnotation } from "react-icons/hi";
 import Chatbot from "./Chatbot/Chatbot";
 import ChatHistory from "./ChatHistory/ChatHistory";
 import FeedbackForm from "./FeedbackForm/FeedbackForm";
@@ -24,6 +24,8 @@ let isCreatingUser = false;
  * 
  * @returns {string} The user's UUID.
  */
+
+
 const getUserUUID = async () => {
   let userUUID = localStorage.getItem("userUUID");
 
@@ -160,6 +162,7 @@ const generateChatTopic = async (chatId, messages) => {
 
     if (response.ok) {
       console.log("Generated topic:", data.topic);
+      await updateTopic(chatId, data.topic); // Update the topic in the backend
       return data.topic;
     } else {
       console.error("Error generating chat topic:", data);
@@ -261,40 +264,41 @@ const ChatPage = () => {
     }
   };
 
+
   const [messages, setMessages] = useState([]);
   const [chatHistory, setChatHistory] = useState([]);
   const [currentChatId, setCurrentChatId] = useState(null);
   const [showChatHistory, setShowChatHistory] = useState(true);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [idleTimer, setIdleTimer] = useState(null);
-  const [topicTimer, setTopicTimer] = useState(null);
+  const idleTimerRef = useRef(null); // initialize idle timer reference
+  const [topic, setTopic] = useState(null); // State to store the chat topic
 
   /**
-   * Resets the timer for generating a chat topic. If the timer is already running, it clears it first.
-   */
-  const resetTopicTimer = () => {
-    if (topicTimer) {
-      clearTimeout(topicTimer);
+ * Generates a chat topic if:
+ * 1. No topic exists yet
+ * 2. The second message doesn't start with "sorry I am unable..."
+ * 3. The second message's sender is the bot
+ */
+const generateTopicIfNeeded = async () => {
+  // Check if topic needs to be generated
+  const shouldGenerateTopic = 
+    !topic && // 1. No topic exists
+    messages.length > 1 && // There is a second message
+    !messages[1].text.startsWith("sorry I am unable") && // 2. Doesn't start with apology
+    messages[1].sender === 'bot'; // 3. Sent by bot
+
+    console.log("Should generate topic:", shouldGenerateTopic);
+  if (shouldGenerateTopic) {
+    try {
+      const generatedTopic = await generateChatTopic(currentChatId, messages);
+      console.log("Generated topic:", generatedTopic);
+      setTopic(generatedTopic); // Update the topic state
+      await updateTopic(currentChatId, generatedTopic);
+    } catch (error) {
+      console.error("Failed to generate topic:", error);
     }
-  
-    setTopicTimer(
-      setTimeout(async () => {
-        if (currentChatId && messages.length > 0) {
-          const topic = await generateChatTopic(currentChatId, messages);
-          //testing
-          console.log("Generated topic:", topic);
-          await updateTopic(currentChatId, topic)
-        }
-      }, 60000) 
-    );
-  };
-  
-  useEffect(() => {
-    resetTopicTimer();
-    return () => {
-      if (topicTimer) clearTimeout(topicTimer);
-    };
-  }, [messages])
+  }
+};
 
   useEffect(() => {
     if (userUUID) {
@@ -307,7 +311,7 @@ const ChatPage = () => {
   }, [userUUID]); // Dependency array ensures this runs when userUUID changes
 
   useEffect(() => {
-    console.log("messages ", messages)
+    generateTopicIfNeeded();
   }, [messages])
 
   /**
@@ -378,26 +382,22 @@ const ChatPage = () => {
    * Handles the cancellation of the feedback form and resets the idle timer.
    */
   const handleFeedbackCancel = () => {
-    setShowFeedback(false); 
-    resetIdleTimer(); 
+    setShowFeedback(false); // hide the form
+    resetIdleTimer();       // and reset the timer
   };
   
   /**
    * Resets the idle timer. If the timer is already running, it clears it first.
    */
   const resetIdleTimer = () => {
-    if (idleTimer) {
-      clearTimeout(idleTimer); 
+    if (idleTimerRef.current) {
+      clearTimeout(idleTimerRef.current);
     }
-    setIdleTimer(
-      setTimeout(() => {
-        setShowFeedback(true); 
-      }, 300000) 
-    );
+
+    idleTimerRef.current = setTimeout(() => {
+      setShowFeedback(true); 
+    },  5 * 60 * 1000);
   };
-  useEffect(() => {
-    console.log("Updated chatHistory", chatHistory);
-  }, [chatHistory]);
 
   /**
    * Handles the creation of a new conversation by updating the chat history and resetting messages.
@@ -491,49 +491,103 @@ const ChatPage = () => {
 };
   
 
-  useEffect(() => {
-    resetIdleTimer();
-    window.addEventListener("mousemove", resetIdleTimer);
-    window.addEventListener("keydown", resetIdleTimer);
-    window.addEventListener("click", resetIdleTimer);
-    window.addEventListener("scroll", resetIdleTimer);
-  
-    return () => {
-      if (idleTimer) clearTimeout(idleTimer); // Cleanup the timer
-      window.removeEventListener("mousemove", resetIdleTimer);
-      window.removeEventListener("keydown", resetIdleTimer);
-      window.removeEventListener("click", resetIdleTimer);
-      window.removeEventListener("scroll", resetIdleTimer);
-    };
-  }, [showFeedback]);
-  
-  if (showRegistration) {
-    return (
-      <div className="registration-container">
-        <h2>Welcome to ODPRT Chatbot</h2>
-        <form onSubmit={handleRegistration}>
-          <div className="form-group">
-            <label htmlFor="faculty">Select your faculty:</label>
-            <select 
-              id="faculty" 
-              value={faculty} 
-              onChange={(e) => setFaculty(e.target.value)}
-              required
-            >
-              <option value="default_faculty">Select Faculty</option>
-              <option value="science">Faculty of Science</option>
-              <option value="arts">Faculty of Arts</option>
-              <option value="engineering">Faculty of Engineering</option>
-              {/* Add more options as needed */}
-            </select>
-          </div>
-          <button type="submit" className="submit-button">
-            Start Chatting
-          </button>
-        </form>
-      </div>
-    );
-  }
+useEffect(() => {
+  resetIdleTimer(); // initialize on mount
+
+  // add activity listeners
+  window.addEventListener("mousemove", resetIdleTimer);
+  window.addEventListener("keydown", resetIdleTimer);
+  window.addEventListener("click", resetIdleTimer);
+  window.addEventListener("scroll", resetIdleTimer);
+
+  return () => {
+    // cleanup on unmount
+    if (idleTimerRef.current) {
+      clearTimeout(idleTimerRef.current);
+    }
+    window.removeEventListener("mousemove", resetIdleTimer);
+    window.removeEventListener("keydown", resetIdleTimer);
+    window.removeEventListener("click", resetIdleTimer);
+    window.removeEventListener("scroll", resetIdleTimer);
+  };
+}, [showFeedback]);
+
+const faculties = [
+  "Arts & Social Sciences",
+  "Business",
+  "Computing",
+  "Continuing and Lifelong Education",
+  "Dentistry",
+  "Design & Engineering",
+  "Duke-NUS",
+  "Law",
+  "Medicine",
+  "Music",
+  "NUS College",
+  "NUS Graduate School",
+  "Public Health",
+  "Public Policy",
+  "Science",
+  "Yale-NUS"
+];
+
+//Render the registration form if showRegistration is true
+if (showRegistration) {
+  return (
+    <div className="registration-container" style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      height: "100vh",
+      textAlign: "center",
+      padding: "1rem"
+    }}>
+      <h2 style = {{color: "#003882"}}>Welcome to the ODPRT Chatbot</h2>
+      <p style={{ marginBottom: "1.5rem", fontSize: "1.1rem" }}>
+        Before we begin, kindly let us know which faculty you're from.
+      </p>
+      <form onSubmit={handleRegistration} style={{ width: "100%", maxWidth: "400px" }}>
+        <div className="form-group" style={{ marginBottom: "1rem" }}>
+          <label htmlFor="faculty" style={{ display: "block", marginBottom: "0.5rem" }}>
+            Select your faculty:
+          </label>
+          <select
+            id="faculty"
+            value={faculty}
+            onChange={(e) => setFaculty(e.target.value)}
+            required
+            style={{
+              width: "100%",
+              padding: "0.5rem",
+              fontSize: "1rem",
+              borderRadius: "4px",
+              border: "1px solid #ccc"
+            }}
+          >
+            <option value="">-- Select Faculty --</option>
+            {faculties.map((fac, index) => (
+              <option key={index} value={fac.toLowerCase().replace(/ & | /g, "_")}>
+                {fac}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button type="submit" className="submit-button" style={{
+          padding: "0.6rem 1.2rem",
+          fontSize: "1rem",
+          borderRadius: "6px",
+          border: "none",
+          backgroundColor: "#0055aa",
+          color: "white",
+          cursor: "pointer"
+        }}>
+          Start Chatting
+        </button>
+      </form>
+    </div>
+  );
+}
 
   return (
     <div className="chat-page">
@@ -553,7 +607,7 @@ const ChatPage = () => {
       {messages.length > 0 && (
         <button className="feedback-button" onClick={toggleFeedbackForm}>
           <span className="feedback-icon">
-            <FaComment size={18} />
+            <HiOutlineAnnotation size={18} />
           </span>
           <span className="feedback-label">Send Feedback</span>
         </button>
