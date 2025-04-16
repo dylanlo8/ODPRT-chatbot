@@ -38,18 +38,46 @@ Tech Stack and Cloud Services
 git clone https://github.com/dylanlo8/ODPRT-chatbot.git
 ```
 
-#### Chatbot: Backend - `Miniconda`
+#### Chatbot: Backend - `Virtual Environment`
+
+##### For MAC
 
 ```bash
-# make script executable
-chmod +x bootstrap.sh
+python -m venv .venv
 
-# run script
-./env/bootstrap.sh
+source .venv/bin/activate 
 
-# !! ACTIVATE whenever coding
-conda activate odprt
+cd env
+
+python install.py
 ```
+
+##### For WINDOWS
+
+Note: On some systems, you may need to change the execution policy for PowerShell to allow script execution:
+
+```bash
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+python -m venv .venv
+
+.venv\Scripts\activate
+
+cd env
+
+python install.py
+```
+
+#### Chatbot: Backend - `Supabase (Postgresql Database for Conversation Histories)`
+
+1. Copy the SQL Queries to create the Database from chatbot/backend/services/chat_history/sql_db_setup.py
+   
+2. Navigate to your Supabase Project SQL Editor, paste and run the queries.
+   
+<img width="1509" alt="image" src="https://github.com/user-attachments/assets/27158b1f-954f-48d2-9aa4-984fe86440fa" />
+
+4. You are all set! The Conversations Histories Database has been created!
+   
 
 #### Chatbot: Frontend - `npm`
 
@@ -67,7 +95,11 @@ npm run dev
 #### Admin Dashboard: Frontend - `npm`
 
 ```bash
-placeholder
+cd admin
+
+npm install
+
+npm start
 ```
 
 
@@ -78,7 +110,7 @@ placeholder
 ```shell
 ## for llms and vlms
 OPENAI_API_KEY=
-OPENAI_MODEL=
+OPENAI_MODEL="gpt-4o-mini"
 HYPERBOLIC_API_KEY=
 
 ## for databases
@@ -88,13 +120,32 @@ ZILLIS_TOKEN=
 
 # Bucket and Relational DB
 SUPABASE_TOKEN=
+SUPABASE_URL=
+SUPABASE_SERVICE_KEY=
 
 ```
 
-#### Setting up LLM models
+#### Getting your API Keys
 
 ##### OpenAI
 To get an OpenAI API key, you can follow the steps listed in this [article](https://medium.com/@lorenzozar/how-to-get-your-own-openai-api-key-f4d44e60c327). Thereafter, set `OPENAI_API_KEY` to the API key you just obtained and `OPENAI_MODEL` to the GPT model for your LLM (eg gpt-4o-mini).
+
+##### Supabase
+
+In your Supabase Console, navigate to Project Settings > Data API and copy the following information with reference to the image below.
+
+SUPABASE_URL= copy from url
+
+SUPABASE_TOKEN= copy the public token
+
+SUPABASE_SERVICE_KEY= copy from service role
+
+<img width="743" alt="image" src="https://github.com/user-attachments/assets/ba9c69aa-f91c-4d34-a0a9-910c74a36563" />
+
+##### Zillis Cloud
+Create a Cluster > Navigate to your Zillis Cloud Cluster and find the API Token.
+
+
 
 ## Running Locally
 
