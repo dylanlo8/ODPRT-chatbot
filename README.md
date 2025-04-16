@@ -131,6 +131,10 @@ SUPABASE_SERVICE_KEY=
 ##### OpenAI
 To get an OpenAI API key, you can follow the steps listed in this [article](https://medium.com/@lorenzozar/how-to-get-your-own-openai-api-key-f4d44e60c327). Thereafter, set `OPENAI_API_KEY` to the API key you just obtained and `OPENAI_MODEL` to the GPT model for your LLM (eg gpt-4o-mini).
 
+##### Hyperbolic
+
+Navigate to https://app.hyperbolic.xyz/settings and copy the API Key
+
 ##### Supabase
 
 In your Supabase Console, navigate to Project Settings > Data API and copy the following information with reference to the image below.
