@@ -135,6 +135,9 @@ To get an OpenAI API key, you can follow the steps listed in this [article](http
 
 Navigate to https://app.hyperbolic.xyz/settings and copy the API Key
 
+##### Zillis Cloud
+Create a Cluster > Navigate to your Zillis Cloud Cluster and find the API Token.
+
 ##### Supabase
 
 In your Supabase Console, navigate to Project Settings > Data API and copy the following information with reference to the image below.
@@ -146,9 +149,6 @@ SUPABASE_TOKEN= copy the public token
 SUPABASE_SERVICE_KEY= copy from service role
 
 <img width="743" alt="image" src="https://github.com/user-attachments/assets/ba9c69aa-f91c-4d34-a0a9-910c74a36563" />
-
-##### Zillis Cloud
-Create a Cluster > Navigate to your Zillis Cloud Cluster and find the API Token.
 
 
 
