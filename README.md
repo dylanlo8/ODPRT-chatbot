@@ -70,13 +70,14 @@ python install.py
 
 #### Chatbot: Backend - `Supabase (Postgresql Database for Conversation Histories)`
 
-1. Copy the SQL Queries to create the Database from chatbot/backend/services/chat_history/sql_db_setup.py
+1. Copy the SQL Queries to create the Database from
+```chatbot/backend/services/chat_history/sql_db_setup.py```
    
 2. Navigate to your Supabase Project SQL Editor, paste and run the queries.
    
 <img width="1509" alt="image" src="https://github.com/user-attachments/assets/27158b1f-954f-48d2-9aa4-984fe86440fa" />
 
-4. You are all set! The Conversations Histories Database has been created!
+3. You are all set! The Conversations Histories Database has been created!
    
 
 #### Chatbot: Frontend - `npm`
