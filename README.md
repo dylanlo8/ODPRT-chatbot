@@ -205,4 +205,4 @@ From the root directory, run the following command:
 *Page where dashboard will be hosted* 
 
 ![File Upload](./docs/images/file_upload.png)
-*Upload Files for Database Ingestion* 
+*Upload files for database ingestion* 
