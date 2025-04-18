@@ -11,7 +11,7 @@ const Messages = ({ msgInput }) => {
 
   return (
     <Box display="flex">
-      {/* Messages */}
+      {/* MESSAGES */}
       <Box>
         {top3.map((msg, index) => (
           <Typography
