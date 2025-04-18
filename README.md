@@ -199,6 +199,10 @@ From the root directory, run the following command:
 ![Feedback](placeholder)
 *Feedback modal pops up after user is done interacting with the chatbot*
 
-### Admin Dashboard
+### Admin 
 
-![Dashboard Landing Page](placeholder)
+![Dashboard Landing Page](./docs/images/dashboard.png)
+*Page where dashboard will be hosted* 
+
+![File Upload](./docs/images/file_upload.png)
+*Upload Files for Database Ingestion* 
