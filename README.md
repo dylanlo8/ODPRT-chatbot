@@ -191,7 +191,7 @@ From the root directory, run the following command:
 
 ### Chatbot
 
-![Landing Page](.docs/images/chatbot_facultyQn.png)
+![Landing Page](./docs/images/chatbot_facultyQn.png)
 *Page where chatbot will be hosted*
 
 
