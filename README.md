@@ -28,8 +28,9 @@ Scripting Languages:
 - Node.js 14.x or higher
 
 Tech Stack and Cloud Services
-- Milvus Vector DB: Zillis Cloud Account (FREE!)
-- Supabase account (FREE!)
+- Milvus Vector DB: Zillis Cloud Account (FREE!) https://zilliz.com/
+- Supabase account (FREE!) https://supabase.com/
+- Hyperbolic Account (FREE!) https://app.hyperbolic.xyz/?utm_source=homepage
 
 ### Installation
 
@@ -43,6 +44,10 @@ git clone https://github.com/dylanlo8/ODPRT-chatbot.git
 ##### For MAC
 
 ```bash
+brew install tesseract
+
+brew install poppler
+
 python -m venv .venv
 
 source .venv/bin/activate 
@@ -53,6 +58,12 @@ python install.py
 ```
 
 ##### For WINDOWS
+
+1. Installation of Poppler on Windows (Requires setting of environment variable)
+https://stackoverflow.com/questions/18381713/how-to-install-poppler-on-windows
+
+2. Intallation of Tesseract on Windows (Requires setting of environment variable)
+https://ironsoftware.com/csharp/ocr/blog/ocr-tools/install-tesseract/
 
 Note: On some systems, you may need to change the execution policy for PowerShell to allow script execution:
 
