@@ -191,23 +191,23 @@ From the root directory, run the following command:
 
 ### Chatbot
 
-![Landing Page](placeholder)
+![Landing Page](./docs/images/chabot_facultyQn.png)
 *Page where chatbot will be hosted*
 
 
-![Interface](placeholder)
+![Interface](./docs/images/chatbot_landingpage.png)
 *Interface of the chatbot*
 
 
-![Q&A](placeholder)
+![Q&A](./docs/images/chatbot_QnA.png)
 *Question and answer*
 
 
-![Email](placeholder)
+![Email](./docs/images/email_escalation.png)
 *Mailto link appears when user wants to email IEP department*
 
 
-![Feedback](placeholder)
+![Feedback](./docs/images/feedback_modal.png)
 *Feedback modal pops up after user is done interacting with the chatbot*
 
 ### Admin 
